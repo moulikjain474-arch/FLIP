@@ -20,7 +20,7 @@ def load(model_name, revision=None, device="cuda", dtype=torch.float16):
     tok = AutoTokenizer.from_pretrained(model_name, revision=revision)
     tok.padding_side = "left"            # the last prompt token is always at position -1
     if tok.pad_token is None:
-        tok.pad_token = tok.eos_token
+        tok.pad_token = tok.eos_token or "<|endoftext|>"
     # transformers >= 4.56 calls this argument `dtype`; older versions `torch_dtype`
     major, minor = (int(x) for x in transformers.__version__.split(".")[:2])
     dtype_kw = "dtype" if (major, minor) >= (4, 56) else "torch_dtype"

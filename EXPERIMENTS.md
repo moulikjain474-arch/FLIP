@@ -142,5 +142,49 @@ answer of a worked example), other.
     answer subspace (erase_dis hurt accuracy as much as erase_cor), so plant_dis could work
     through that overlap. plant_dis_orth plants only in the part that excludes the answer
     directions. C4 and C4b primary tests and thresholds are unchanged.
+- 1 Oct 2026, Exea test session (AMD MI300X, about one hour). All numbers are in
+  results/exea_2026-10-01/results.csv; figures from make_figs.py in the same folder.
+  - REGISTERED TESTS (decision rules as written above, unchanged):
+    - C4 (erase) at the 1.4B coin-flip checkpoints (steps 5000, 7000; depths 1-3; 300 test
+      items each): log p(correct) under erase_dis_orth vs the random mean went +0.048,
+      +0.006, -0.040, +0.038, +0.016, -0.006 (smallest p = 0.011). None survives Holm
+      across the six. C4 NOT SUPPORTED. At step 143000 the effect is negative (-0.02, -0.06,
+      -0.01).
+    - C4b (plant) at the same six checkpoints: planted-value answers under plant_dis were
+      0.48-0.79 vs 0.01-0.04 unedited, every p far below 0.001 and every rate above 0.1.
+      C4b SUPPORTED. Secondary: plant_dis_orth gave only 0.02-0.08 and plant_cor about as
+      much as plant_dis. Read together, the edited subspace holds the value the model is
+      about to output, shared across both chains, not a separate wrong-chain slot. The
+      paper states C4b in that weaker form.
+    - C5 (position) at the coin-flip checkpoints: picks_later 0.42-0.61 with correct-rate
+      gaps below 0.2, so NOT MET there. At step 143000: met for 1.4B depth 3 (0.34, gap
+      0.31) and 410M (0.66-0.69, gaps 0.31-0.33); not met for 6.9B (0.56-0.59, gaps 0.15).
+    - P1-P4 are not scored yet: they need full 6.9B / 12B sweeps.
+  - EXPLORATORY ANALYSES, all designed after seeing the registered results above and
+    reported as exploratory:
+    - Position preference (picks_later) at every 1000-4000 steps of 1.4B, and across
+      training for 410M, 1.4B-deduped, 6.9B and two 12B checkpoints. Main observation: the
+      preference swings between later-chain and first-chain repeatedly during training.
+    - Noise floor: 1.4B steps 5000/6000/7000 re-run on two new item sets (item seeds 1, 2).
+      Within-checkpoint SD 0.023; adjacent checkpoints differ by up to 0.31, and 61% of
+      adjacent pairs at depths 2-3 differ by more than 2 standard errors.
+    - No worked examples (shots 0) at 1.4B steps 7000, 32000, 143000.
+    - PolyPythia 410M seeds 1-9 at steps 32000 and 143000 (plus 8000 for seeds 1-4). The
+      depth-3 final preference ranges 0.31-0.69 across runs. Seed 4 at step 143000 is at
+      chance (0.10-0.17 correct) and is excluded as a suspected bad checkpoint.
+    - Single-layer plant (scope single) at layers 4-20, 1.4B steps 3000, 5000, 10000,
+      32000, 143000: planting is ignored at layers up to 10 and controls the answer from
+      layer 12-14 on, at every step.
+    - Order-swap test (swap_test.py, new): each question asked with the two chains in both
+      orders. The share of questions correct in exactly one order is 0.12-0.56 across
+      models and stages (12B: 0.41-0.49). Combining both orders raises 12B accuracy from
+      0.79 to 0.91 (depth 1).
+  - DATA INTEGRITY: the public EleutherAI/pythia-2.8b intermediate checkpoints load
+    identical weights (same fingerprint at steps 4000 and 143000; the same safetensors file
+    at steps 4000 and 32000; a .bin shared with pythia-2.8b-deduped). All 2.8B results are
+    excluded. The other models give different results at different steps.
+  - CODE: model_utils.load falls back to "<|endoftext|>" as the pad token when a tokenizer
+    has neither a pad nor an eos token (pythia-1.4b-deduped and pythia-2.8b checkpoints).
+    This changes nothing for the models that already loaded.
     Earlier note kept for the record: Feng & Steinhardt (ICLR 2024) and "Mixing Mechanisms"
     (arXiv 2510.06182) study binding in trained models, not across training.

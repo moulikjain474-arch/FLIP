@@ -3,6 +3,7 @@
   python sweep.py --model EleutherAI/pythia-410m --out runs/
   python sweep.py --model EleutherAI/pythia-160m-seed1 --out runs/
   python sweep.py --model EleutherAI/pythia-1.4b --steps 143000 --n 200 --out pilot/   # day-2 gate
+  python sweep.py ... --layout blocked --shots 5      # easier variable-tracking format
 
 One .npz per (model, checkpoint, item set, task). Files are written atomically
 and finished ones are skipped, so a crashed Colab session can simply be rerun.
@@ -39,21 +40,25 @@ def main():
     ap.add_argument("--revision-format", default="step{}")
     ap.add_argument("--n", type=int, default=600, help="items per task")
     ap.add_argument("--seed", type=int, default=0, help="item-generation seed")
+    ap.add_argument("--shots", type=int, default=2, help="worked examples per variable-tracking prompt")
+    ap.add_argument("--layout", choices=("interleaved", "blocked"), default="interleaved",
+                    help="variable-tracking chains shuffled together, or kept in blocks")
     ap.add_argument("--batch-size", type=int, default=32)
     ap.add_argument("--out", default="runs")
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     ap.add_argument("--keep-cache", action="store_true")
     args = ap.parse_args()
 
-    tasks = build_all(args.n, args.seed)
+    tasks = build_all(args.n, args.seed, shots=args.shots, layout=args.layout)
+    item_tag = iou.tag(args.seed, args.n, args.shots, args.layout)
     os.makedirs(args.out, exist_ok=True)
-    with open(iou.items_path(args.out, args.seed, args.n), "w") as f:
+    with open(iou.items_path(args.out, item_tag), "w") as f:
         json.dump(tasks, f)  # the exact items, for the data book and for errors.py
 
     dtype = torch.float16 if args.device == "cuda" else torch.float32
     for step in args.steps:
         rev = args.revision_format.format(step)
-        path = lambda t: iou.result_path(args.out, args.model, rev, args.seed, args.n, t)
+        path = lambda t: iou.result_path(args.out, args.model, rev, item_tag, t)
         todo = [t for t in tasks if not os.path.exists(path(t))]
         if not todo:
             print(f"[skip] {rev}: already done")

@@ -44,7 +44,10 @@ class Engine:
             raise SystemExit(f"no saved results for {model} / {task} in {runs!r}; run sweep.py first")
         self.steps = sorted(self.files)
         _, _, item_tag = self.files[self.steps[0]]
-        self.candidates = iou.load_items(runs, item_tag)[task][0]["candidates"]
+        first = iou.load_items(runs, item_tag)[task][0]
+        self.candidates = first["candidates"]
+        self.shots = first["meta"].get("shots", 2)             # reuse the sweep's prompt format
+        self.layout = first["meta"].get("layout", "interleaved")
         self.depth = int(task.rsplit("_d", 1)[1]) if "_d" in task else 1
         self._probes, self._loaded = {}, OrderedDict()
 
@@ -85,7 +88,7 @@ class Engine:
 
     def example(self, seed=None):
         """A fresh variable-tracking prompt (never seen by the probe) and its answer."""
-        item = make_vartrack(1, random.Random(seed), self.depth)[0]
+        item = make_vartrack(1, random.Random(seed), self.depth, self.shots, self.layout)[0]
         return item["prompt"], item["meta"]["answer"]
 
 

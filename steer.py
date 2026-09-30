@@ -29,6 +29,7 @@ import numpy as np
 import torch
 from scipy import stats
 
+import io_utils as iou
 import model_utils as mu
 from tasks import build_all
 
@@ -85,12 +86,15 @@ def main():
                     help="push size in units of the typical class-mean offset")
     ap.add_argument("--n", type=int, default=600)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--shots", type=int, default=2, help="must match the sweep")
+    ap.add_argument("--layout", choices=("interleaved", "blocked"), default="interleaved",
+                    help="must match the sweep")
     ap.add_argument("--batch-size", type=int, default=32)
     ap.add_argument("--out", default="steer_results")
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = ap.parse_args()
 
-    items = build_all(args.n, args.seed)[args.task]
+    items = build_all(args.n, args.seed, shots=args.shots, layout=args.layout)[args.task]
     train, test = split(items, args.seed)
     dtype = torch.float16 if args.device == "cuda" else torch.float32
     tok, model = mu.load(args.model, f"step{args.step}", args.device, dtype)
@@ -176,7 +180,8 @@ def main():
         wrong_vs_natural=dict(t=float(t_wrong.statistic), p=float(t_wrong.pvalue)),
     )
     os.makedirs(args.out, exist_ok=True)
-    name = (f"{args.model.replace('/', '__')}__step{args.step}__s{args.seed}n{args.n}__"
+    item_tag = iou.tag(args.seed, args.n, args.shots, args.layout)
+    name = (f"{args.model.replace('/', '__')}__step{args.step}__{item_tag}__"
             f"{args.task}__L{layer}__{args.scope}__a{args.alpha}.json")
     with open(os.path.join(args.out, name), "w") as f:
         json.dump(summary, f, indent=2)

@@ -44,9 +44,11 @@ def make_copy(n, rng, seq_len=12):
     return items
 
 
-def _vartrack_example(depth, rng):
-    """Two interleaved assignment chains (target + distractor) of equal depth,
-    with different start values. Returns (lines, query_var, answer_digit)."""
+def _vartrack_example(depth, rng, layout="interleaved"):
+    """Two assignment chains (target + distractor) of equal depth with different
+    start values. layout="interleaved": the chains' lines are shuffled together
+    (order kept within each chain); "blocked": each chain's lines stay together,
+    chains in random order. Returns (lines, query_var, answer, distractor)."""
     names = rng.sample(VAR_NAMES, 2 * (depth + 1))
     tgt, dis = names[: depth + 1], names[depth + 1:]
     v_t, v_d = rng.sample(DIGITS, 2)
@@ -55,18 +57,21 @@ def _vartrack_example(depth, rng):
         stmts = [f">>> {chain[0]} = {v}"]
         stmts += [f">>> {chain[i]} = {chain[i - 1]}" for i in range(1, depth + 1)]
         chains.append(stmts)
-    # random interleave that preserves order within each chain
+    if layout == "blocked":
+        rng.shuffle(chains)
+        return chains[0] + chains[1], tgt[-1], v_t, v_d
+    if layout != "interleaved":
+        raise ValueError(f"unknown layout {layout!r}")
     order = [0] * len(chains[0]) + [1] * len(chains[1])
     rng.shuffle(order)
-    idx = [0, 0]
-    lines = []
+    idx, lines = [0, 0], []
     for c in order:
         lines.append(chains[c][idx[c]])
         idx[c] += 1
     return lines, tgt[-1], v_t, v_d
 
 
-def make_vartrack(n, rng, depth, n_shots=2):
+def make_vartrack(n, rng, depth, n_shots=2, layout="interleaved"):
     """Multi-step reasoning with a built-in difficulty knob: to answer, the
     model must follow `depth` assignment hops, ignoring a distractor chain whose
     value also appears in the prompt (so 'pick a digit you saw' gets ~50%)."""
@@ -74,13 +79,14 @@ def make_vartrack(n, rng, depth, n_shots=2):
     for _ in range(n):
         blocks = []
         for _ in range(n_shots):
-            lines, q, ans, _ = _vartrack_example(depth, rng)
+            lines, q, ans, _ = _vartrack_example(depth, rng, layout)
             blocks.append("\n".join(lines + [f">>> {q}", ans]))
-        lines, q, ans, dis = _vartrack_example(depth, rng)
+        lines, q, ans, dis = _vartrack_example(depth, rng, layout)
         blocks.append("\n".join(lines + [f">>> {q}"]) + "\n")
         items.append(dict(task=f"vartrack_d{depth}", prompt="\n\n".join(blocks),
                           candidates=list(DIGITS), label=DIGITS.index(ans),
-                          meta=dict(depth=depth, answer=ans, distractor=dis)))
+                          meta=dict(depth=depth, answer=ans, distractor=dis,
+                                    shots=n_shots, layout=layout)))
     return items
 
 
@@ -104,13 +110,16 @@ def make_agreement(n, rng):
     return items
 
 
-def build_all(n_per_task=600, seed=0, depths=(1, 2, 3)):
-    """Fixed item set used for EVERY checkpoint (same seed -> same items)."""
+DEFAULT_SHOTS, DEFAULT_LAYOUT = 2, "interleaved"
+
+
+def build_all(n_per_task=600, seed=0, depths=(1, 2, 3), shots=DEFAULT_SHOTS, layout=DEFAULT_LAYOUT):
+    """Fixed item set used for EVERY checkpoint (same arguments -> same items)."""
     rng = random.Random(seed)
     tasks = {"copy": make_copy(n_per_task, rng),
              "agreement": make_agreement(n_per_task, rng)}
     for d in depths:
-        tasks[f"vartrack_d{d}"] = make_vartrack(n_per_task, rng, d)
+        tasks[f"vartrack_d{d}"] = make_vartrack(n_per_task, rng, d, shots, layout)
     return tasks
 
 

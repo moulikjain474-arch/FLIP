@@ -1,7 +1,9 @@
 """File naming shared by every script, so results can never mix item sets.
 
-Result file:  <model with / -> __>__<revision>__s<seed>n<n>__<task>.npz
-Items file:   items_s<seed>n<n>.json
+Result file:  <model with / -> __>__<revision>__<tag>__<task>.npz
+Items file:   items_<tag>.json
+tag = s<seed>n<n>, plus k<shots> and/or "blocked" when the variable-tracking
+format differs from the default (so different formats never mix).
 """
 import json
 import os
@@ -9,16 +11,21 @@ import os
 import numpy as np
 
 
-def tag(seed, n):
-    return f"s{seed}n{n}"
+def tag(seed, n, shots=2, layout="interleaved"):
+    t = f"s{seed}n{n}"
+    if shots != 2:
+        t += f"k{shots}"
+    if layout != "interleaved":
+        t += layout
+    return t
 
 
-def items_path(runs, seed, n):
-    return os.path.join(runs, f"items_{tag(seed, n)}.json")
+def items_path(runs, item_tag):
+    return os.path.join(runs, f"items_{item_tag}.json")
 
 
-def result_path(runs, model, revision, seed, n, task):
-    return os.path.join(runs, f"{model.replace('/', '__')}__{revision}__{tag(seed, n)}__{task}.npz")
+def result_path(runs, model, revision, item_tag, task):
+    return os.path.join(runs, f"{model.replace('/', '__')}__{revision}__{item_tag}__{task}.npz")
 
 
 def parse_result_name(path):

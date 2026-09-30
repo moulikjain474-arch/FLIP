@@ -41,20 +41,25 @@ DISTRACTOR_KEYS = ("distractor_label", "distractor_idx", "distractor_index",
 
 
 def distractor_index(it, key=None):
-    """Index (into it['candidates']) of the distractor chain's value."""
+    """Index (into it['candidates']) of the distractor chain's value.
+
+    tasks.py stores it as it['meta']['distractor'] (the value as a string, e.g. '4');
+    top-level fields are checked too, for other item formats."""
     keys = (key,) if key else DISTRACTOR_KEYS
-    for k in keys:
-        if k not in it:
-            continue
-        v = it[k]
-        cands = [str(c).strip() for c in it["candidates"]]
-        if str(v).strip() in cands and not k.endswith(("label", "idx", "index")):
-            return cands.index(str(v).strip())
-        if isinstance(v, (int, np.integer)) and 0 <= int(v) < len(cands):
-            return int(v)
-        if str(v).strip() in cands:
-            return cands.index(str(v).strip())
-    raise KeyError(f"no usable distractor field; item keys are {sorted(it)}. "
+    cands = [str(c).strip() for c in it["candidates"]]
+    for source in (it.get("meta") or {}, it):
+        for k in keys:
+            if k not in source:
+                continue
+            v = source[k]
+            if str(v).strip() in cands and not k.endswith(("label", "idx", "index")):
+                return cands.index(str(v).strip())
+            if isinstance(v, (int, np.integer)) and 0 <= int(v) < len(cands):
+                return int(v)
+            if str(v).strip() in cands:
+                return cands.index(str(v).strip())
+    raise KeyError(f"no usable distractor field; item keys are {sorted(it)}, "
+                   f"meta keys are {sorted(it.get('meta') or {})}. "
                    f"Pass --distractor-key with the right one.")
 
 

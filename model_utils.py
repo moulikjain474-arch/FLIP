@@ -5,9 +5,11 @@ block l, read at the LAST prompt token. Reading and steering use the same hook
 point, so probes and interventions refer to exactly the same vector.
 """
 import contextlib
+import re
 
 import torch
 import transformers
+from huggingface_hub import list_repo_refs
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 TOKENS_PER_STEP = 2_097_152  # Pythia: 1024 sequences x 2048 tokens per optimizer step
@@ -25,6 +27,30 @@ def load(model_name, revision=None, device="cuda", dtype=torch.float16):
     model = AutoModelForCausalLM.from_pretrained(model_name, revision=revision, **{dtype_kw: dtype})
     model.to(device).eval()
     return tok, model
+
+
+def nearest_revisions(model_name, fractions):
+    """Map fractions of training (0..1) to the nearest real pretraining branch.
+
+    Returns [(fraction, step, revision_name), ...]. Duplicates are dropped, so
+    early fractions may collapse if the repo has no early checkpoints.
+    """
+    pool = {}
+    for b in list_repo_refs(model_name).branches:
+        if b.name.startswith("stage2"):
+            continue
+        m = re.match(r"^(?:stage1-)?step(\d+)(?:-tokens(\d+)B)?$", b.name)
+        if m:
+            pool[int(m.group(1))] = b.name
+    steps = sorted(pool)
+    last = steps[-1]
+    out, seen = [], set()
+    for f in fractions:
+        s = min(steps, key=lambda x: abs(x - f * last))
+        if s not in seen:
+            seen.add(s)
+            out.append((f, s, pool[s]))
+    return out
 
 
 def get_layers(model):

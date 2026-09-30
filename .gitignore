@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+runs/
+pilot/
+figs/
+steer_results/
+*.npz
+results.csv
+.env

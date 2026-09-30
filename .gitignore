@@ -8,3 +8,4 @@ steer_results/
 *.npz
 results.csv
 .env
+.DS_Store

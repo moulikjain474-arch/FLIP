@@ -1,7 +1,9 @@
 """Causal test: does the model USE what the probe finds?
 
-Run it at one checkpoint BEFORE behavior appears and one AFTER. If the probe's
-information is not yet used, erasing it should cost ~nothing early and a lot late.
+Run it at checkpoints before and after behavior appears. Before onset, accuracy
+is near chance, so read the log p(correct) numbers, not accuracy: a drop in
+log p(correct) under suppress (beyond the random control) means the model is
+already using sub-threshold task information.
 
 Conditions (last-token residual stream). Erasure is applied at the main layer
 AND every later layer, each with its own subspace, so later layers cannot simply
@@ -9,17 +11,22 @@ re-read the information (--scope single: main layer only). Pushes are applied
 once, at the main layer:
   natural          no edit
   suppress         erase the task subspace: set its coordinates to their mean   (PRIMARY)
-  random_suppress  the same for a random subspace of equal rank                  (control)
+  random_suppress  the same for random subspaces of equal rank, averaged over
+                   --n-rand independent draws                                  (control)
   enhance          push toward the correct class direction                       (oracle)
   random_enhance   push along a random direction of the same size               (control)
   wrong_enhance    push toward a wrong class direction                          (control)
-The task subspace and class directions come from a separate TRAIN half of the
-items; all numbers are on the held-out TEST half. 'enhance' uses each item's
-label, so it shows the direction is usable, not a deployable fix, and its
-effect is large almost by construction. The primary test for H3 is therefore
-suppress vs random_suppress.
+The task subspace is spanned by the class-mean offsets (an LDA-style subspace),
+not the logistic probe's weights. It and the class directions come from a
+separate TRAIN half of the items; all numbers are on the held-out TEST half.
+'enhance' uses each item's label, so it shows the direction is usable, not a
+deployable fix, and its effect is large almost by construction. The primary
+test for H3 is therefore suppress vs random_suppress. The summary also reports
+the fraction of activation variance each erasure removes, so a larger effect
+cannot be explained away as "the task subspace just removed more variance"
+without that being visible.
 
-  python steer.py --model EleutherAI/pythia-1.4b --step 143000 --task vartrack_d1
+  python steer.py --model EleutherAI/pythia-1.4b --step 143000 --task vartrack_d1 --layout blocked
 """
 import argparse
 import json
@@ -57,6 +64,12 @@ def rm_anova(conditions):
     return float(F), float(stats.f.sf(F, df_cond, df_err)), float(ss_cond / (ss_cond + ss_err))
 
 
+def frac_var_removed(H, mean, B):
+    """Share of the centred activation variance lying in subspace B (orthonormal columns)."""
+    Hc = H - mean
+    return float(((Hc @ B) ** 2).sum() / (Hc ** 2).sum().clamp(min=1e-12))
+
+
 @torch.no_grad()
 def run_condition(tok, model, items, cids, edit_layers, edit_fn, batch_size, device):
     """Returns per-item log p(correct | K candidates) and correctness under one edit."""
@@ -84,6 +97,8 @@ def main():
                     help="edit the main layer and all later layers (default), or the main layer only")
     ap.add_argument("--alpha", type=float, default=1.0,
                     help="push size in units of the typical class-mean offset")
+    ap.add_argument("--n-rand", type=int, default=5,
+                    help="independent random subspaces averaged for random_suppress")
     ap.add_argument("--n", type=int, default=600)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--shots", type=int, default=2, help="must match the sweep")
@@ -119,20 +134,26 @@ def main():
         D = class_means - mean                               # K x d class offsets
         U, S, _ = torch.linalg.svd(D.T, full_matrices=False)
         rank = int((S > 1e-6 * S.max()).sum())
-        Q_rand, _ = torch.linalg.qr(torch.randn(H.shape[1], rank, generator=g))
-        geo[l] = dict(mean=mean, Q=U[:, :rank], Q_rand=Q_rand, rank=rank,
+        Q_rands = [torch.linalg.qr(torch.randn(H.shape[1], rank, generator=g))[0]
+                   for _ in range(args.n_rand)]
+        geo[l] = dict(mean=mean, Q=U[:, :rank], Q_rands=Q_rands, rank=rank,
                       unit=D / D.norm(dim=1, keepdim=True).clamp(min=1e-8),
                       scale=float(D.norm(dim=1).mean()))  # typical class offset, not ||h||
     rand_unit = torch.randn(K, acts[layer].shape[1], generator=g)
     rand_unit = rand_unit / rand_unit.norm(dim=1, keepdim=True)
 
+    # variance removed at the main layer (train half), task vs random subspaces
+    H_main, gm = acts[layer], geo[layer]
+    var_task = frac_var_removed(H_main, gm["mean"], gm["Q"])
+    var_rand = [frac_var_removed(H_main, gm["mean"], Qr) for Qr in gm["Q_rands"]]
+
     def to(t, h):
         return t.to(h.device, h.dtype)
 
-    def erase(key):
+    def erase(get):
         # mean-ablation inside each layer's own subspace (keeps activations on-distribution)
         def fn(h, l, lab):
-            B, mu_l = to(geo[l][key], h), to(geo[l]["mean"], h)
+            B, mu_l = to(get(geo[l]), h), to(geo[l]["mean"], h)
             return h - ((h - mu_l) @ B) @ B.T
         return fn
 
@@ -146,8 +167,7 @@ def main():
 
     conditions = {
         "natural": None,
-        "suppress": erase("Q"),
-        "random_suppress": erase("Q_rand"),
+        "suppress": erase(lambda gl: gl["Q"]),
         "enhance": push(geo[layer]["unit"], lambda lab: lab),
         "random_enhance": push(rand_unit, lambda lab: lab),
         "wrong_enhance": push(geo[layer]["unit"], lambda lab: (lab + 1) % K),
@@ -159,6 +179,16 @@ def main():
         results[name] = dict(logp=logp, acc=ok)
         print(f"{name:16s} acc={ok.mean():.3f}  mean log p(correct)={logp.mean():.3f}", flush=True)
 
+    # random control: several independent random subspaces, averaged per item
+    rand_logp, rand_acc = [], []
+    for r in range(args.n_rand):
+        fn = erase(lambda gl, r=r: gl["Q_rands"][r])
+        logp, ok = run_condition(tok, model, test, cids, edit_layers, fn, args.batch_size, args.device)
+        rand_logp.append(logp)
+        rand_acc.append(ok)
+        print(f"random_suppress[{r}] acc={ok.mean():.3f}  mean log p(correct)={logp.mean():.3f}", flush=True)
+    results["random_suppress"] = dict(logp=np.mean(rand_logp, axis=0), acc=np.mean(rand_acc, axis=0))
+
     # --- statistics
     lp = {c: v["logp"] for c, v in results.items()}
     F, p_anova, eta2 = rm_anova([lp[c] for c in MAIN_CONDITIONS])
@@ -168,9 +198,11 @@ def main():
                              paired("wrong_enhance", "natural"))
     summary = dict(
         model=args.model, step=args.step, task=args.task, layer=layer, scope=args.scope,
-        alpha=args.alpha, n_test=len(test), rank=rank, chance=1 / K,
+        alpha=args.alpha, n_test=len(test), rank=rank, chance=1 / K, n_rand=args.n_rand,
         acc={c: float(v["acc"].mean()) for c, v in results.items()},
         mean_logp={c: float(v.mean()) for c, v in lp.items()},
+        random_suppress_draws_mean_logp=[float(x.mean()) for x in rand_logp],
+        frac_var_removed_main_layer=dict(task=var_task, random=var_rand),
         primary_test="suppress_vs_random",
         suppress_vs_random=dict(t=float(t_sup.statistic), p=float(t_sup.pvalue),
                                 mean_diff=float((lp["suppress"] - lp["random_suppress"]).mean())),

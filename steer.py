@@ -102,7 +102,7 @@ def main():
     ap.add_argument("--n", type=int, default=600)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--shots", type=int, default=2, help="must match the sweep")
-    ap.add_argument("--layout", choices=("interleaved", "blocked"), default="interleaved",
+    ap.add_argument("--layout", choices=("interleaved", "blocked"), default="blocked",
                     help="must match the sweep")
     ap.add_argument("--batch-size", type=int, default=32)
     ap.add_argument("--out", default="steer_results")
@@ -114,7 +114,9 @@ def main():
     dtype = torch.float16 if args.device == "cuda" else torch.float32
     tok, model = mu.load(args.model, f"step{args.step}", args.device, dtype)
     n_layers = mu.n_layers(model)
-    layer = args.layer or n_layers // 2
+    layer = n_layers // 2 if args.layer is None else args.layer
+    if not 1 <= layer <= n_layers:
+        raise SystemExit(f"--layer must be in 1..{n_layers}")
     edit_layers = set(range(layer, n_layers + 1)) if args.scope == "downstream" else {layer}
     cids = mu.candidate_ids(tok, items[0]["candidates"])
     K = len(cids)

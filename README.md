@@ -16,8 +16,9 @@ drives its wrong-chain answers.
 2. **Early warning.** Does anything, inside the model (probes) or in its mistakes, signal
    competence before plain accuracy does? (`probes.py`, `analyze.py`, `monitor.py`)
 3. **Cause.** At the stage where the model picks between chains almost at random, does
-   erasing the wrong chain's value from its activations make it pick the right one?
-   (`steer_stage.py`, with `steer.py` as the general erasure test)
+   erasing the wrong chain's value from its activations make it pick the right one? And
+   does writing a different number into that same place make it answer with exactly that
+   number? (`steer_stage.py`, with `steer.py` as the general erasure test)
 4. **Position.** Does the model choose a chain by where it sits in the prompt?
    (`position_test.py`)
 
@@ -34,11 +35,11 @@ The analysis plan, what counts as support for each claim, and every change to th
 | Stage table and figure | `stages.py` | `figs/stages_table.csv`, `figs/stages.png` |
 | Mistakes vs accuracy as a warning | `monitor.py` | `figs/monitor.csv` |
 | General erasure test | `steer.py` | `steer/*.json` |
-| Wrong-chain erasure test | `steer_stage.py` | `steer_stage/*.json` |
+| Wrong-chain erase + plant tests | `steer_stage.py` | `steer_stage/*.json` |
 | Position test | `position_test.py` | `position/*.json` |
 | All causal + position tests | `run_causal.sh` | the three folders above |
 
-Always use `--layout blocked` (the default in the new scripts, not in `sweep.py` / `steer.py`).
+Always use `--layout blocked` (the default everywhere except `sweep.py`, so pass it there).
 
 ```bash
 # main grid for one model

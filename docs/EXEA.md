@@ -9,11 +9,7 @@ background jobs, plenty of GPU-hours.
 ## 0. Before the first long run
 - The latest EXPERIMENTS.md must be committed and pushed. Its commit time is the record that
   the plan and predictions P1-P4 came before the 6.9B / 12B runs.
-- Check the item field name once (on Colab or Exea, inside the repo):
-  ```bash
-  python -c "from tasks import build_all; it=build_all(4,0,shots=2,layout='blocked')['vartrack_d1'][0]; print({k:v for k,v in it.items() if k!='prompt'})"
-  ```
-  If there is no field starting with `distractor`, send the output to Claude before step 4.
+- The distractor field is confirmed (`item["meta"]["distractor"]`), nothing to check.
 
 ## 1. Setup
 ```bash
@@ -49,7 +45,10 @@ python position_test.py --model EleutherAI/pythia-1.4b --step 5000 --n 200 --out
 python steer_stage.py --model EleutherAI/pythia-1.4b --step 5000 --task vartrack_d1 --n 200 --out $PERSIST/check
 ```
 Look at: the example prompt printed by position_test (is the order detection right?), and that
-steer_stage prints all conditions. Paste both outputs to Claude if anything looks off.
+steer_stage prints every condition (natural, erase_*, pca_top, plant_dis, plant_cor,
+random0-4) and ends with `primary_erase` and `primary_plant`. Sanity checks: erase_cor should
+LOWER correct; plant_cor should raise "planted" well above natural. If either fails, the
+subspaces are broken, so stop and paste the output to Claude before step 5.
 
 ## 5. Causal + position tests (the deciding experiment)
 ```bash

@@ -55,6 +55,14 @@ answer of a worked example), other.
   random same-rank erasures (primary: paired t, held-out items). Secondary: accuracy,
   distractor rate. Controls reported: random, pca_top, erase_cor. The same test at the
   final checkpoint is the comparison.
+- **C4b, causal plant (steer_stage.py, added 30 Sept, see Changes).** At the same
+  checkpoints, overwriting the distractor-value subspace with the class mean of a third
+  number p (not the answer, not the distractor; chosen per item with a fixed seed) makes
+  the model answer p more often than with no edit (primary: paired t on "answer = p",
+  plant_dis vs natural, held-out items). Supported only if the rate under plant_dis is
+  also above 1/K = 0.1 absolute. plant_cor (the same inside the answer-value subspace) is
+  reported as secondary. A hit means the value the model outputs is READ from that
+  subspace, not only correlated with it: the edit predicts which exact wrong answer appears.
 - **H1 (kept from v1, reported as is).** Probe-behavior lead vs depth, main grid,
   thresholds unchanged. Current result: no lead at 410M and 1.4B; d2/d3 censored.
 - **C5, position shortcut (position_test.py).** At the coin-flip stage (1.4B steps 5000,
@@ -71,7 +79,10 @@ answer of a worked example), other.
   that could not be run.
 
 ## 5. Statistics
-- Holm correction across all C4 primary tests (every model x checkpoint x depth run).
+- Holm correction across all C4 primary tests (every model x checkpoint x depth run), and
+  separately across all C4b primary tests.
+- C5 also reports a two-sided binomial test of "picks later chain" vs 0.5 and a 95% Wilson
+  interval; the C5 decision rule above is unchanged.
 - Every run is reported, including failures and nulls.
 - 160M runs rarely reach T_cor; they count toward "signal fired without competence".
 
@@ -109,5 +120,15 @@ answer of a worked example), other.
       (causal erasure across training) are the contributions.
     - Their Appendix A: read the query site, not the entity token. Our probes and edits use
       the last token (the query site), which is consistent with that advice.
+- 30 Sept 2026 (later the same day), code review, before any causal run:
+  - Added C4b (plant test) to steer_stage.py. It is the intervention Ravulapalli & Chadha
+    propose but do not run, and it predicts which exact answer changes, which a plain
+    erasure cannot.
+  - stages.py now scores P1-P4 automatically (columns P1_order ... P4_final_dis_ge_015) and
+    reports a coin-flip window (correct and wrong-chain both >= 0.3, within 0.05). P1-P4
+    thresholds are unchanged.
+  - Bug fixes that change no past result: monitor.py treated a signal at step 0 (0 tokens)
+    as "never fired"; steer.py and steer_stage.py ignored --layer 0 (never used); steer.py's
+    default layout changed to blocked (every run so far passed --layout blocked).
     Earlier note kept for the record: Feng & Steinhardt (ICLR 2024) and "Mixing Mechanisms"
     (arXiv 2510.06182) study binding in trained models, not across training.

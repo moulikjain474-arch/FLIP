@@ -13,22 +13,21 @@ Learning, Which Variable Was Asked About
 ## 1. Abstract (max 250 words)
 Language models often mix up which value belongs to which variable, a failure that matters
 for code assistants and long documents. Recent work measured this limit in finished models
-but left open how it forms during training and what causes wrong choices. I tracked
-Pythia language models (160 million to 12 billion parameters, up to 21 checkpoints each,
-four independent training runs at the smallest size) on a variable-tracking task with two
-competing chains of assignments, classifying every answer as correct, the other chain's
-value, a copied example answer, or other. Models passed through the same stages: first
-copying the worked example, then answering with a chain's value while choosing between the
-two chains almost at random (1.4B: 0.41 correct vs 0.41 wrong chain at step 6000), then
-slowly preferring the right chain. Even fully trained, the wrong chain was still chosen on
-22-40% of questions. Neither internal probes nor the model's mistakes signalled competence
-earlier than plain accuracy. To test the cause, I erased the directions encoding the wrong
-chain's value from the model's activations at the random-choice stage: correct answers
-[TBD: rose from X to Y / did not change], compared with [TBD] for random erasures of the
-same size. [TBD: one sentence on the position test.] The ability to find a value develops
-well before the ability to pick the right variable, and [TBD: the causal result] shows
-[TBD]. These results give a training-time account of a binding failure that scale did not
-remove in this model family.
+but left open how it forms during training and what causes wrong choices. I tracked Pythia
+models (160 million to 12 billion parameters, up to 21 checkpoints each, four training runs
+at the smallest size) on a variable-tracking task with two competing assignment chains,
+labelling every answer as correct, the other chain's value, a copied example answer, or
+other. Models passed through the same stages: copying the worked example, then answering
+with a chain's value while choosing between chains almost at random (1.4B: 0.41 correct vs
+0.41 wrong chain at step 6000), then slowly preferring the right chain. Fully trained, they
+still chose the wrong chain on 22-40% of questions. Neither probes nor mistakes signalled
+competence earlier than plain accuracy. To test the cause, I erased the directions encoding
+the wrong chain's value at the random-choice stage: correct answers [TBD: rose from X to Y /
+did not change], versus [TBD] for random erasures of equal size. Writing a third number into
+those directions made the model answer that number on [TBD]% of questions (vs [TBD]%
+unedited). [TBD: one sentence on the position test.] Models learn to find a value well
+before they learn to pick the right variable, and [TBD: causal result]. This gives a
+training-time account of a binding failure that scale did not remove in this model family.
 
 ## 2. Introduction and objective (100-150 words)
 When a model reads code or a long document, it must track which value belongs to which
@@ -65,8 +64,9 @@ confidence bound clears a fixed threshold twice in a row.
 Causal test: at checkpoints in each stage, the subspace encoding the wrong chain's value
 (class means on a training half, with the correct-value directions projected out) was set
 to its mean at the middle and all later layers; effects on held-out questions were compared
-with five random subspaces of equal rank and with principal-component erasure. Paired
-t-tests, Holm-corrected.
+with five random subspaces of equal rank and with principal-component erasure. A plant
+test overwrote the same subspace with the mean activation of a third number and measured
+how often the model then answered exactly that number. Paired t-tests, Holm-corrected.
 Position test: questions split by whether the queried chain appears first or second.
 
 ## 5. Results and conclusions (100-150 words)
@@ -75,7 +75,7 @@ Position test: questions split by whether the queried chain appears first or sec
   [TBD]/[TBD] model x depth runs; the final wrong-chain rate at 1.4B is 0.22 / 0.33 / 0.40
   (depth 1/2/3) and at 12B [TBD].
 - No early warning: probes and error-type signals fired no earlier than accuracy.
-- Causal: [TBD].
+- Causal: erase [TBD]; plant [TBD].
 - Position: [TBD].
 Conclusion: models learn to retrieve a value long before they learn to select the correct
 variable, and this selection remains incomplete at the end of training.

@@ -26,8 +26,9 @@ SIGNALS = ("S_err", "S_copy", "B_acc")
 
 
 def lead(t_signal, t_cor):
-    """Doublings of training tokens between the signal and competence (positive = warning)."""
-    if not t_signal or not t_cor:
+    """Doublings of training tokens between the signal and competence (positive = warning).
+    NaN if either never fired, or if one fired at step 0 (0 tokens has no logarithm)."""
+    if t_signal is None or t_cor is None or t_signal <= 0 or t_cor <= 0:
         return np.nan
     return float(np.log2(t_cor / t_signal))
 
@@ -41,7 +42,7 @@ def evaluate(df):
         for s in SIGNALS:
             row[f"{s}_step"] = ev[s][0]
             row[f"{s}_lead"] = lead(ev[s][1], t_cor)
-            row[f"{s}_fired_no_competence"] = bool(ev[s][1]) and not t_cor
+            row[f"{s}_fired_no_competence"] = ev[s][0] is not None and t_cor is None
         for s in ("S_err", "S_copy"):
             row[f"{s}_minus_baseline"] = row[f"{s}_lead"] - row["B_acc_lead"]
         rows.append(row)
@@ -66,7 +67,7 @@ def summarize(ev):
                   f"median extra warning = {diff.median():.2f} doublings")
 
 
-def predict(df, ev, targets):
+def predict(ev, targets):
     base = ev[~ev["model"].map(is_seed_run)]
     out = dict(created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
                note="Rules and thresholds fixed in EXPERIMENTS.md. Commit before running targets.",
@@ -121,7 +122,7 @@ def main():
         unknown = [t for t in args.predict if t not in PARAMS]
         if unknown:
             raise SystemExit(f"unknown size(s) {unknown}; known: {sorted(PARAMS)}")
-        predict(df, ev, args.predict)
+        predict(ev, args.predict)
 
 
 if __name__ == "__main__":

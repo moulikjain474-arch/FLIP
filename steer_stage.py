@@ -25,6 +25,8 @@ Conditions
   pca_top          top principal components of the PRIMARY rank               (harsh control)
   plant_dis        distractor-value coordinates set to the class mean of a third number p
                    (p differs from the answer and the distractor)              (PRIMARY plant)
+  plant_dis_orth   the same inside the PRIMARY subspace (distractor minus answer directions),
+                   so the planted value cannot enter through the answer-value subspace
   plant_cor        the same inside the answer-value subspace
 Primary tests (EXPERIMENTS.md, C4 and C4b), paired over held-out items:
   erase: log p(correct) under erase_dis_orth vs the mean of the random draws
@@ -219,6 +221,7 @@ def main():
         "erase_cor": erase(lambda G: G["Q_cor"]),
         "pca_top": erase(lambda G: G["Q_pca"]),
         "plant_dis": plant("Q_dis", "cm_dis"),
+        "plant_dis_orth": plant("Q_orth", "cm_dis"),
         "plant_cor": plant("Q_cor", "cm_cor"),
     }
     conditions.update({f"random{k}": erase(lambda G, k=k: G["Q_rand"][k]) for k in range(args.n_rand)})
@@ -251,6 +254,7 @@ def main():
         secondary=dict(
             erase_accuracy=paired(res["erase_dis_orth"]["correct"], res["random_mean"]["correct"]),
             erase_distractor_rate=paired(res["erase_dis_orth"]["distractor"], res["random_mean"]["distractor"]),
+            plant_dis_orth=paired(res["plant_dis_orth"]["planted"], res["natural"]["planted"]),
             plant_cor=paired(res["plant_cor"]["planted"], res["natural"]["planted"]),
             erase_cor_sanity=paired(res["erase_cor"]["logp"], res["natural"]["logp"]),
         ),

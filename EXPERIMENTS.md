@@ -130,5 +130,17 @@ answer of a worked example), other.
   - Bug fixes that change no past result: monitor.py treated a signal at step 0 (0 tokens)
     as "never fired"; steer.py and steer_stage.py ignored --layer 0 (never used); steer.py's
     default layout changed to blocked (every run so far passed --layout blocked).
+- 1 Oct 2026, after a code check on CPU (Pythia-410M step 143000, depth 1, n=200, i.e. 100
+  test items; a code check, not one of the registered runs, reported here because it was
+  seen before them):
+  - Sanity checks passed: erase_cor lowered accuracy (0.67 -> 0.43); plant_cor made the
+    model answer the planted value on 63% of items (0% unedited).
+  - Seen: erase_dis_orth LOWERED log p(correct) vs random (-0.11, p < 0.001), the opposite
+    of C4's direction; plant_dis gave 21% planted answers (0% unedited); picks_later = 0.68
+    (95% CI 0.61-0.74) with a 0.33 correct-rate gap, i.e. C5's shortcut criterion is met.
+  - Added plant_dis_orth as a SECONDARY condition: the raw distractor subspace overlaps the
+    answer subspace (erase_dis hurt accuracy as much as erase_cor), so plant_dis could work
+    through that overlap. plant_dis_orth plants only in the part that excludes the answer
+    directions. C4 and C4b primary tests and thresholds are unchanged.
     Earlier note kept for the record: Feng & Steinhardt (ICLR 2024) and "Mixing Mechanisms"
     (arXiv 2510.06182) study binding in trained models, not across training.

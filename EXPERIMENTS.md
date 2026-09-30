@@ -78,6 +78,28 @@ answer of a worked example), other.
   (model_utils.candidate_ids stops otherwise); every model tried is listed, including ones
   that could not be run.
 
+## 4b. New claims, registered 1 Oct 2026 BEFORE the full-day runs (C8-C11)
+Tonight's exploratory findings (see Changes, 1 Oct) become confirmatory only if they hold
+on data not yet seen. Definitions: a checkpoint is LATER-biased if the lower end of the 95%
+Wilson interval of picks_later is above 0.5, FIRST-biased if the upper end is below 0.5.
+- **C8, the flip replicates at 12B.** On the 12B position trajectory (steps 1000, 2000,
+  4000, 6000, 8000, 12000, 16000, 24000, 32000, 48000, 64000, 100000, 120000, 143000; only
+  32000 and 143000 have been seen), at depth 2 or depth 3, the sequence of biased
+  checkpoints changes direction at least twice (for example LATER, FIRST, LATER). Also
+  reported for the unseen 6.9B steps.
+- **C9, the seed decides.** For 410M seeds 1-9 (seed 4 excluded) plus the main run, at
+  steps 16000 and 64000 (not yet seen), depth 3: at one of the two steps or both, at least
+  2 runs are LATER-biased and at least 2 are FIRST-biased.
+- **C10, order dependence persists in training.** Order-swap test on 6.9B and 12B at steps
+  16000, 32000 and 64000 (not yet seen): the share of questions correct in exactly one
+  order is >= 0.20 at depth 2 in every one of these runs. Secondary: for 12B at 32000 and
+  64000, combining both orders raises depth-1 and depth-2 accuracy by >= 0.03.
+- **C11, mid-network commitment generalises.** Single-layer plant (plant_cor, scope
+  single) on 6.9B (32 layers) at steps 16000 and 143000, depths 1 and 3: planted answers
+  stay below 0.10 at every tested layer up to 10, and reach at least 0.50 at some layer up
+  to 22.
+Every result is reported, hit or miss. A miss is written up as a miss.
+
 ## 5. Statistics
 - Holm correction across all C4 primary tests (every model x checkpoint x depth run), and
   separately across all C4b primary tests.
@@ -90,6 +112,9 @@ answer of a worked example), other.
 - "First" anything; "early-warning system" in general; "reasoning" (say "follows the
   correct chain", because the blocked layout may allow a partial shortcut).
 - Anything beyond this task, this layout and Pythia.
+- That position habits are "like human memory": the serial-position comparison is an analogy
+  only.
+- That combining both orders is a general fix: it is shown only on this task.
 
 ## Changes
 - 30 Sept 2026, after the dense 1.4B grid (steps 3000-12000) and before any 6.9B/12B run:

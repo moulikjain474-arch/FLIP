@@ -1,103 +1,89 @@
-# Running EarlyMind on Exea (AMD MI300X, SSH) - final version
+# Exea full day (AMD MI300X, JupyterLab terminal)
 
-Replaces every earlier exea_commands file. Order = priority: the causal and position tests
-decide the project, so they run first. You commit everything yourself; nothing here pushes.
+Tested on the 1 Oct session: Docker container, you are root, one shared 697 GB disk at
+/shared-docker, torch 2.12 (ROCm), python at /opt/venv. Other people use this machine:
+never touch files that are not yours, and never use File > Shut Down in Jupyter.
 
-Known setup: SSH, ROCm PyTorch preinstalled, internet OK, ~720 GB persistent disk, nohup for
-background jobs, plenty of GPU-hours.
+## 0. Before the day (on your Mac)
+- EXPERIMENTS.md with section 4b (C8-C11) must be committed and pushed. The commit time is
+  what makes C8-C11 pre-registered.
+- Package the repo for upload (the GitHub token cannot be typed into the Jupyter terminal):
+  ```bash
+  cd ~/Downloads/EarlyMind-repo && git archive -o ~/Downloads/EarlyMind.zip HEAD
+  ```
 
-## 0. Before the first long run
-- The latest EXPERIMENTS.md must be committed and pushed. Its commit time is the record that
-  the plan and predictions P1-P4 came before the 6.9B / 12B runs.
-- The distractor field is confirmed (`item["meta"]["distractor"]`), nothing to check.
+## 1. Log in and upload
+Open the URL, log in with the token. Upload EarlyMind.zip with the up-arrow in the file
+browser. Open File > New > Terminal.
 
-## 1. Setup
+## 2. Set up (paste as one block)
 ```bash
-df -h                                    # find the ~720 GB disk
-export PERSIST=/path/to/that/disk        # edit
-export HF_HOME=$PERSIST/hf_cache
-export HF_TOKEN=<HF_TOKEN>
-echo "export PERSIST=$PERSIST" >> ~/.bashrc
-echo "export HF_HOME=$HF_HOME" >> ~/.bashrc
-echo "export HF_TOKEN=$HF_TOKEN" >> ~/.bashrc
-cd $PERSIST
-git clone https://<GH_TOKEN>@github.com/moulikjain474-arch/EarlyMind.git
-cd EarlyMind
+export PERSIST=/shared-docker/moulik_earlymind HF_HOME=/shared-docker/moulik_earlymind/hf_cache
+mkdir -p $PERSIST/EarlyMind $HF_HOME
+cd $PERSIST/EarlyMind && python -m zipfile -e /shared-docker/EarlyMind.zip . && rm /shared-docker/EarlyMind.zip
+grep -v -e '^torch' -e '^gradio' requirements.txt > /tmp/r.txt && pip install -q -r /tmp/r.txt
+python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+grep -c "C8" EXPERIMENTS.md; ls run_fullday.sh score_new.py swap_test.py
+df -h /shared-docker | tail -1
 ```
+Need: torch 2.12... True, a non-zero count, the three files listed, and disk below 60%.
 
-## 2. Check GPU and torch (never pip install torch)
-```bash
-rocm-smi
-python -c "import torch; print(torch.__version__, torch.cuda.is_available(), torch.cuda.get_device_name(0))"
-```
-Need True, an MI300X, torch >= 2.6 (6.9B / 12B ship .bin weights). Otherwise stop and ask Exea.
-
-## 3. Install the rest and smoke test
-```bash
-grep -v -e '^torch' -e '^gradio' requirements.txt > /tmp/req_exea.txt
-pip install -r /tmp/req_exea.txt          # add --break-system-packages if pip refuses
-python smoke_test.py
-```
-
-## 4. Quick check of the new scripts (about 10 min)
-```bash
-python position_test.py --model EleutherAI/pythia-1.4b --step 5000 --n 200 --out $PERSIST/check
-python steer_stage.py --model EleutherAI/pythia-1.4b --step 5000 --task vartrack_d1 --n 200 --out $PERSIST/check
-```
-Look at: the example prompt printed by position_test (is the order detection right?), and that
-steer_stage prints every condition (natural, erase_*, pca_top, plant_dis, plant_cor,
-random0-4) and ends with `primary_erase` and `primary_plant`. Sanity checks: erase_cor should
-LOWER correct; plant_cor should raise "planted" well above natural. If either fails, the
-subspaces are broken, so stop and paste the output to Claude before step 5.
-
-## 5. Causal + position tests (the deciding experiment)
+## 3. Start the day
 ```bash
 cd $PERSIST/EarlyMind
-nohup bash run_causal.sh > $PERSIST/log_causal.txt 2>&1 &
-tail -n 30 $PERSIST/log_causal.txt
+setsid nohup bash run_fullday.sh > $PERSIST/log_fullday.txt 2>&1 < /dev/null &
+sleep 60; head -20 $PERSIST/log_fullday.txt
+```
+Part 0 prints a checksum line per checkpoint. Any "DUPLICATE" means that model's
+checkpoints are unreliable: tell Claude before trusting its results.
+
+## 4. Check progress (any time; closing the tab is safe)
+```bash
+grep "=== PART" $PERSIST/log_fullday.txt; grep FAILED $PERSIST/log_fullday.txt | tail; df -h /shared-docker | tail -1
+```
+Parts run in priority order: 0 integrity, 1 order-swap (C10), 2 12B trajectory (C8),
+3 seeds (C9), 4 6.9B layers (C11), 5 main-grid sweeps (P1-P4). If time runs out, the
+most important parts are already done. Disk above 88%: stop and ask.
+
+## 5. Score and export (after "ALL DONE", or whenever you have to stop)
+```bash
+cd $PERSIST/EarlyMind && python score_new.py --dir $PERSIST/fullday | tee $PERSIST/fullday/score.txt
+cd $PERSIST && python - <<'EOF'
+import json, glob, csv
+w = csv.writer(open("/shared-docker/earlymind_fullday.csv", "w"))
+w.writerow(["kind","model","step","task","layer","a","b","c","d","e","n"])
+for f in glob.glob("fullday/position/**/*.json", recursive=True):
+    s = json.load(open(f))
+    for t, v in s["tasks"].items():
+        pl = v["picks_later"]
+        w.writerow(["pos", s["model"].split("/")[1], s["revision"], t, "", pl["rate"], pl["k"], v["query_chain_later"]["correct"], v["query_chain_earlier"]["correct"], "", pl["n"]])
+for f in glob.glob("fullday/swap/*.json"):
+    s = json.load(open(f))
+    for t, r in s["tasks"].items():
+        w.writerow(["swap", s["model"].split("/")[1], f'step{s["step"]}', t, "", r["acc_original"], r["acc_swapped"], r["acc_combined"], r["same_answer_both_orders"], r["correct_in_exactly_one_order"], r["n"]])
+for f in glob.glob("fullday/steer_layers/*.json"):
+    s = json.load(open(f)); r = s["rates"]
+    w.writerow(["layer", s["model"].split("/")[1], s["revision"], s["task"], s["layer"], r["plant_cor"]["planted"], r["plant_dis"]["planted"], r["natural"]["correct"], r["erase_cor"]["correct"], "", s["n_test"]])
+print("done")
+EOF
+cp $PERSIST/fullday/score.txt /shared-docker/earlymind_score.txt
+```
+Download earlymind_fullday.csv and earlymind_score.txt from the file browser (a small
+text file downloads fine; if not, open it and copy-paste). The main-grid sweep outputs
+(fullday/runs) are larger: run errors.py on Exea and export its CSV instead:
+```bash
+cd $PERSIST/EarlyMind && python errors.py --runs $PERSIST/fullday/runs --out /shared-docker/earlymind_errors_big.csv
 ```
 
-## 6. Big models (can run at the same time; 192 GB is enough for both)
+## 6. Clean up (after the files are on your Mac)
 ```bash
-nohup python sweep.py --model EleutherAI/pythia-6.9b --layout blocked --out $PERSIST/runs > $PERSIST/log_69b.txt 2>&1 &
+cd / && rm -rf /shared-docker/moulik_earlymind /shared-docker/earlymind_*.csv /shared-docker/earlymind_score.txt
+sed -i '/export PERSIST=/d; /export HF_HOME=/d' ~/.bashrc; history -c
+df -h /shared-docker | tail -1
 ```
-When 6.9B is done:
-```bash
-nohup python sweep.py --model EleutherAI/pythia-12b --layout blocked --out $PERSIST/runs > $PERSIST/log_12b.txt 2>&1 &
-```
-Then position tests on the final big models:
-```bash
-python position_test.py --model EleutherAI/pythia-6.9b --step 143000 --out $PERSIST/position
-python position_test.py --model EleutherAI/pythia-12b --step 143000 --out $PERSIST/position
-```
+Close the terminal tab and the browser tab. Do not use File > Shut Down.
 
-## 7. Dense grid for 410M (checks the 1.4B stage pattern at a second size)
-```bash
-nohup python sweep.py --model EleutherAI/pythia-410m --steps 5000 6000 7000 9000 10000 12000 14000 18000 20000 24000 28000 --layout blocked --out $PERSIST/runs_dense > $PERSIST/log_410m_dense.txt 2>&1 &
-```
-
-## 8. Optional, lowest priority: one modern model
-Already known that modern models bind better (Ravulapalli & Chadha 2026); this only checks the
-position shortcut. Stops with a clear error if the answer numbers are not single tokens.
-```bash
-python position_test.py --model allenai/OLMo-2-1124-7B --revision main --out $PERSIST/position
-```
-
-## 9. Copy results to your Mac (run ON YOUR MAC)
-```bash
-scp -r <user>@<host>:<PERSIST>/{runs,runs_dense,steer,steer_stage,position} ~/Downloads/earlymind_exea/
-```
-Upload `runs` and `runs_dense` to Drive for errors.py / probes.py on Colab.
-
-## Checking on jobs (safe to close SSH)
-```bash
-tail -n 20 $PERSIST/log_*.txt
-ls $PERSIST/runs | wc -l
-```
-
-## Stop rules
-- torch can't see the GPU or is < 2.6: stop, ask Exea.
-- smoke test or step 4 fails: stop, paste the full error to Claude.
-- Never start step 6 before EXPERIMENTS.md is pushed.
-- No git commit/push from Exea.
-- "Compute provided by Exea Labs (AMD MI300X)" only for results that ran there.
+## Rules
+- No git commit or push from Exea; commit on your Mac.
+- "Compute provided by Exea Labs (AMD MI300X)" in the acknowledgements.
+- Pythia-2.8B is excluded (duplicated public checkpoints).

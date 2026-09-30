@@ -1,97 +1,101 @@
-# IRIS synopsis draft (EarlyMind, reframed)
+# IRIS synopsis draft (v3, after the 1 Oct Exea session)
 
-Word limits from IRIS. [TBD] marks numbers that come from runs not done yet; fill them from
-the outputs, and rewrite any sentence the results do not support. No school, city or state
-anywhere (anonymity rule), and do not link the repo.
+Word limits from IRIS. [TBD] = numbers from the full-day runs (C8-C11); if a claim misses,
+rewrite that sentence to say so. No school, city or state anywhere, and no repo link.
 
 ---
 
 ## Title
-Knowing the Value but Not the Variable: How Language Models Learn, and Fail to Finish
-Learning, Which Variable Was Asked About
+First or Last? How Language Models Decide Which Variable You Asked About, and Why the
+Decision Keeps Changing During Training
 
 ## 1. Abstract (max 250 words)
-Language models often mix up which value belongs to which variable, a failure that matters
-for code assistants and long documents. Recent work measured this limit in finished models
-but left open how it forms during training and what causes wrong choices. I tracked Pythia
-models (160 million to 12 billion parameters, up to 21 checkpoints each, four training runs
-at the smallest size) on a variable-tracking task with two competing assignment chains,
-labelling every answer as correct, the other chain's value, a copied example answer, or
-other. Models passed through the same stages: copying the worked example, then answering
-with a chain's value while choosing between chains almost at random (1.4B: 0.41 correct vs
-0.41 wrong chain at step 6000), then slowly preferring the right chain. Fully trained, they
-still chose the wrong chain on 22-40% of questions. Neither probes nor mistakes signalled
-competence earlier than plain accuracy. To test the cause, I erased the directions encoding
-the wrong chain's value at the random-choice stage: correct answers [TBD: rose from X to Y /
-did not change], versus [TBD] for random erasures of equal size. Writing a third number into
-those directions made the model answer that number on [TBD]% of questions (vs [TBD]%
-unedited). [TBD: one sentence on the position test.] Models learn to find a value well
-before they learn to pick the right variable, and [TBD: causal result]. This gives a
-training-time account of a binding failure that scale did not remove in this model family.
+When a program or document mentions several variables, a language model must work out
+which value belongs to the one being asked about. I studied how this ability develops
+during pretraining, using Pythia models from 410 million to 12 billion parameters, up to
+24 training checkpoints per model, and nine independent training runs of one model. Each
+prompt contained two chains of variable assignments, and the model was asked for the
+value of one chain. Before models could reliably choose the right chain, they did not
+guess at random: they took the chain written first or the chain written last, and this
+preference reversed direction repeatedly during training (five statistically significant
+reversals across 24 checkpoints of the 1.4-billion-parameter model). These reversals
+were far larger than measurement noise, did not come from the worked examples in the
+prompt, appeared in three of four model variants, and fully trained runs that differed
+only in their random seed ended with opposite preferences. By writing numbers directly into the model's internal
+activations, I found that the answer is fixed about halfway through the network at every
+stage of training, so errors come from choosing the wrong chain, not from failing to read
+values. The consequence is large: the 12-billion-parameter model was correct in one order
+and wrong in the other on 41-49% of questions, and simply asking in both orders raised
+its accuracy from 79% to 91% without any retraining. Single-order benchmarks can
+therefore misjudge a model's reliability. [TBD: one sentence on C8-C11 replication.]
 
 ## 2. Introduction and objective (100-150 words)
-When a model reads code or a long document, it must track which value belongs to which
-entity. Language models are known to fail at this "binding", and a 2026 study showed the
-failure persists across model sizes in some model families, but it measured only finished
-models and noted that behaviour alone cannot reveal whether a model has the answer but
-retrieves the wrong one. Because the Pythia suite releases checkpoints from throughout
-training, the development of this failure can be observed directly. My objective was to
-(1) describe the stages a model passes through while learning to answer questions about
-chained variables, (2) test whether any signal predicts competence before accuracy rises,
-and (3) test causally whether wrong-chain answers depend on the wrong chain's value being
-represented at the moment of answering.
+Code assistants and long-document readers must track which value belongs to which
+variable. Language models often fail at this "binding", and recent work measured the
+limit in finished models, but it is not known how the ability forms during training or
+what models do before they master it. In small models trained from scratch, researchers
+found shortcuts based on line position; whether real pretrained models use similar
+shortcuts, and whether those shortcuts persist, has not been tested. Because the Pythia
+suite publishes checkpoints from throughout training, this can be observed directly. My
+objectives were to (1) track how models choose between competing variables across
+training, (2) locate where inside the network the answer is fixed, and (3) measure how
+much a model's answers depend on the irrelevant order in which information is presented.
 
 ## 3. Innovation (50-100 words)
-Prior work studied binding in finished models (Feng & Steinhardt 2024; Ravulapalli &
-Chadha 2026) or in small models trained from scratch (Wu et al. 2025). This project follows
-binding errors across the whole pretraining of real models at five sizes and four seeds,
-on multi-step chains, and runs an activation-erasure test at each learning stage, an
-experiment the 2026 study proposed but did not perform. The analysis plan and predictions
-for the larger models were fixed and timestamped before those runs.
+Previous studies examined binding either in finished models or in small models trained
+on one task. This project follows real pretrained models across their whole training, at
+five sizes and nine seeds, and shows that their position shortcut can reverse repeatedly and
+settles differently depending on the random seed. It introduces an order-swap test that
+exposes hidden inconsistency in otherwise accurate models, and it pre-registered its
+analyses, including a second round of claims fixed before replication runs.
 
 ## 4. Methodology (150-250 words)
-Task: Python-style prompts with two chains of variable assignments (depth 1, 2 or 3 steps)
-and two worked examples; the model must output the starting value of the queried chain,
-chosen among 10 single-token numbers. 600 questions per task and checkpoint.
-Models: Pythia 160M, 410M, 1.4B, 6.9B, 12B at 13 checkpoints from initialization to the end
-of training; PolyPythia 160M seeds 1-4; a dense grid of 8 extra checkpoints for 1.4B around
-the transition.
-Answer types: each prediction was labelled correct, wrong-chain, copied-example or other;
-stage and event definitions were written before the dense and large-model runs.
-Probes: logistic probes on the last-token residual stream at the middle layer, with
-shuffled-label and untrained-model controls; onset = first checkpoint whose lower 95%
-confidence bound clears a fixed threshold twice in a row.
-Causal test: at checkpoints in each stage, the subspace encoding the wrong chain's value
-(class means on a training half, with the correct-value directions projected out) was set
-to its mean at the middle and all later layers; effects on held-out questions were compared
-with five random subspaces of equal rank and with principal-component erasure. A plant
-test overwrote the same subspace with the mean activation of a third number and measured
-how often the model then answered exactly that number. Paired t-tests, Holm-corrected.
-Position test: questions split by whether the queried chain appears first or second.
+Task: Python-style prompts with two chains of variable assignments (1-3 steps deep) and
+two worked examples. The model chooses among ten single-digit answers; 600 questions per
+checkpoint and depth.
+Models: Pythia 410M, 1.4B, 1.4B-deduplicated, 6.9B and 12B at up to 24 checkpoints, plus
+eight additional training seeds of 410M. All checkpoint files were verified by checksum
+and weight fingerprint; Pythia-2.8B was excluded because its public checkpoints are
+duplicated.
+Position test: the share of answers taken from the chain written later, with 95%
+intervals; controls re-tested the same checkpoints on new question sets and without
+worked examples.
+Order-swap test: every question was also asked with the chains' order reversed; I
+measured how often correctness changed and whether combining both orders helped.
+Activation interventions: at the final token, I computed low-dimensional subspaces that
+encode each candidate value (from a training half of the questions) and overwrote them at
+single layers with the representation of a chosen number, measuring on held-out questions
+how often the model then output that number. Random subspaces of equal size served as
+controls.
+Pre-registration: hypotheses, thresholds and a dated change log were committed before
+each set of runs.
 
 ## 5. Results and conclusions (100-150 words)
-[Write after the runs. Structure:]
-- Stages: copy -> random choice between chains -> slow preference for the right chain, in
-  [TBD]/[TBD] model x depth runs; the final wrong-chain rate at 1.4B is 0.22 / 0.33 / 0.40
-  (depth 1/2/3) and at 12B [TBD].
-- No early warning: probes and error-type signals fired no earlier than accuracy.
-- Causal: erase [TBD]; plant [TBD].
-- Position: [TBD].
-Conclusion: models learn to retrieve a value long before they learn to select the correct
-variable, and this selection remains incomplete at the end of training.
-Limitations: one synthetic task, one model family, a blocked layout that may allow partial
-shortcuts.
+Across training, the preference for the first or last chain reversed repeatedly (five
+significant reversals in 1.4B; up to 0.31 between checkpoints 1000 steps apart, versus
+0.02 measurement noise) and ended
+differently across sizes and seeds (0.31-0.69 across nine 410M runs). Writing a number at
+layer 14 or later of 24 controlled the answer; earlier layers had no effect, at every
+training stage. The 12B model changed correctness on 41-49% of questions when the order
+was swapped; combining both orders raised accuracy from 79% to 91%. Erasing the wrong
+chain's representation did not improve answers (pre-registered null). [TBD: C8-C11.]
+Conclusion: pretrained models choose between variables by position long after they can
+read the values, and that shortcut is unstable, seed-dependent and not removed by scale.
+Limitations: one synthetic task and one model family.
 
 ## 6. Acknowledgement and references (50-100 words)
-Guide: [name, role]. Compute: Google Colab; Exea Labs (AMD MI300X) [only if used].
-References: Biderman et al. 2023 (Pythia); Feng & Steinhardt 2024 (binding in context);
-Gur-Arieh, Geva & Geiger 2026 (Mixing mechanisms); Ravulapalli & Chadha 2026 (in-context
-binding capacity); Wu, Geiger & Milliere 2025 (variable binding in transformers); Kim et al.
-2024 (code pretraining and entity tracking).
+Guide: [name, role]. Compute: Google Colab; Exea Labs (AMD MI300X).
+References: Biderman et al. 2023 (Pythia); van der Wal et al. 2025 (PolyPythias); Wu,
+Geiger & Milliere 2025 (variable binding in transformers); Gur-Arieh et al. 2026 (Mixing
+mechanisms); Ravulapalli & Chadha 2026 (in-context binding capacity); Guo & Vosoughi 2025
+(serial position effects of LLMs); Feng & Steinhardt 2024 (binding IDs).
 
 ## 7. Video (90 s) outline
-1. (10 s) Hook: "Ask an AI which value x holds when y is also nearby. Watch it guess."
-2. (25 s) The stage figure: copy -> coin flip -> slow fix, across sizes.
-3. (25 s) The causal test, one before/after bar chart.
-4. (15 s) What it means for code assistants and long documents.
-5. (15 s) Limits and next step.
+1. (10 s) Hook: "Ask a 12-billion-parameter AI the same question twice, just reordered.
+   Nearly half the time, it changes whether it's right."
+2. (25 s) The task and the flip figure: first-chain vs last-chain habit swinging during
+   training.
+3. (20 s) Why it's real: new questions, no examples, nine seeds, five sizes.
+4. (20 s) Inside the model: the answer is fixed halfway through; errors are choosing the
+   wrong chain.
+5. (15 s) So what: ask in both orders (+12 points); single-order tests mislead.

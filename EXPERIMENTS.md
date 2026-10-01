@@ -172,6 +172,19 @@ Every result is reported, hit or miss. A miss is written up as a miss.
   (temperature 0) with 2, 4 or 6 chains in both orders and reports the flip rate.
 Every result is reported, hit or miss.
 
+## 4e. Claim registered 1 Oct 2026 (~20:40), before any frontier run (C21)
+- **C21, shuffled facts hurt frontier models.** frontier_flip.py hard mode (levels hard1-hard4:
+  4 to 10 chains of 4 to 10 hops, 0 to ~6,000 words of irrelevant filler; facts given in
+  dependency order vs randomly shuffled; answer only, temperature 0; OpenAI reasoning models,
+  which reject those settings, run at their default with a 4,000-token budget and are reported
+  separately; replies that contain no digit count as wrong and their share is reported). For at least one closed
+  frontier model tested, at some level, accuracy with shuffled facts is at least 0.05 lower than
+  with facts in dependency order, with a paired-bootstrap 95% interval of the difference above 0.
+  Scored by `python3 frontier_flip.py --score <results folder>`. Every model and level is
+  reported. A miss means current frontier models are robust to fact order on this task.
+  Design follows published failure modes: premise order (Chen et al., ICML 2024), more hops
+  and distractors (same; RULER, COLM 2024), long irrelevant context (RULER).
+
 ## 5. Statistics
 - Holm correction across all C4 primary tests (every model x checkpoint x depth run), and
   separately across all C4b primary tests.
@@ -356,3 +369,8 @@ Every result is reported, hit or miss.
 - 1 Oct 2026, ~20:20: frontier_flip.py (exploratory) gets two harder levels, 8 chains of
   depth 4 and 10 chains of depth 5 (10 is the maximum: each chain needs its own digit), as a
   difficulty ladder. Every level is reported.
+- 1 Oct 2026, ~20:40, before any run: registered C21 (section 4e). frontier_flip.py: the easy
+  2x3/4x3 chains and code programs stay; the 6x3/8x4/10x5 levels are replaced by hard mode.
+  SCOPE: the 6.9B/12B main-grid sweeps that would score P1-P4 (section 4, C3) are no longer
+  run: they test the earlier stage framing, not the position-shortcut question, and cost about
+  26 large model loads. P1-P4 are reported as "registered, not tested".

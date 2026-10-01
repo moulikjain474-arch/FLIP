@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Full Exea day. Runs the tests registered as C8-C20 in EXPERIMENTS.md, plus the 6.9B / 12B
-# main-grid sweeps needed to score P1-P4. Run from the repo folder:
+# Full Exea day. Runs the tests registered as C8-C20 in EXPERIMENTS.md (C21 runs on a laptop:
+# frontier_flip.py). The old P1-P4 main-grid sweeps are no longer run (see EXPERIMENTS.md Changes). Run from the repo folder:
 #   export PERSIST=/shared-docker/moulik_earlymind HF_HOME=$PERSIST/hf_cache
 #   setsid nohup bash run_fullday.sh > $PERSIST/log_fullday.txt 2>&1 < /dev/null &
 # Every model is deleted from the cache right after use (the disk is shared).
@@ -8,7 +8,7 @@
 # Short slot? Run only some parts, e.g.  ONLY="2 3 4" setsid nohup bash run_fullday.sh ...
 #   (2 = reorder vs rename, 3 = OLMo-2, 4 = interleaved layout, 5 = MMLU, 5e = OLMo-2 trajectory,
 #    5f = 32B/72B scale check (+ code test), 5g = code test, 5b-5d, 5h, 5i = exploratory
-#    distance / patching / story task; 0-1 and 6-9 are the older replications and sweeps)
+#    distance / patching / story task; 0-1 and 6-8 are the older replications)
 set -u
 cd "$(dirname "$0")"
 OUT=${PERSIST:?set PERSIST first}/fullday
@@ -236,24 +236,7 @@ for s in 16000 143000; do
   done
   clean pythia-6.9b
 done
-fi
-
-if want 8; then
 echo "=== PART 8 DONE"
-fi
-
-if want 9; then
-echo "=== PART 9: 6.9B and 12B main-grid sweeps for P1-P4 $(date)"
-for m in pythia-6.9b pythia-12b; do
-  for s in 0 32 128 512 1000 2000 4000 8000 16000 32000 64000 100000 143000; do
-    python sweep.py --model EleutherAI/$m --steps $s --layout blocked --out $OUT/runs || echo "FAILED sweep $m $s"
-    clean $m
-  done
-done
-fi
-
-if want 9; then
-echo "=== PART 9 DONE"
 fi
 
 echo "=== ALL DONE $(date)"

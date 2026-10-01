@@ -21,7 +21,7 @@ remaining work is replication (one compute day) and communication, not new ideas
 |---|---|
 | 1-3 Oct | Commit EXPERIMENTS.md with C8-C17 registered BEFORE any new run. Register the project on the IRIS portal, pay, add the guide. Ask Exea for the full day. IRIS confirmed 13 Oct (1 Oct). |
 | Full Exea day (as early as possible) | `smoke.sh` first, then `run_fullday.sh` (runbook: docs/EXEA.md). Then `score_new.py` and `export_csv.py`. |
-| Same or next day | Export the CSV, make final figures, score P1-P4 with `stages.py` on the new sweeps. |
+| Same or next day | Export the CSV, make final figures, (P1-P4 are registered but no longer tested; see EXPERIMENTS.md Changes). |
 | 4-7 Oct | Write the synopsis (docs/PAPER_DRAFT.md), fill every [TBD], rewrite anything a result contradicts. |
 | 8-9 Oct | Figures final (3 in the main text: position flips, noise floor / seeds, order-swap; 1 mechanism figure). Video script and recording. |
 | 10-11 Oct | Full read-through against IRIS rules: word limits, anonymity (no school, city, state, no repo link), references. Someone else reads it cold. |

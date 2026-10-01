@@ -51,8 +51,8 @@ controls and generalisation tests C12-C20, all registered before those runs and 
 
 | Step | Script | Output |
 |---|---|---|
-| Run the task at checkpoints | `sweep.py` | `runs/*.npz` |
-| Answer types, stages | `errors.py`, `stages.py` | `error_types.csv`, stage table and figure |
+| Run the task at checkpoints (earlier work, not in the full-day run) | `sweep.py` | `runs/*.npz` |
+| Answer types, stages (earlier work) | `errors.py`, `stages.py` | `error_types.csv`, stage table and figure |
 | Probes and onsets | `probes.py`, `analyze.py` | `results.csv` |
 | Position test (first vs last chain) | `position_test.py` | `position/*.json` |
 | Order-swap test | `swap_test.py` | `swap/*.json` |
@@ -60,16 +60,16 @@ controls and generalisation tests C12-C20, all registered before those runs and 
 | Reorder vs rename, with per-question results | `perturb_test.py` | `perturb/*.json` |
 | Order-Flip Test on a real benchmark (MMLU options) | `benchmark_flip.py` | `benchmark/*.json` |
 | Distance, patching, story task (exploratory) | `distance_test.py`, `patch_test.py`, `story_test.py` | `distance/`, `patch/`, `story/` |
-| Order-Flip Test on closed frontier models (API, laptop) | `frontier_flip.py` | `frontier_results/*.json` |
+| Order-Flip Test on closed frontier models, incl. hard mode (C21; API, laptop) | `frontier_flip.py` | `frontier_results/*.json` |
 | Attention from the last token to each chain (exploratory) | `attention_test.py` | `attention/*.json` |
 | Order-Flip Test on short Python programs | `code_test.py`, `code_task.py` | `code/*.json` |
-| Score the registered claims C8-C20 | `score_new.py` | printed hit / miss |
+| Score the registered claims C8-C20 (C21: `frontier_flip.py --score`) | `score_new.py` | printed hit / miss |
 | Flatten results to one CSV | `export_csv.py` | `earlymind_fullday.csv` |
 | Quick check of the new tests | `smoke.sh`, `test_flip.py` | `SMOKE OK` |
-| Full compute day | `run_fullday.sh` | everything above |
+| Full compute day | `run_fullday.sh` | every test above except the frontier API test |
 | Figures from the 1 Oct session | `results/exea_2026-10-01/make_figs.py` | `plots/*.png` |
 
-Always use `--layout blocked` (the default everywhere except `sweep.py`).
+Always use `--layout blocked` (the default everywhere except the earlier `sweep.py`).
 
 ## Scope and caveats
 - One synthetic task in one layout, one model family (Pythia).

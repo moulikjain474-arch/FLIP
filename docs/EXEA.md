@@ -51,7 +51,7 @@ Short slot (say 2-3 hours instead of a full day)? Run only the parts that matter
 ONLY="2 3 4 5 5e 5f 5g 5b 5c 5d 5h 5i" setsid nohup bash run_fullday.sh > $PERSIST/log_fullday.txt 2>&1 < /dev/null &
 ```
 Parts 2-5 and 5e-5g hold claims C12-C20; 5b-5d, 5h, 5i are exploratory. NOTE: skipping
-0-1 and 6-9 means C8-C11 cannot be scored (they will show MISSING); 0-1 and 6-9 are the older replications and sweeps.
+0-1 and 6-8 means C8-C11 cannot be scored (they will show MISSING); 0-1 and 6-8 are the older replications and sweeps.
 
 ## 4. Check progress (any time; closing the tab is safe)
 ```bash
@@ -61,7 +61,7 @@ Parts run in priority order: 0 integrity, 1 order-swap (C10), 2 reorder vs renam
 C13, C17), 3 OLMo-2 (C16), 4 interleaved layout (C14), 5 MMLU benchmark (C15), 5e OLMo-2 trajectory (C18), 5f 32B/72B
 scale (C19), 5g code programs (C20), 5b-5d, 5h, 5i exploratory
 (distance, patching, story task), 6 12B
-trajectory (C8), 7 seeds (C9), 8 6.9B layers (C11), 9 main-grid sweeps (P1-P4). If time runs
+trajectory (C8), 7 seeds (C9), 8 6.9B layers (C11). If time runs
 out, the most important parts are already done. Disk above 88%: stop and ask.
 
 ## 5. Score and export (after "ALL DONE", or whenever you have to stop)
@@ -70,7 +70,6 @@ cd $PERSIST/EarlyMind
 python score_new.py --dir $PERSIST/fullday | tee $PERSIST/fullday/score.txt
 python export_csv.py --dir $PERSIST/fullday --out /shared-docker/earlymind_fullday.csv
 cp $PERSIST/fullday/score.txt /shared-docker/earlymind_score.txt
-python errors.py --runs $PERSIST/fullday/runs --out /shared-docker/earlymind_errors_big.csv
 ```
 Download earlymind_fullday.csv and earlymind_score.txt from the file browser (a small
 text file downloads fine; if not, open it and copy-paste). The CSV is one number per row

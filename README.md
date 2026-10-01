@@ -2,7 +2,6 @@
 
 **FLIP (First-or-Last Interference Profile): language models choose by position, not meaning, and the habit keeps flipping during training.**
 
-*(Formerly EarlyMind. The repository name is unchanged.)*
 
 Give a language model two chains of assignments and ask about one of them:
 

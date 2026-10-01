@@ -46,6 +46,12 @@ sleep 60; head -20 $PERSIST/log_fullday.txt
 Part 0 prints a checksum line per checkpoint. Any "DUPLICATE" means that model's
 checkpoints are unreliable: tell Claude before trusting its results.
 
+Short slot (say 2-3 hours instead of a full day)? Run only the parts that matter most:
+```bash
+ONLY="2 3 4 5" setsid nohup bash run_fullday.sh > $PERSIST/log_fullday.txt 2>&1 < /dev/null &
+```
+Parts 2-5 hold the new claims (C12-C17); 0-1 and 6-9 are the older replications and sweeps.
+
 ## 4. Check progress (any time; closing the tab is safe)
 ```bash
 grep "=== PART" $PERSIST/log_fullday.txt; grep FAILED $PERSIST/log_fullday.txt | tail; df -h /shared-docker | tail -1

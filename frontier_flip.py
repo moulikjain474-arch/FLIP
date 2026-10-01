@@ -11,6 +11,7 @@ Reports accuracy in each order, flip rate (correct in exactly one order), and ho
 two orders give the same answer. Every reply is saved, so the scoring can be re-checked.
 """
 import argparse
+import http.client
 import json
 import os
 import random
@@ -76,7 +77,7 @@ def _post(url, headers, body, tries=6):
             if e.code in (429, 500, 502, 503, 529) and k < tries - 1:
                 time.sleep(2 ** k); continue
             raise RuntimeError(f"API error {e.code}: {e.read()[:300]!r}")
-        except (urllib.error.URLError, TimeoutError):
+        except (urllib.error.URLError, http.client.HTTPException, OSError):   # incl. timeouts and dropped connections
             if k < tries - 1:
                 time.sleep(2 ** k); continue
             raise RuntimeError("network error after retries")

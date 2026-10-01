@@ -13,25 +13,26 @@ import os
 def rows(root):
     for f in glob.glob(os.path.join(root, "position*", "**", "*.json"), recursive=True):
         s = json.load(open(f))
-        kind = "pos_interleaved" if "position_interleaved" in f else "pos"
+        kind = ("pos_interleaved" if "position_interleaved" in f else "pos_olmo" if "position_olmo" in f else "pos")
         for t, v in s["tasks"].items():
             pl = v["picks_later"]
             m = s["model"].split("/")[-1]
             yield kind, m, s["revision"], t, "", "picks_later", pl["rate"], pl["n"]
-            yield kind, m, s["revision"], t, "", "correct_query_later", v["query_chain_later"]["correct"], pl["n"]
-            yield kind, m, s["revision"], t, "", "correct_query_earlier", v["query_chain_earlier"]["correct"], pl["n"]
+            yield kind, m, s["revision"], t, "", "correct_query_later", v["query_chain_later"]["correct"], v["query_chain_later"].get("n")
+            yield kind, m, s["revision"], t, "", "correct_query_earlier", v["query_chain_earlier"]["correct"], v["query_chain_earlier"].get("n")
     for f in glob.glob(os.path.join(root, "swap", "*.json")):
         s = json.load(open(f))
         for t, r in s["tasks"].items():
             for k, v in r.items():
                 if k != "n":
                     yield "swap", s["model"].split("/")[-1], s.get("revision") or f"step{s['step']}", t, "", k, v, r["n"]
-    for f in glob.glob(os.path.join(root, "perturb", "*.json")):
+    for f in glob.glob(os.path.join(root, "perturb", "*.json")) + glob.glob(os.path.join(root, "perturb_olmo_traj", "*.json")):
         s = json.load(open(f))
+        kind = "perturb_traj" if "perturb_olmo_traj" in os.path.dirname(f) else "perturb"
         for t, r in s["tasks"].items():
             for k, v in r["summary"].items():
                 if k != "n":
-                    yield "perturb", s["model"].split("/")[-1], s["revision"], t, "", k, v, r["summary"]["n"]
+                    yield kind, s["model"].split("/")[-1], s["revision"], t, "", k, v, r["summary"]["n"]
     for f in glob.glob(os.path.join(root, "benchmark", "*.json")):
         s = json.load(open(f))
         for k, v in s["summary"].items():
@@ -56,6 +57,13 @@ def rows(root):
             for k, v in r.items():
                 if k != "n":
                     yield ("code" if os.path.basename(os.path.dirname(f)) == "code" else "story"), s["model"].split("/")[-1], s["revision"], t, "", k, v, r["n"]
+    for f in glob.glob(os.path.join(root, "attention", "*.json")):
+        s = json.load(open(f))
+        for t, r in s["tasks"].items():
+            m = s["model"].split("/")[-1]
+            for i, (v, g) in enumerate(zip(r["layer_later_minus_earlier"], r["layer_gap_by_choice"]), start=1):
+                yield "attention", m, s["revision"], t, i, "later_minus_earlier", v, r["n"]
+                yield "attention", m, s["revision"], t, i, "gap_by_choice", g, r["n_picked_later"] + r["n_picked_earlier"]
     for f in glob.glob(os.path.join(root, "steer_layers", "*.json")):
         s = json.load(open(f))
         for cond in ("natural", "plant_cor", "plant_dis", "erase_cor"):

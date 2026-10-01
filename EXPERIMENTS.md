@@ -128,7 +128,8 @@ run (perturb_test.py).
   0.5) in at least 2 of the 3 models.
 - **C15, the test works on a real benchmark.** MMLU (1,000 random test questions, seed 0,
   0-shot), options shown in the original and the reversed order, base models OLMo-2-1124-7B,
-  Qwen2.5-7B and Mistral-7B-v0.1: F(orig, reversed) >= 0.10 for at least 2 of the 3 models,
+  Qwen2.5-7B and Mistral-7B-v0.1 (or tiiuae/falcon-7b if Mistral cannot be downloaded; see
+  Changes, 1 Oct ~20:15): F(orig, reversed) >= 0.10 for at least 2 of the 3 models,
   AND the 2-order ensemble beats the single-order average for all 3 (4 cyclic orders are
   reported, not part of the claim). This tests the TOOL on a real task; it is not the same
   mechanism as the variable-chain result, and option-order sensitivity is known from earlier work.
@@ -326,3 +327,29 @@ Every result is reported, hit or miss.
   numbers); frontier_flip.py saves after every setting, keeps partial results on API
   errors, uses 6x3 (not 6x4, which needed more names than exist), and sends the
   reasoning-model request format when needed. smoke.sh also runs the code test on Qwen.
+- 1 Oct 2026, ~19:45, before any run: added attention_test.py (EXPLORATORY, no claim):
+  attention from the last token to each chain's tokens, per layer and head, and how it
+  differs between questions answered with the later vs the earlier chain's value. Run on
+  Pythia-1.4B at steps 7000 and 143000, Pythia-12B at 143000, and OLMo-2-7B at the
+  stage-1 checkpoints nearest 5% and 100% of training (part 5h).
+- 1 Oct 2026, ~19:50, before any run: part 5i (EXPLORATORY, no claim) runs the other
+  tests on OLMo-2-7B as well: order-swap and rename at the same 10 training checkpoints as
+  C18 (written to perturb_olmo_traj/, kept apart from the C16 scoring), activation patching at
+  the 5% checkpoint and the final model, the distance control, the story task and the
+  interleaved layout on the final model; plus rename and story on Qwen2.5-7B. The story task
+  now asks "Q: How many coins does X have? A:" with the digit on the next line, so the answer
+  is one token for OLMo-2 and Qwen too (found in an audit: the earlier format would have
+  crashed on them). Nothing had been run with the old format.
+- 1 Oct 2026, ~20:15, still before any run (two independent full reviews):
+  - C15 fallback, fixed now before any data: if mistralai/Mistral-7B-v0.1 cannot be
+    downloaded on the day (it may require accepting terms with a login), tiiuae/falcon-7b
+    takes its place as the third model. The smoke test reports which applies.
+  - score_new.py: each claim is scored separately so one missing or broken result cannot
+    hide the others; C11 now requires every tested layer up to 10 (4, 8, 10) to be present
+    and below 0.10, as the claim says; C20 counts only its 7 registered models; missing
+    checkpoints, seeds and models are printed as MISSING.
+  - attention_test.py runs in fp32 and refuses non-finite values (fp16 eager attention can
+    overflow). code_task.py: "bump" multiplies by 3 instead of 2 so answers are not skewed
+    towards even digits. Each OLMo-2-7B checkpoint is downloaded once (part 5e runs the
+    exploratory OLMo checks in the same pass). model_utils.load loads straight onto the GPU
+    (patch_model_utils.py) so a 72B model does not need ~145 GB of host RAM first.

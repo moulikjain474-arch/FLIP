@@ -2,7 +2,6 @@
 
 **FLIP (First-or-Last Interference Profile): language models choose by position, not meaning, and the habit keeps flipping during training.**
 
-
 Give a language model two chains of assignments and ask about one of them:
 
 ```
@@ -45,7 +44,7 @@ Public Pythia-2.8B intermediate checkpoints load identical weights and are exclu
 The analysis plan, thresholds and every change (dated, with reasons) are in
 [EXPERIMENTS.md](EXPERIMENTS.md), committed before the runs they govern. Results found
 exploratorily on 1 Oct are re-tested on unseen checkpoints as claims C8-C11, and the new
-controls and generalisation tests C12-C17, all registered before those runs and scored by
+controls and generalisation tests C12-C20, all registered before those runs and scored by
 `score_new.py`.
 
 ## Pipeline
@@ -62,6 +61,7 @@ controls and generalisation tests C12-C17, all registered before those runs and 
 | Order-Flip Test on a real benchmark (MMLU options) | `benchmark_flip.py` | `benchmark/*.json` |
 | Distance, patching, story task (exploratory) | `distance_test.py`, `patch_test.py`, `story_test.py` | `distance/`, `patch/`, `story/` |
 | Order-Flip Test on closed frontier models (API, laptop) | `frontier_flip.py` | `frontier_results/*.json` |
+| Attention from the last token to each chain (exploratory) | `attention_test.py` | `attention/*.json` |
 | Order-Flip Test on short Python programs | `code_test.py`, `code_task.py` | `code/*.json` |
 | Score the registered claims C8-C20 | `score_new.py` | printed hit / miss |
 | Flatten results to one CSV | `export_csv.py` | `earlymind_fullday.csv` |

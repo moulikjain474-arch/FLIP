@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Full Exea day. Runs the tests registered as C8-C17 in EXPERIMENTS.md, plus the 6.9B / 12B
+# Full Exea day. Runs the tests registered as C8-C20 in EXPERIMENTS.md, plus the 6.9B / 12B
 # main-grid sweeps needed to score P1-P4. Run from the repo folder:
 #   export PERSIST=/shared-docker/moulik_earlymind HF_HOME=$PERSIST/hf_cache
 #   setsid nohup bash run_fullday.sh > $PERSIST/log_fullday.txt 2>&1 < /dev/null &
@@ -7,14 +7,14 @@
 # Parts run in priority order; each writes "=== PART n DONE" so progress is easy to follow.
 # Short slot? Run only some parts, e.g.  ONLY="2 3 4" setsid nohup bash run_fullday.sh ...
 #   (2 = reorder vs rename, 3 = OLMo-2, 4 = interleaved layout, 5 = MMLU, 5e = OLMo-2 trajectory,
-#    5f = 32B/72B scale check (+ code test), 5g = code test, 5b-5d = exploratory
+#    5f = 32B/72B scale check (+ code test), 5g = code test, 5b-5d, 5h, 5i = exploratory
 #    distance / patching / story task; 0-1 and 6-9 are the older replications and sweeps)
 set -u
 cd "$(dirname "$0")"
 OUT=${PERSIST:?set PERSIST first}/fullday
 : ${HF_HOME:?set HF_HOME first}
 mkdir -p $OUT
-python -c "import datasets" 2>/dev/null || pip install -q datasets
+python -c "import datasets, accelerate" 2>/dev/null || pip install -q datasets accelerate
 cleanrepo() { rm -rf $HF_HOME/hub/models--${1//\//--}; }
 clean() { cleanrepo EleutherAI/$1; }
 want() { [[ -z "${ONLY:-}" || " $ONLY " == *" $1 "* ]]; }
@@ -95,7 +95,11 @@ echo "=== PART 5: C15 real benchmark (MMLU option order) $(date)"
 python benchmark_flip.py --selftest
 python benchmark_flip.py --model allenai/OLMo-2-1124-7B --out $OUT/benchmark || echo "FAILED bench olmo"; cleanrepo allenai/OLMo-2-1124-7B
 python benchmark_flip.py --model Qwen/Qwen2.5-7B --out $OUT/benchmark || echo "FAILED bench qwen"; cleanrepo Qwen/Qwen2.5-7B
-python benchmark_flip.py --model mistralai/Mistral-7B-v0.1 --bos --out $OUT/benchmark || echo "FAILED bench mistral"; cleanrepo mistralai/Mistral-7B-v0.1
+if ! python benchmark_flip.py --model mistralai/Mistral-7B-v0.1 --bos --out $OUT/benchmark; then
+  echo "FAILED bench mistral (gated or unavailable): registered fallback falcon-7b"
+  python benchmark_flip.py --model tiiuae/falcon-7b --out $OUT/benchmark || echo "FAILED bench falcon"; cleanrepo tiiuae/falcon-7b
+fi
+cleanrepo mistralai/Mistral-7B-v0.1
 fi
 
 if want 5; then
@@ -104,11 +108,22 @@ fi
 
 if want 5e; then
 echo "=== PART 5e: C18 OLMo-2-7B position trajectory across its training checkpoints $(date)"
-REVS=$(python -c "import model_utils as mu; print(' '.join(r for _, _, r in mu.nearest_revisions('allenai/OLMo-2-1124-7B', [0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.35, 0.5, 0.75, 1.0])))")
-echo "OLMo-2-7B checkpoints: $REVS"
+echo "    (each checkpoint is downloaded ONCE; the exploratory OLMo runs that need it happen in the same pass)"
+OM=allenai/OLMo-2-1124-7B
+REVS=$(python -c "import model_utils as mu; print(' '.join(r for _, _, r in mu.nearest_revisions('$OM', [0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.35, 0.5, 0.75, 1.0])))")
+EARLY=$(python -c "import model_utils as mu; print(mu.nearest_revisions('$OM', [0.05])[0][2])")
+LAST=$(python -c "import model_utils as mu; print(mu.nearest_revisions('$OM', [1.0])[0][2])")
+echo "OLMo-2-7B checkpoints: $REVS (early: $EARLY, last: $LAST)"
 for r in $REVS; do
-  python position_test.py --model allenai/OLMo-2-1124-7B --revision $r --out $OUT/position_olmo/OLMo-2-1124-7B || echo "FAILED olmo traj $r"
-  cleanrepo allenai/OLMo-2-1124-7B
+  python position_test.py --model $OM --revision $r --out $OUT/position_olmo/OLMo-2-1124-7B || echo "FAILED olmo traj $r"
+  python perturb_test.py --model $OM --revision $r --out $OUT/perturb_olmo_traj || echo "FAILED olmo perturb $r"
+  if [ "$r" = "$EARLY" ] || [ "$r" = "$LAST" ]; then
+    python attention_test.py --model $OM --revision $r --out $OUT/attention || echo "FAILED olmo attention $r"
+  fi
+  if [ "$r" = "$EARLY" ]; then
+    python patch_test.py --model $OM --revision $r --out $OUT/patch || echo "FAILED olmo patch $r"
+  fi
+  cleanrepo $OM
 done
 echo "=== PART 5e DONE"
 fi
@@ -163,6 +178,29 @@ for m in pythia-410m pythia-1.4b pythia-6.9b pythia-12b; do
 done
 python story_test.py --model EleutherAI/pythia-12b --step 32000 --out $OUT/story || echo "FAILED story 12b 32000"; clean pythia-12b
 echo "=== PART 5d DONE"
+fi
+
+if want 5h; then
+echo "=== PART 5h: exploratory: attention from the last token to each chain $(date)"
+for s in 7000 143000; do python attention_test.py --model EleutherAI/pythia-1.4b --step $s --out $OUT/attention || echo "FAILED attention 1.4b $s"; done
+clean pythia-1.4b
+python attention_test.py --model EleutherAI/pythia-12b --step 143000 --out $OUT/attention || echo "FAILED attention 12b"
+clean pythia-12b
+echo "=== PART 5h DONE"
+fi
+
+if want 5i; then
+echo "=== PART 5i: exploratory: the same tests on OLMo-2-7B (and Qwen2.5-7B) $(date)"
+OM=allenai/OLMo-2-1124-7B
+python distance_test.py --model $OM --revision main --out $OUT/distance || echo "FAILED olmo distance"
+python patch_test.py --model $OM --revision main --out $OUT/patch || echo "FAILED olmo patch main"
+python story_test.py --model $OM --revision main --out $OUT/story || echo "FAILED olmo story"
+python position_test.py --model $OM --revision main --layout interleaved --out $OUT/position_interleaved/OLMo-2-1124-7B || echo "FAILED olmo interleaved"
+cleanrepo $OM
+python perturb_test.py --model Qwen/Qwen2.5-7B --revision main --out $OUT/perturb || echo "FAILED qwen7b perturb"
+python story_test.py --model Qwen/Qwen2.5-7B --revision main --out $OUT/story || echo "FAILED qwen7b story"
+cleanrepo Qwen/Qwen2.5-7B
+echo "=== PART 5i DONE"
 fi
 
 if want 6; then

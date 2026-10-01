@@ -71,15 +71,15 @@ def test_story():
             a, b = it["prompt"], it["prompt_swapped"]
             assert a != b and a.rsplit("\n\n", 1)[0] == b.rsplit("\n\n", 1)[0]   # same shots
             qa, qb = a.rsplit("\n\n", 1)[1].split("\n"), b.rsplit("\n\n", 1)[1].split("\n")
-            assert qa[0] == qb[1] and qa[1] == qb[0] and qa[2] == qb[2]           # chains swapped
-            name = qa[2].split()[1]
-            assert " 1 coins" not in a
+            assert qa[0] == qb[1] and qa[1] == qb[0] and qa[2:] == qb[2:]         # chains swapped
+            assert a.endswith("A:\n") and it["candidates"] == [str(x) for x in range(10)]
+            name = qa[2].split("does ")[1].split(" have")[0]
             facts, env = " ".join(qa[:2]).split(". "), {}
+            assert " 1 coins" not in a
             for f in facts:          # resolve the story and check the label
                 w = f.rstrip(".").split()
                 env[w[0]] = w[2] if w[2].isdigit() else env[w[-1]]
             assert env[name] == it["meta"]["answer"] == st.DIGITS[it["label"]]
-            assert (qa[0].split()[2] == it["meta"]["answer"] if d == 0 else True)
             tgt_line = qa[0] if it["meta"]["target_first"] else qa[1]
             assert name in tgt_line
     print("story ok")
@@ -97,6 +97,19 @@ def test_code():
     m = fs.pair_metrics(lp, lp, [3, 3, 3, 3])
     assert m["acc_both"] == 1 and m["flip"] == 0 and m["gain"] == 0
     print("code ok")
+
+
+def test_chain_spans():
+    rng = random.Random(3)
+    for i in range(300):
+        p = make_prompt(rng, rng.randint(1, 3))
+        (s1, e1), (s2, e2) = pt.chain_char_spans(p)
+        _, a, b, _ = pt.split_problem(p)
+        assert p[s1:e1] == "\n".join(a) and p[s2:e2] == "\n".join(b) and e1 < s2
+        vals, target = pt.chain_values(p)
+        q = p.rstrip("\n").split("\n")[-1][4:]
+        assert q in "\n".join([a, b][target]) and pt.final_answer(p) == vals[target]
+    print("chain spans ok")
 
 
 def test_bad_format_is_caught():
@@ -128,6 +141,7 @@ if __name__ == "__main__":
     test_filler()
     test_story()
     test_code()
+    test_chain_spans()
     test_bad_format_is_caught()
     test_stats()
     bf.selftest()

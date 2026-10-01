@@ -3,17 +3,19 @@ vartrack, told as a short story, with BOTH chain orders built for every question
 
   Ravi has 4 coins. Mia has as many coins as Ravi.      <- one chain (depth 1)
   Ana has 7 coins. Tom has as many coins as Ana.        <- the other chain
-  So Mia has                                            -> " 4"
+  Q: How many coins does Mia have?
+  A:                                                    -> "4" on the next line
 
 Items are generated with their own random seed, so the vartrack items in tasks.py are
-untouched. Candidates " 0" ... " 9" are single tokens for Pythia.
+untouched. The answer follows "A:" and a newline with bare-digit candidates "0".."9", as in
+tasks.py, so it is one token for every tokenizer (Pythia, OLMo-2, Qwen).
 """
 import random
 
 NAMES = ["Ravi", "Mia", "Ana", "Tom", "Lea", "Sam", "Ivy", "Ben", "Zoe", "Max", "Eva", "Leo",
          "Ada", "Kai", "Nia", "Raj", "Uma", "Dev", "Ali", "Joy", "Ken", "Liz", "Ned", "Ola"]
 DIGITS = [str(d) for d in range(10)]
-CANDIDATES = [" " + d for d in DIGITS]
+CANDIDATES = list(DIGITS)
 
 
 def _chains(depth, rng):
@@ -36,12 +38,12 @@ def make_story(n, depth, seed=0, shots=2):
         for _ in range(shots):
             a, b, q, ans, _ = _chains(depth, rng)
             first, second = (a, b) if rng.random() < 0.5 else (b, a)
-            blocks.append(f"{first}\n{second}\nSo {q} has {ans} {'coin' if ans == '1' else 'coins'}.")
+            blocks.append(f"{first}\n{second}\nQ: How many coins does {q} have?\nA:\n{ans}")
         a, b, q, ans, dis = _chains(depth, rng)
         target_first = rng.random() < 0.5
         orders = [(a, b), (b, a)] if target_first else [(b, a), (a, b)]
         head = "\n\n".join(blocks) + "\n\n"
-        prompts = [head + f"{x}\n{y}\nSo {q} has" for x, y in orders]
+        prompts = [head + f"{x}\n{y}\nQ: How many coins does {q} have?\nA:\n" for x, y in orders]
         items.append(dict(task=f"story_d{depth}", prompt=prompts[0], prompt_swapped=prompts[1],
                           candidates=list(CANDIDATES), label=DIGITS.index(ans),
                           meta=dict(depth=depth, answer=ans, distractor=dis, target_first=target_first)))

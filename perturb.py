@@ -84,6 +84,25 @@ def variants(prompt, seed):
                 swap_rename=rename_chains(swap_chains(prompt), seed))
 
 
+def chain_char_spans(prompt):
+    """[(start, end), (start, end)]: character spans of the first and second chain of the final block."""
+    head, a, b, _ = split_problem(prompt)
+    ta, tb = "\n".join(a), "\n".join(b)
+    s1 = len(head)
+    s2 = s1 + len(ta) + 1
+    assert prompt[s1:s1 + len(ta)] == ta and prompt[s2:s2 + len(tb)] == tb
+    return [(s1, s1 + len(ta)), (s2, s2 + len(tb))]
+
+
+def chain_values(prompt):
+    """Start value of the first and second chain, and which chain (0/1) the query is about."""
+    _, a, b, tail = split_problem(prompt)
+    q = re.match(r"^>>> (\w+)", tail[0]).group(1)
+    vals = [ASSIGN.match(c[0]).group(2) for c in (a, b)]
+    names = [{ASSIGN.match(l).group(1) for l in c} for c in (a, b)]
+    return vals, (0 if q in names[0] else 1)
+
+
 FILLER = ">>> pass"
 
 

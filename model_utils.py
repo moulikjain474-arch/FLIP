@@ -24,8 +24,13 @@ def load(model_name, revision=None, device="cuda", dtype=torch.float16):
     # transformers >= 4.56 calls this argument `dtype`; older versions `torch_dtype`
     major, minor = (int(x) for x in transformers.__version__.split(".")[:2])
     dtype_kw = "dtype" if (major, minor) >= (4, 56) else "torch_dtype"
-    model = AutoModelForCausalLM.from_pretrained(model_name, revision=revision, **{dtype_kw: dtype})
-    model.to(device).eval()
+    kw = {dtype_kw: dtype}
+    if str(device).startswith("cuda"):     # load straight onto the GPU (a 72B model may not fit in host RAM)
+        kw.update(device_map=device, low_cpu_mem_usage=True)
+    model = AutoModelForCausalLM.from_pretrained(model_name, revision=revision, **kw)
+    if "device_map" not in kw:
+        model.to(device)
+    model.eval()
     return tok, model
 
 

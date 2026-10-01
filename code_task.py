@@ -23,7 +23,7 @@ import io
 import random
 
 FUNCS = [("scale", "x * {k}"), ("shift", "x + {k}"), ("square", "x * x + {k}"), ("halve", "x // 2 + {k}"),
-         ("twice", "2 * x + {k}"), ("bump", "(x + {k}) * 2")]
+         ("twice", "2 * x + {k}"), ("bump", "(x + {k}) * 3")]
 VARS = list("pqrstuvwmn")
 
 

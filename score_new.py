@@ -75,6 +75,8 @@ def score_controls(root):
             if m == "pythia-12b":
                 wins += ge(diff, 0.05)
             print(f"  {m} {st}: flip_swap={s['flip_swap']:.3f} flip_rename={s['flip_rename']:.3f} diff={diff:+.3f}"
+                  f" tokens(swap-orig)={s.get('tokens_swap_minus_orig', float('nan')):+.2f}"
+                  f" tokens(rename-orig)={s.get('tokens_rename_minus_orig', float('nan')):+.2f}"
                   f"{'  (primary)' if m == 'pythia-12b' else '  (secondary)'}")
     print("  C12:", "HIT" if wins >= 2 else "MISS", f"({wins} of 3 primary cells with diff >= 0.05)")
 
@@ -117,15 +119,20 @@ def score_layout(root):
         b = bias(v)
         biased += b != "-"
         pl = v["picks_later"]
-        print(f"  {m}: picks_later={pl['rate']:.3f} (n={pl['n']})  {b}")
+        rate = "NA" if pl["rate"] is None else f"{pl['rate']:.3f}"
+        print(f"  {m}: picks_later={rate} (n={pl['n']})  {b}")
     print("  C14:", "HIT" if biased >= 2 else "MISS", f"({biased} of 3 biased)")
 
 
 def score_benchmark(root):
     print("== C15: the Order-Flip Test finds order dependence on a real benchmark (MMLU option order)")
     flips, gains = 0, True
-    want = ("OLMo-2-1124-7B", "Qwen2.5-7B", "Mistral-7B-v0.1")
+    third = "Mistral-7B-v0.1" if os.path.exists(os.path.join(root, "benchmark", "Mistral-7B-v0.1.json")) else "falcon-7b"
+    want = ("OLMo-2-1124-7B", "Qwen2.5-7B", third)
     files = [os.path.join(root, "benchmark", f"{m}.json") for m in want]
+    for m, f in zip(want, files):
+        if not os.path.exists(f):
+            print(f"  {m}: MISSING")
     files = [f for f in files if os.path.exists(f)]
     for f in files:
         s = json.load(open(f))["summary"]
@@ -165,7 +172,7 @@ def score_olmo_traj(root):
         seq = [bias(pos[("OLMo-2-1124-7B", s, t)]) for s in steps]
         ch = direction_changes(seq)
         hit |= ch >= 1
-        print(f"  {t}: {''.join(seq) or 'MISSING'}  changes={ch}  (steps {steps})")
+        print(f"  {t}: {''.join(seq) or 'MISSING'}  changes={ch}  ({len(steps)} checkpoints: {steps})")
     print("  C18:", "HIT" if hit else "MISS")
 
 
@@ -192,13 +199,15 @@ def score_scale(root):
 def score_code(root):
     print("== C20: order dependence on short Python programs (level 2; models with accuracy >= 0.30)")
     eligible = flipped = 0
-    for f in sorted(glob.glob(os.path.join(root, "code", "*.json"))):
+    for m, rev in C20_MODELS:
+        f = os.path.join(root, "code", f"{m}__{rev}.json")
+        if not os.path.exists(f):
+            print(f"  {m} {rev}: MISSING"); continue
         s = json.load(open(f))
-        name = s["model"].split("/")[-1] + " " + s["revision"]
         for t in ("code_l1", "code_l2", "code_l3"):
             r = s["tasks"].get(t)
             if r:
-                print(f"  {name} {t}: acc={r['acc_single_mean']:.3f} flip={r['flip']:.3f} "
+                print(f"  {m} {t}: acc={r['acc_single_mean']:.3f} flip={r['flip']:.3f} "
                       f"both-orders {r['acc_single_mean']:.3f}->{r['acc_both']:.3f} [{r['gain_lo']:+.3f},{r['gain_hi']:+.3f}]")
         r = s["tasks"].get("code_l2")
         if r and ge(r["acc_single_mean"], 0.30):
@@ -208,69 +217,96 @@ def score_code(root):
     print("  C20:", "HIT" if ok else "MISS", f"({flipped} of {eligible} eligible models with flip >= 0.10)")
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--dir", required=True)
-    root = ap.parse_args().dir
-    pos = load_positions(root)
+C12_STEPS = (32000, 64000, 143000)
+C20_MODELS = [("pythia-1.4b", "step143000"), ("pythia-6.9b", "step143000"), ("pythia-12b", "step143000"),
+              ("OLMo-2-1124-7B", "main"), ("Qwen2.5-7B", "main"), ("OLMo-2-0325-32B", "main"), ("Qwen2.5-72B", "main")]
 
+
+def score_c8(root):
+    pos = load_positions(root)
     print("== C8: 12B flips direction at least twice (depth 2 or 3)")
+    want = (1000, 2000, 4000, 6000, 8000, 12000, 16000, 24000, 32000, 48000, 64000, 100000, 120000, 143000)
+    hit = False
     for m in ("pythia-12b", "pythia-6.9b"):
         for t in ("vartrack_d2", "vartrack_d3"):
             steps = sorted(s for (mm, s, tt) in pos if mm == m and tt == t)
             seq = [bias(pos[(m, s, t)]) for s in steps]
-            print(f"  {m} {t}: {''.join(seq)}  changes={direction_changes(seq)}  (steps {steps})")
-    hit8 = any(direction_changes([bias(pos[("pythia-12b", s, t)]) for s in sorted(s for (mm, s, tt) in pos
-               if mm == "pythia-12b" and tt == t)]) >= 2 for t in ("vartrack_d2", "vartrack_d3"))
-    print("  C8:", "HIT" if hit8 else "MISS")
+            ch = direction_changes(seq)
+            if m == "pythia-12b":
+                hit |= ch >= 2
+                missing = [s for s in want if s not in steps]
+                if missing:
+                    print(f"  pythia-12b {t}: MISSING steps {missing}")
+            print(f"  {m} {t}: {''.join(seq)}  changes={ch}  (steps {steps})")
+    print("  C8:", "HIT" if hit else "MISS")
 
+
+def score_c9(root):
+    pos = load_positions(root)
     print("== C9: seeds disagree (>=2 L and >=2 F) at depth 3, step 16000 or 64000")
     runs = ["pythia-410m"] + [f"pythia-410m-seed{k}" for k in (1, 2, 3, 5, 6, 7, 8, 9)]
-    hit9 = False
+    hit = False
     for s in (16000, 64000):
+        missing = [r for r in runs if (r, s, "vartrack_d3") not in pos]
         b = [bias(pos[(r, s, "vartrack_d3")]) for r in runs if (r, s, "vartrack_d3") in pos]
         ok = b.count("L") >= 2 and b.count("F") >= 2
-        hit9 |= ok
-        print(f"  step {s}: {''.join(b)}  L={b.count('L')} F={b.count('F')}  {'yes' if ok else 'no'}")
-    print("  C9:", "HIT" if hit9 else "MISS")
+        hit |= ok
+        print(f"  step {s}: {''.join(b)}  L={b.count('L')} F={b.count('F')}  {'yes' if ok else 'no'}"
+              + (f"  MISSING {missing}" if missing else ""))
+    print("  C9:", "HIT" if hit else "MISS")
 
+
+def score_c10(root):
     print("== C10: correct in exactly one order >= 0.20 at depth 2 (6.9B, 12B; 16k/32k/64k)")
     sw = {}
     for f in glob.glob(os.path.join(root, "swap", "*.json")):
         s = json.load(open(f))
         sw[(s["model"].split("/")[-1], s["step"])] = s["tasks"]
-    hit10 = True
+    hit = True
     for m in ("pythia-6.9b", "pythia-12b"):
         for st in (16000, 32000, 64000):
             r = sw.get((m, st))
             if r is None:
-                print(f"  {m} {st}: MISSING"); hit10 = False; continue
+                print(f"  {m} {st}: MISSING"); hit = False; continue
             v = r["vartrack_d2"]["correct_in_exactly_one_order"]
-            hit10 &= ge(v, 0.20)
+            hit &= ge(v, 0.20)
             print(f"  {m} {st}: {v:.3f}")
-    print("  C10:", "HIT" if hit10 else "MISS")
+    print("  C10:", "HIT" if hit else "MISS")
     for st in (32000, 64000):
         r = sw.get(("pythia-12b", st))
         if r:
             g = [r[t]["acc_combined"] - r[t]["acc_original"] for t in ("vartrack_d1", "vartrack_d2")]
             print(f"  secondary 12B {st}: combined gain d1={g[0]:+.3f} d2={g[1]:+.3f}  {'yes' if ge(min(g), 0.03) else 'no'}")
 
-    print("== C11: 6.9B plant ignored at layers <=10 (<0.10), >=0.50 at some layer <=22")
-    hit11 = True
+
+def score_c11(root):
+    print("== C11: 6.9B plant below 0.10 at EVERY tested layer <=10 (4, 8, 10), >=0.50 at some layer <=22")
+    hit = True
     rows = [json.load(open(f)) for f in glob.glob(os.path.join(root, "steer_layers", "*.json"))]
     for st in (16000, 143000):
         for t in ("vartrack_d1", "vartrack_d3"):
-            pts = sorted((r["layer"], r["rates"]["plant_cor"]["planted"]) for r in rows if r["step"] == st and r["task"] == t)
-            if not pts:
-                print(f"  step {st} {t}: MISSING"); hit11 = False; continue
-            early = max(v for L, v in pts if L <= 10)
-            late = max(v for L, v in pts if L <= 22)
-            ok = early < 0.10 - 1e-9 and ge(late, 0.50)
-            hit11 &= ok
-            print(f"  step {st} {t}: " + " ".join(f"L{L}={v:.2f}" for L, v in pts) + f"  {'yes' if ok else 'no'}")
-    print("  C11:", "HIT" if hit11 else "MISS")
-    for fn in (score_controls, score_layout, score_benchmark, score_olmo, score_olmo_traj, score_scale, score_code):
-        fn(root)
+            pts = dict(sorted((r["layer"], r["rates"]["plant_cor"]["planted"]) for r in rows if r["step"] == st and r["task"] == t))
+            missing_early = [L for L in (4, 8, 10) if L not in pts]
+            late = [v for L, v in pts.items() if L <= 22]
+            if missing_early or not late:
+                print(f"  step {st} {t}: MISSING layers {missing_early or 'all <= 22'}"); hit = False; continue
+            early = max(pts[L] for L in (4, 8, 10))
+            ok = early < 0.10 - 1e-9 and ge(max(late), 0.50)
+            hit &= ok
+            print(f"  step {st} {t}: " + " ".join(f"L{L}={v:.2f}" for L, v in pts.items()) + f"  {'yes' if ok else 'no'}")
+    print("  C11:", "HIT" if hit else "MISS")
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--dir", required=True)
+    root = ap.parse_args().dir
+    for fn in (score_c8, score_c9, score_c10, score_c11, score_controls, score_layout, score_benchmark,
+               score_olmo, score_olmo_traj, score_scale, score_code):
+        try:
+            fn(root)
+        except Exception as e:          # one broken result must not hide the other claims
+            print(f"  ERROR while scoring ({fn.__name__}): {type(e).__name__}: {e}  -> treat as NOT SCORED")
 
 
 if __name__ == "__main__":

@@ -20,13 +20,16 @@ import time
 import urllib.error
 import urllib.request
 
-NAMES = list("abcdefghijklmnopqrstuvwxyz")
+_L = "abcdefghijklmnopqrstuvwxyz"
+NAMES = list(_L) + [a + b for a in _L for b in _L if a + b not in ("as", "if", "in", "is", "or")]   # 2-letter names for the big settings
 INSTRUCTION = ("Below is a short Python session. Reply with only the single digit that the last "
                "line prints, nothing else.\n\n")
 
 
 def make_items(n, chains, depth, seed=0):
     """Each item: list of chains (each a list of lines), the query variable, the answer."""
+    if chains > 10:
+        raise SystemExit(f"{chains} chains need {chains} different digits; at most 10 exist")
     if chains * (depth + 1) > len(NAMES):
         raise SystemExit(f"{chains}x{depth} needs {chains * (depth + 1)} variable names; only {len(NAMES)} exist")
     rng = random.Random(seed * 1009 + chains * 31 + depth)
@@ -132,7 +135,7 @@ def selftest():
     assert parse("The answer is 7.") == "7" and parse("") is None
     from code_task import run
     assert is_reasoning("o3-mini") and not is_reasoning("gpt-4o-mini")
-    for setting in ("2x3", "4x3", "6x3"):
+    for setting in ("2x3", "4x3", "6x3", "8x4", "10x5"):
         c, d = (int(x) for x in setting.split("x")); make_items(5, c, d)
     for it in code_prompts(50, 3):
         assert "Output" not in it["fwd"] and "```python" in it["fwd"]
@@ -146,7 +149,7 @@ def main():
     ap.add_argument("--provider", choices=("openai", "anthropic"))
     ap.add_argument("--model")
     ap.add_argument("--n", type=int, default=200)
-    ap.add_argument("--settings", default="2x3,4x3,6x3,code2,code3",
+    ap.add_argument("--settings", default="2x3,4x3,6x3,8x4,10x5,code2,code3",
                     help="chains x depth (e.g. 4x3) or codeL (program level L), comma-separated")
     ap.add_argument("--out", default="frontier_results")
     ap.add_argument("--selftest", action="store_true")

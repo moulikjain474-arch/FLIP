@@ -353,3 +353,6 @@ Every result is reported, hit or miss.
     towards even digits. Each OLMo-2-7B checkpoint is downloaded once (part 5e runs the
     exploratory OLMo checks in the same pass). model_utils.load loads straight onto the GPU
     (patch_model_utils.py) so a 72B model does not need ~145 GB of host RAM first.
+- 1 Oct 2026, ~20:20: frontier_flip.py (exploratory) gets two harder levels, 8 chains of
+  depth 4 and 10 chains of depth 5 (10 is the maximum: each chain needs its own digit), as a
+  difficulty ladder. Every level is reported.

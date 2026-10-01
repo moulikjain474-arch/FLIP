@@ -5,7 +5,7 @@ Goal: qualify for ISEF through IRIS. What judges score, and where the project st
 | Judges look for | Status | Still to do |
 |---|---|---|
 | A clear, answerable question | Done: how do models choose which variable was asked, across training? | Say it in one sentence everywhere |
-| Sound design with controls | Strong: pre-registration, random-subspace controls, noise floor, no-example control, 9 seeds, 5 sizes, checkpoint checksums | Replicate on unseen checkpoints (C8-C11) |
+| Sound design with controls | Strong: pre-registration, random-subspace controls, noise floor, no-example control, 9 seeds, 5 sizes, checkpoint checksums | Replicate on unseen checkpoints (C8-C11); controls and generalisation (C12-C17) |
 | Careful execution and analysis | Good | Add confidence intervals to every figure |
 | A surprising, memorable result | "12B changes correctness on nearly half the questions when reordered" | Lead with it |
 | A consequence outside the lab | Asking in both orders: 79% to 91% at 12B; single-order tests mislead | One slide, one sentence |
@@ -19,8 +19,8 @@ remaining work is replication (one compute day) and communication, not new ideas
 ## Timeline
 | Dates | Work |
 |---|---|
-| 1-2 Oct | Commit the plan update (C8-C11 registered) BEFORE any new run. Ask Exea for the full day. |
-| Full Exea day (as early as possible) | `run_fullday.sh` (runbook: docs/EXEA.md). Then `score_new.py`. |
+| 1-3 Oct | Commit EXPERIMENTS.md with C8-C17 registered BEFORE any new run. Register the project on the IRIS portal, pay, add the guide. Ask Exea for the full day. IRIS confirmed 13 Oct (1 Oct). |
+| Full Exea day (as early as possible) | `smoke.sh` first, then `run_fullday.sh` (runbook: docs/EXEA.md). Then `score_new.py` and `export_csv.py`. |
 | Same or next day | Export the CSV, make final figures, score P1-P4 with `stages.py` on the new sweeps. |
 | 4-7 Oct | Write the synopsis (docs/PAPER_DRAFT.md), fill every [TBD], rewrite anything a result contradicts. |
 | 8-9 Oct | Figures final (3 in the main text: position flips, noise floor / seeds, order-swap; 1 mechanism figure). Video script and recording. |

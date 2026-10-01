@@ -100,11 +100,62 @@ Wilson interval of picks_later is above 0.5, FIRST-biased if the upper end is be
   to 22.
 Every result is reported, hit or miss. A miss is written up as a miss.
 
+## 4c. New claims, registered 1 Oct 2026 BEFORE the full-day runs (C12-C17)
+Two objections to the 1 Oct findings: (a) "any small edit to a prompt changes some answers,
+so reordering is not special", and (b) "one synthetic task, one model family". The claims
+below test both. None of the runs behind them has been done: renaming has never been run,
+the OLMo-2, interleaved-layout and benchmark runs are new. The 600 questions per depth are
+the same item set (seed 0) as before; only the new versions of them are new.
+
+Definitions. A question is asked in four versions with the same correct answer: orig,
+swap (the two chains reversed), rename (every variable renamed to a new random name of the
+same length, order unchanged), swap_rename. Flip rate F(A, B) = share of questions answered
+correctly in exactly one of versions A and B. An ensemble sums the log-probabilities of its
+versions. "Single-order accuracy" = the mean of the orig and swap accuracies (so neither
+order is privileged). Every version is checked to keep the same answer before any model is
+run (perturb_test.py).
+- **C12, the order effect is not generic fragility.** Pythia-12B, depth 2, steps 32000,
+  64000 and 143000: F(orig, swap) exceeds F(orig, rename) by at least 0.05 in at least 2 of
+  the 3 steps. (6.9B is reported, not part of the claim.)
+  A miss means renaming flips about as many answers as reordering: the finding is then
+  "answers are fragile to small prompt edits", and the paper says that instead.
+- **C13, order diversity is what helps.** Pythia-12B, step 143000, depths 1 and 2: the
+  accuracy of the ensemble orig + swap exceeds that of the equal-cost ensemble orig + rename
+  by at least 0.03 at both depths. (Steps 32000 and 64000 are reported.)
+  A miss means the gain from asking twice is generic ensembling, not specific to order.
+- **C14, not a layout artifact.** Interleaved layout, final checkpoints (step 143000) of
+  Pythia-410M, 1.4B and 6.9B, depth 3: picks_later is biased (95% Wilson interval excludes
+  0.5) in at least 2 of the 3 models.
+- **C15, the test works on a real benchmark.** MMLU (1,000 random test questions, seed 0,
+  0-shot), options shown in the original and the reversed order, base models OLMo-2-1124-7B,
+  Qwen2.5-7B and Mistral-7B-v0.1: F(orig, reversed) >= 0.10 for at least 2 of the 3 models,
+  AND the 2-order ensemble beats the single-order average for all 3 (4 cyclic orders are
+  reported, not part of the claim). This tests the TOOL on a real task; it is not the same
+  mechanism as the variable-chain result, and option-order sensitivity is known from earlier work.
+- **C16, a second model family.** OLMo-2-0425-1B and OLMo-2-1124-7B (final), depth 3: for at
+  least one of them, F(orig, swap) >= 0.10 and the orig + swap ensemble beats the
+  single-order accuracy by at least 0.02.
+- **C17, the headline gain is not noise.** Pythia-12B, step 143000, depths 1 and 2: the
+  paired-bootstrap 95% interval (10,000 resamples over questions) of [ensemble orig + swap
+  correct] minus [mean of orig and swap correct] lies above 0 at both depths. The point
+  estimates were seen on 1 Oct (+0.13 and +0.12); the interval needs per-question results
+  that were not saved then.
+Notes. Renamed variables can tokenize to a different number of tokens than the originals
+(swap does not change the length much); the mean length change is reported with C12. All
+thresholds are compared with a tolerance of 1e-9 so that a rate sitting exactly on a
+threshold counts as meeting it.
+Exploratory only (not claims): distance filler lines between the chains, the 4-version
+ensemble, how rename and swap flips change across training, and which questions flip.
+Every result is reported, hit or miss. A miss is written up as a miss.
+
 ## 5. Statistics
 - Holm correction across all C4 primary tests (every model x checkpoint x depth run), and
   separately across all C4b primary tests.
 - C5 also reports a two-sided binomial test of "picks later chain" vs 0.5 and a 95% Wilson
   interval; the C5 decision rule above is unchanged.
+- C12-C17 are fixed thresholds, not p-value tests; the only interval is the C17 paired
+  bootstrap (10,000 resamples over questions). Headline gains use the single-order average
+  as baseline, not the "original" order.
 - Every run is reported, including failures and nulls.
 - 160M runs rarely reach T_cor; they count toward "signal fired without competence".
 
@@ -213,3 +264,20 @@ Every result is reported, hit or miss. A miss is written up as a miss.
     This changes nothing for the models that already loaded.
     Earlier note kept for the record: Feng & Steinhardt (ICLR 2024) and "Mixing Mechanisms"
     (arXiv 2510.06182) study binding in trained models, not across training.
+- 1 Oct 2026, afternoon, before any run below:
+  - Registered C12-C17 (section 4c). Added perturb.py (swap and rename edits, shared with
+    swap_test.py: checked identical to the committed swap function on 2,000 prompts),
+    perturb_test.py, benchmark_flip.py, flipstats.py, export_csv.py, smoke.sh, test_flip.py.
+  - swap_test.py gains --revision (for models without step checkpoints). The registered C10
+    runs are unaffected.
+  - The headline order-swap gain is now stated against the average of the two orders: 12B
+    depth 1 goes 0.776 to 0.905 and depth 2 0.740 to 0.858 (the earlier 0.79 to 0.91 and
+    0.75 to 0.86 used the "original" order as baseline).
+  - A fixed-position rule (always put the asked-about chain in the better position) was
+    checked on the 1 Oct data and gains almost nothing: the two orders have nearly equal
+    accuracy; the instability is per question. Not pursued.
+  - Later the same afternoon, still before any run: score_new.py compares thresholds with a
+    1e-9 tolerance (an independent review found that float rounding could score an exact-
+    threshold result as a miss); perturb.py fails with clearer errors; perturb_test.py also
+    reports token-length changes and warns if the computed answer differs from the item
+    label; C15 is scored only on its three registered models.

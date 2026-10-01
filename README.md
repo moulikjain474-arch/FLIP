@@ -43,8 +43,9 @@ Public Pythia-2.8B intermediate checkpoints load identical weights and are exclu
 ## Pre-registration
 The analysis plan, thresholds and every change (dated, with reasons) are in
 [EXPERIMENTS.md](EXPERIMENTS.md), committed before the runs they govern. Results found
-exploratorily on 1 Oct are re-tested on unseen checkpoints as claims C8-C11, registered
-before those runs and scored by `score_new.py`.
+exploratorily on 1 Oct are re-tested on unseen checkpoints as claims C8-C11, and the new
+controls and generalisation tests C12-C17, all registered before those runs and scored by
+`score_new.py`.
 
 ## Pipeline
 
@@ -56,7 +57,11 @@ before those runs and scored by `score_new.py`.
 | Position test (first vs last chain) | `position_test.py` | `position/*.json` |
 | Order-swap test | `swap_test.py` | `swap/*.json` |
 | Causal erase / plant, per layer | `steer_stage.py` | `steer_stage/*.json` |
-| Score the registered claims C8-C11 | `score_new.py` | printed hit / miss |
+| Reorder vs rename, with per-question results | `perturb_test.py` | `perturb/*.json` |
+| Order-Flip Test on a real benchmark (MMLU options) | `benchmark_flip.py` | `benchmark/*.json` |
+| Score the registered claims C8-C17 | `score_new.py` | printed hit / miss |
+| Flatten results to one CSV | `export_csv.py` | `earlymind_fullday.csv` |
+| Quick check of the new tests | `smoke.sh`, `test_flip.py` | `SMOKE OK` |
 | Full compute day | `run_fullday.sh` | everything above |
 | Figures from the 1 Oct session | `results/exea_2026-10-01/make_figs.py` | `plots/*.png` |
 

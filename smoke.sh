@@ -14,7 +14,7 @@ from huggingface_hub import HfApi
 api = HfApi()
 from huggingface_hub import hf_hub_download
 for m in ["EleutherAI/pythia-12b", "allenai/OLMo-2-0425-1B", "allenai/OLMo-2-1124-7B", "allenai/OLMo-2-0325-32B",
-          "Qwen/Qwen2.5-7B", "Qwen/Qwen2.5-72B", "mistralai/Mistral-7B-v0.1", "tiiuae/falcon-7b"]:
+          "Qwen/Qwen2.5-7B", "Qwen/Qwen2.5-72B", "Qwen/Qwen2.5-7B-Instruct", "allenai/OLMo-2-1124-7B-Instruct", "mistralai/Mistral-7B-v0.1", "tiiuae/falcon-7b"]:
     try:
         hf_hub_download(m, "config.json"); print("downloadable", m)
     except Exception as e:   # gated or missing: only Mistral has a registered fallback

@@ -7,12 +7,15 @@
 # Parts run in priority order; each writes "=== PART n DONE" so progress is easy to follow.
 # Short slot? Run only some parts, e.g.  ONLY="2 3 4" setsid nohup bash run_fullday.sh ...
 #   (2 = reorder vs rename, 3 = OLMo-2, 4 = interleaved layout, 5 = MMLU, 5e = OLMo-2 trajectory,
-#    5f = 32B/72B scale check (+ code test), 5g = code test, 5b-5d, 5h, 5i = exploratory
+#    5f = 32B/72B scale check (+ code test), 5g = code test, 5b-5d, 5h-5j = exploratory
 #    distance / patching / story task; 0-1 and 6-8 are the older replications)
 set -u
 cd "$(dirname "$0")"
 OUT=${PERSIST:?set PERSIST first}/fullday
 : ${HF_HOME:?set HF_HOME first}
+if [ -d "$OUT" ] && [ -n "$(ls -A "$OUT" 2>/dev/null)" ]; then   # never score leftovers from an earlier attempt
+  mv "$OUT" "$OUT.old.$(date +%m%d-%H%M)"; echo "moved earlier results aside: $OUT.old.*"
+fi
 mkdir -p $OUT
 python -c "import datasets, accelerate" 2>/dev/null || pip install -q datasets accelerate
 cleanrepo() { rm -rf $HF_HOME/hub/models--${1//\//--}; }
@@ -114,6 +117,7 @@ REVS=$(python -c "import model_utils as mu; print(' '.join(r for _, _, r in mu.n
 EARLY=$(python -c "import model_utils as mu; print(mu.nearest_revisions('$OM', [0.05])[0][2])")
 LAST=$(python -c "import model_utils as mu; print(mu.nearest_revisions('$OM', [1.0])[0][2])")
 echo "OLMo-2-7B checkpoints: $REVS (early: $EARLY, last: $LAST)"
+[ -z "$REVS" ] && echo "FAILED olmo revisions: could not list OLMo-2-7B checkpoints (C18 will show MISSING)"
 for r in $REVS; do
   python position_test.py --model $OM --revision $r --out $OUT/position_olmo/OLMo-2-1124-7B || echo "FAILED olmo traj $r"
   python perturb_test.py --model $OM --revision $r --out $OUT/perturb_olmo_traj || echo "FAILED olmo perturb $r"
@@ -197,10 +201,20 @@ python patch_test.py --model $OM --revision main --out $OUT/patch || echo "FAILE
 python story_test.py --model $OM --revision main --out $OUT/story || echo "FAILED olmo story"
 python position_test.py --model $OM --revision main --layout interleaved --out $OUT/position_interleaved/OLMo-2-1124-7B || echo "FAILED olmo interleaved"
 cleanrepo $OM
-python perturb_test.py --model Qwen/Qwen2.5-7B --revision main --out $OUT/perturb || echo "FAILED qwen7b perturb"
+python perturb_test.py --model Qwen/Qwen2.5-7B --revision main --instruct --out $OUT/perturb || echo "FAILED qwen7b perturb"
 python story_test.py --model Qwen/Qwen2.5-7B --revision main --out $OUT/story || echo "FAILED qwen7b story"
 cleanrepo Qwen/Qwen2.5-7B
 echo "=== PART 5i DONE"
+fi
+
+if want 5j; then
+echo "=== PART 5j: exploratory: base vs chat-tuned (instruct) versions of the same model $(date)"
+for m in Qwen/Qwen2.5-7B-Instruct allenai/OLMo-2-1124-7B-Instruct; do
+  python perturb_test.py --model $m --revision main --instruct --out $OUT/perturb || echo "FAILED instruct perturb $m"
+  python benchmark_flip.py --model $m --out $OUT/benchmark || echo "FAILED instruct bench $m"
+  cleanrepo $m
+done
+echo "=== PART 5j DONE"
 fi
 
 if want 6; then

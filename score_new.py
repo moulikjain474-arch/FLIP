@@ -304,12 +304,30 @@ def score_c11(root):
     print("  C11:", "HIT" if hit else "MISS")
 
 
+def score_instruct(root):
+    print("-- exploratory: base vs chat-tuned (instruct) versions, flip rate (correct in exactly one order)")
+    pert = load_perturb(root)
+    for base in ("Qwen2.5-7B", "OLMo-2-1124-7B"):
+        a, b = pert.get((base, "main")), pert.get((base + "-Instruct", "main"))
+        if a is None or b is None:
+            print(f"  {base}: MISSING" + (" base" if a is None else "") + (" instruct" if b is None else "")); continue
+        for t in ("vartrack_d1", "vartrack_d2", "vartrack_d3"):
+            sa, sb = a[t]["summary"], b[t]["summary"]
+            print(f"  {base} {t}: base flip {sa['flip_swap']:.3f} (acc {sa['acc_single_mean_swap']:.3f})  "
+                  f"instruct flip {sb['flip_swap']:.3f} (acc {sb['acc_single_mean_swap']:.3f})")
+        for name in (base, base + "-Instruct"):
+            f = os.path.join(root, "benchmark", f"{name}.json")
+            if os.path.exists(f):
+                s = json.load(open(f))["summary"]
+                print(f"  {name} MMLU: acc {s['acc_orig']:.3f}  flip {s['flip_orig_reversed']:.3f}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dir", required=True)
     root = ap.parse_args().dir
     for fn in (score_c8, score_c9, score_c10, score_c11, score_controls, score_layout, score_benchmark,
-               score_olmo, score_olmo_traj, score_scale, score_code):
+               score_olmo, score_olmo_traj, score_scale, score_code, score_instruct):
         try:
             fn(root)
         except Exception as e:          # one broken result must not hide the other claims

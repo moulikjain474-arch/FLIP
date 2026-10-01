@@ -51,7 +51,10 @@ is then replaced; in real pretrained models the heuristic reverses repeatedly an
 by seed. Guo & Vosoughi (2025) documented primacy and recency effects in LLMs and found prompt
 fixes inconsistent; FLIP measures a fix, asking in both orders, against a plain prompt instruction.
 Order effects in finished models are known for premises (Chen et al., 2024), multiple-choice
-options (Zheng et al., 2024) and long contexts (Liu et al., 2024; Hsieh et al., 2024). The gap
+options (Zheng et al., 2024) and long contexts (Liu et al., 2024; Hsieh et al., 2024). Fine-tuning has been reported to amplify primacy bias in multiple-choice QA (Exploiting
+Primacy Effect to Improve LLMs [check authors]), so FLIP compares base and chat-tuned versions;
+and text-only training has been reported to encourage positional shortcuts in binding [check
+vision-language paper title and authors]. The gap
 FLIP fills: the position preference across real pretraining checkpoints, sizes and seeds, where
 inside the model it is decided, and what it costs.
 

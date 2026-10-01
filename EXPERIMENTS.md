@@ -350,8 +350,10 @@ Every result is reported, hit or miss.
   attention from the last token to each chain's tokens, per layer and head, and how it
   differs between questions answered with the later vs the earlier chain's value. Run on
   Pythia-1.4B at steps 7000 and 143000, Pythia-12B at 143000, and OLMo-2-7B at the
-  stage-1 checkpoints nearest 5% and 100% of training (part 5h).
-- 1 Oct 2026, ~19:50, before any run: part 5i (EXPLORATORY, no claim) runs the other
+  stage-1 checkpoints nearest 5% and 100% of training (part 5h; the OLMo runs moved to 5e,
+  see ~20:15).
+- 1 Oct 2026, ~19:50, before any run (OLMo checkpoint runs later moved to 5e, see ~20:15):
+  part 5i (EXPLORATORY, no claim) runs the other
   tests on OLMo-2-7B as well: order-swap and rename at the same 10 training checkpoints as
   C18 (written to perturb_olmo_traj/, kept apart from the C16 scoring), activation patching at
   the 5% checkpoint and the final model, the distance control, the story task and the
@@ -386,3 +388,18 @@ Every result is reported, hit or miss.
   Guo & Vosoughi 2025 found inconsistent). Used in parts 2, 3 and 5f. size_fit.py fits
   flip rate against parameter count on the final models after the run (descriptive; printed
   pooled and per family, since families differ in data and recipe as well as size).
+- 1 Oct 2026, ~20:55, before any run (exploratory, no claim): part 5j runs the same
+  order-swap and rename tests, and MMLU option order, on the chat-tuned versions
+  Qwen2.5-7B-Instruct and OLMo-2-1124-7B-Instruct, to compare with their base versions (a
+  primacy-bias study on multiple-choice QA reports that fine-tuning amplifies the bias;
+  chat-tuned versions are what products deploy). Prompts are the same raw text as for base
+  models (no chat template), which is stated as a limitation. The base Qwen2.5-7B run now
+  also includes the instruction variants so both sides have the same versions.
+  attention_test.py states two hypotheses to check: first-chain preference from attention
+  to the start of the input ("attention sink"), last-chain preference from causal masking
+  and position decay.
+- 1 Oct 2026, ~21:00, before any run (final review): run_fullday.sh moves any earlier
+  results aside before starting (so nothing stale is scored) and reports FAILED if the
+  OLMo-2-7B checkpoint list cannot be fetched. The last OLMo trajectory point is the final
+  stage-1 checkpoint, not the released model after stage 2. Base vs instruct comparisons
+  (5j) use raw prompts without chat templates, so prompt format is a confound.

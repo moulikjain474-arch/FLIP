@@ -19,7 +19,7 @@ remaining work is replication (one compute day) and communication, not new ideas
 ## Timeline
 | Dates | Work |
 |---|---|
-| 1-3 Oct | Commit EXPERIMENTS.md with C8-C17 registered BEFORE any new run. Register the project on the IRIS portal, pay, add the guide. Ask Exea for the full day. IRIS confirmed 13 Oct (1 Oct). |
+| 1-3 Oct | Commit EXPERIMENTS.md with C8-C21 registered BEFORE any new run. Register the project on the IRIS portal, pay, add the guide. Ask Exea for the full day. IRIS confirmed 13 Oct (1 Oct). |
 | Full Exea day (as early as possible) | `smoke.sh` first, then `run_fullday.sh` (runbook: docs/EXEA.md). Then `score_new.py` and `export_csv.py`. |
 | Same or next day | Export the CSV, make final figures, (P1-P4 are registered but no longer tested; see EXPERIMENTS.md Changes). |
 | 4-7 Oct | Write the synopsis (docs/PAPER_DRAFT.md), fill every [TBD], rewrite anything a result contradicts. |
@@ -60,7 +60,8 @@ A miss changes a sentence, not the project.
    that is why the informative part is where it starts working: nothing before about
    layer 12, and the same at every training stage.)
 5. What does this mean for real use? (Test models with the order of facts varied; a
-   single accuracy number can hide answers that flip.)
+   single accuracy number can hide answers that flip. Add after the run: whether the
+   chat-tuned versions that products deploy flip more or less than their base versions.)
 6. What failed? (Erasing the wrong chain did not help; mistakes did not warn early; one
    model size had corrupted checkpoints.)
 7. What would you do next? (Find the attention heads that choose the chain; test other

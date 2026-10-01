@@ -12,8 +12,17 @@ def block(text, start, end):
     return i, text.index(end, i)
 
 
+EXTRA = (" Fine-tuning has been reported to amplify primacy bias in multiple-choice QA (Exploiting\n"
+         "Primacy Effect to Improve LLMs [check authors]), so FLIP compares base and chat-tuned versions;\n"
+         "and text-only training has been reported to encourage positional shortcuts in binding [check\n"
+         "vision-language paper title and authors].")
+ANCHOR = "and long contexts (Liu et al., 2024; Hsieh et al., 2024)."
 if "## 2b. Related work" in s:
-    raise SystemExit("PAPER_DRAFT.md already updated")
+    if EXTRA in s:
+        print("PAPER_DRAFT.md already updated"); raise SystemExit(0)
+    assert ANCHOR in s, "related-work paragraph not found: send PAPER_DRAFT.md to Claude, nothing changed"
+    open(p, "w").write(s.replace(ANCHOR, ANCHOR + EXTRA))
+    print("PAPER_DRAFT.md: two related-work lines added"); raise SystemExit(0)
 
 i, j = block(s, "## 3. Innovation (50-100 words)", "## 4. Methodology")
 s = s[:i] + """## 3. Innovation (50-100 words)
@@ -37,7 +46,7 @@ is then replaced; in real pretrained models the heuristic reverses repeatedly an
 by seed. Guo & Vosoughi (2025) documented primacy and recency effects in LLMs and found prompt
 fixes inconsistent; FLIP measures a fix, asking in both orders, against a plain prompt instruction.
 Order effects in finished models are known for premises (Chen et al., 2024), multiple-choice
-options (Zheng et al., 2024) and long contexts (Liu et al., 2024; Hsieh et al., 2024). The gap
+options (Zheng et al., 2024) and long contexts (Liu et al., 2024; Hsieh et al., 2024).""" + EXTRA + """ The gap
 FLIP fills: the position preference across real pretraining checkpoints, sizes and seeds, where
 inside the model it is decided, and what it costs.
 
@@ -49,7 +58,8 @@ Guide: [name, role]. Compute: Google Colab; Exea Labs (AMD MI300X). [Describe an
 help truthfully, e.g. coding and drafting support.]
 References: Biderman et al. 2023 (Pythia); van der Wal et al. 2025 (PolyPythias); OLMo Team 2025
 (OLMo 2); Ravulapalli & Chadha 2026; Gur-Arieh et al. 2026; Wu, Geiger & Milliere 2025; Guo &
-Vosoughi 2025; Feng & Steinhardt 2024; Chen et al. 2024; Zheng et al. 2024.
+Vosoughi 2025; Feng & Steinhardt 2024; Chen et al. 2024; Zheng et al. 2024; Liu et al. 2024;
+Hsieh et al. 2024. (Full list, including the two [check] works, in the full paper.)
 
 """ + s[j:]
 open(p, "w").write(s)

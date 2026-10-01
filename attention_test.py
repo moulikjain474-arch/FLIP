@@ -7,6 +7,11 @@ and how that differs between questions where the model answered with the LATER c
 value and those where it answered with the EARLIER chain's value. Heads where the gap is
 large are candidates for the heads that choose the chain.
 
+Hypotheses from the long-context literature (to check, not assumed): a preference for the
+FIRST chain could come from attention drawn toward the start of the input (the "attention
+sink" at the first tokens); a preference for the LAST chain from causal masking and position
+decay favouring nearby tokens.
+
   python attention_test.py --model EleutherAI/pythia-1.4b --step 143000
 """
 import argparse

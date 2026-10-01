@@ -73,7 +73,9 @@ controls and generalisation tests C12-C20, all registered before those runs and 
 Always use `--layout blocked` (the default everywhere except the earlier `sweep.py`).
 
 ## Scope and caveats
-- One synthetic task in one layout, one model family (Pythia).
+- Training-dynamics results are on Pythia (and OLMo-2-7B checkpoints); the order tests also
+  cover OLMo-2, Qwen2.5 and Mistral/Falcon. Main task is synthetic; code, story and MMLU
+  tests extend it.
 - The layer and plant results show where the output is fixed, not the full circuit that
   chooses the chain.
 - Combining both orders is shown to help only on this task.
@@ -87,6 +89,10 @@ Always use `--layout blocked` (the default everywhere except the earlier `sweep.
     and ends differently by seed.
   - Guo & Vosoughi 2025: primacy and recency effects in LLMs; prompt fixes inconsistent.
     FLIP: a measured fix (asking in both orders) against a plain prompt instruction.
+  - Exploiting Primacy Effect to Improve LLMs [check authors]: fine-tuning amplifies primacy in
+    multiple-choice QA. FLIP compares base and chat-tuned versions of the same models.
+  - A study of vision-language training [check title and authors]: text-only training
+    encourages positional shortcuts in binding. FLIP follows such shortcuts through pretraining.
   - Order effects in finished models: Chen et al. 2024 (premise order), Zheng et al. 2024
     (multiple-choice option position), Hsieh et al. 2024 (RULER), Liu et al. 2024 (lost in
     the middle).

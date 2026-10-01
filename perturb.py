@@ -14,6 +14,7 @@ import random
 import re
 import string
 
+NAME_POOL = "abcdefghmnpqrstuvwxyz"   # the letters tasks.py draws variable names from
 ASSIGN = re.compile(r"^>>> (\w+) = (\w+)\s*$")
 VARIANTS = ("orig", "swap", "rename", "swap_rename")
 
@@ -51,8 +52,9 @@ def swap_chains(prompt):
 def rename_chains(prompt, seed):
     """The prompt with every variable of the final problem renamed (answer unchanged).
 
-    New names are random, have the same length as the old ones, and never reuse a name that
-    appears in the problem, so the edit changes the names and nothing else.
+    New names are random, have the same length as the old ones, come from the same letters
+    tasks.py uses, and never reuse a name that appears in the problem, so the edit changes the
+    names and nothing else.
     """
     head, a, b, tail = split_problem(prompt)
     old = [ASSIGN.match(line).group(1) for line in a + b]
@@ -60,7 +62,8 @@ def rename_chains(prompt, seed):
     taken, mapping = set(old), {}
     for name in old:
         while True:
-            new = "".join(rng.choice(string.ascii_lowercase) for _ in name)
+            pool = NAME_POOL if len(name) == 1 else string.ascii_lowercase
+            new = "".join(rng.choice(pool) for _ in name)
             if new not in taken and not keyword.iskeyword(new):
                 break
         mapping[name] = new
@@ -79,6 +82,26 @@ def variants(prompt, seed):
     """All four versions of a prompt, keyed by VARIANTS."""
     return dict(orig=prompt, swap=swap_chains(prompt), rename=rename_chains(prompt, seed),
                 swap_rename=rename_chains(swap_chains(prompt), seed))
+
+
+FILLER = ">>> pass"
+
+
+def add_filler(prompt, where, k):
+    """Insert k no-op lines ('>>> pass') into the final block (answer unchanged).
+
+    where="between":      after the first chain, so the first chain moves AWAY from the question.
+    where="before_query": after the second chain, so BOTH chains move away from the question.
+    """
+    head, a, b, tail = split_problem(prompt)
+    fill = [FILLER] * k
+    body = a + fill + b if where == "between" else a + b + fill if where == "before_query" else None
+    assert body is not None, f"unknown filler position {where!r}"
+    return head + "\n".join(body + tail)
+
+
+def strip_filler(prompt):
+    return prompt.replace("\n" + FILLER, "")
 
 
 def final_answer(prompt):

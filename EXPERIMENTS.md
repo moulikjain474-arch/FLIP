@@ -281,3 +281,15 @@ Every result is reported, hit or miss. A miss is written up as a miss.
     threshold result as a miss); perturb.py fails with clearer errors; perturb_test.py also
     reports token-length changes and warns if the computed answer differs from the item
     label; C15 is scored only on its three registered models.
+- 1 Oct 2026, ~14:00, after the C8-C17 push and before any run: added three EXPLORATORY
+  analyses (no claims, no thresholds; reported as exploratory whatever they show):
+  - distance_test.py: no-op lines ('>>> pass') between the chains or before the question,
+    to see whether the first-or-last habit follows distance to the question.
+  - patch_test.py: activation patching of the last-token state from the swapped-order run
+    into the original run, one layer at a time, to see at which layer the order-dependent
+    choice is present.
+  - story_test.py + story_task.py: the same two-chain structure told as a short English
+    story ("Mia has as many coins as Ravi"), both orders, as a second binding task. Its
+    items come from their own seed; the vartrack items in tasks.py are unchanged.
+  - perturb.py renames variables using the same letters as tasks.py (only the names change).
+    Checked on all 1,800 real blocked items: every edit keeps the label.

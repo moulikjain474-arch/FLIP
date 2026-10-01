@@ -6,7 +6,8 @@
 # Every model is deleted from the cache right after use (the disk is shared).
 # Parts run in priority order; each writes "=== PART n DONE" so progress is easy to follow.
 # Short slot? Run only some parts, e.g.  ONLY="2 3 4" setsid nohup bash run_fullday.sh ...
-#   (2 = reorder vs rename, 3 = OLMo-2, 4 = interleaved layout, 5 = MMLU; 0-1 and 6-9 are the rest)
+#   (2 = reorder vs rename, 3 = OLMo-2, 4 = interleaved layout, 5 = MMLU, 5b-5d = exploratory
+#    distance / patching / story task; 0-1 and 6-9 are the older replications and sweeps)
 set -u
 cd "$(dirname "$0")"
 OUT=${PERSIST:?set PERSIST first}/fullday
@@ -98,6 +99,34 @@ fi
 
 if want 5; then
 echo "=== PART 5 DONE"
+fi
+
+if want 5b; then
+echo "=== PART 5b: exploratory: distance to the question (filler lines) $(date)"
+for m in pythia-12b pythia-1.4b pythia-410m; do
+  python distance_test.py --model EleutherAI/$m --step 143000 --out $OUT/distance || echo "FAILED distance $m"
+  clean $m
+done
+echo "=== PART 5b DONE"
+fi
+
+if want 5c; then
+echo "=== PART 5c: exploratory: activation patching swapped -> original, per layer $(date)"
+for m in pythia-1.4b pythia-12b; do
+  python patch_test.py --model EleutherAI/$m --step 143000 --out $OUT/patch || echo "FAILED patch $m"
+  clean $m
+done
+echo "=== PART 5c DONE"
+fi
+
+if want 5d; then
+echo "=== PART 5d: exploratory: second binding task (story) $(date)"
+for m in pythia-410m pythia-1.4b pythia-6.9b pythia-12b; do
+  python story_test.py --model EleutherAI/$m --step 143000 --out $OUT/story || echo "FAILED story $m"
+  clean $m
+done
+python story_test.py --model EleutherAI/pythia-12b --step 32000 --out $OUT/story || echo "FAILED story 12b 32000"; clean pythia-12b
+echo "=== PART 5d DONE"
 fi
 
 if want 6; then

@@ -6,6 +6,7 @@ import numpy as np
 import benchmark_flip as bf
 import flipstats as fs
 import perturb as pt
+import story_task as st
 
 HEAD = ">>> x = 4\n>>> y = x\n>>> y\n4\n\n"
 NAMES = list("abcdefghijklmnopqrstuvwxyz")
@@ -45,6 +46,43 @@ def test_perturbations():
     print("perturbations ok")
 
 
+def test_filler():
+    rng = random.Random(1)
+    for i in range(300):
+        p = make_prompt(rng, rng.randint(1, 3))
+        for where in ("between", "before_query"):
+            for k in (2, 4):
+                f = pt.add_filler(p, where, k)
+                assert f.count(pt.FILLER) == k and pt.strip_filler(f) == p
+                assert pt.final_answer(pt.strip_filler(f)) == pt.final_answer(p)
+                body = f[f.rfind("\n\n") + 2:].split("\n")
+                first_pass = body.index(pt.FILLER)
+                n_assign = sum(1 for l in body if pt.ASSIGN.match(l))
+                assert first_pass == (n_assign // 2 if where == "between" else n_assign)
+    print("filler ok")
+
+
+def test_story():
+    for d in (1, 2, 3):
+        items = st.make_story(200, d)
+        assert items == st.make_story(200, d)                       # deterministic
+        for it in items:
+            a, b = it["prompt"], it["prompt_swapped"]
+            assert a != b and a.rsplit("\n\n", 1)[0] == b.rsplit("\n\n", 1)[0]   # same shots
+            qa, qb = a.rsplit("\n\n", 1)[1].split("\n"), b.rsplit("\n\n", 1)[1].split("\n")
+            assert qa[0] == qb[1] and qa[1] == qb[0] and qa[2] == qb[2]           # chains swapped
+            name = qa[2].split()[1]
+            facts, env = " ".join(qa[:2]).split(". "), {}
+            for f in facts:          # resolve the story and check the label
+                w = f.rstrip(".").split()
+                env[w[0]] = w[2] if w[2].isdigit() else env[w[-1]]
+            assert env[name] == it["meta"]["answer"] == st.DIGITS[it["label"]]
+            assert (qa[0].split()[2] == it["meta"]["answer"] if d == 0 else True)
+            tgt_line = qa[0] if it["meta"]["target_first"] else qa[1]
+            assert name in tgt_line
+    print("story ok")
+
+
 def test_bad_format_is_caught():
     for bad in (HEAD + ">>> a = 1\n>>> b = c\n>>> a\n",              # not self-contained / odd
                 HEAD + ">>> a = 1\n>>> b = 2\n>>> c = 3\n>>> a\n"):
@@ -71,6 +109,8 @@ def test_stats():
 
 if __name__ == "__main__":
     test_perturbations()
+    test_filler()
+    test_story()
     test_bad_format_is_caught()
     test_stats()
     bf.selftest()

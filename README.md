@@ -60,7 +60,9 @@ controls and generalisation tests C12-C17, all registered before those runs and 
 | Reorder vs rename, with per-question results | `perturb_test.py` | `perturb/*.json` |
 | Order-Flip Test on a real benchmark (MMLU options) | `benchmark_flip.py` | `benchmark/*.json` |
 | Distance, patching, story task (exploratory) | `distance_test.py`, `patch_test.py`, `story_test.py` | `distance/`, `patch/`, `story/` |
-| Score the registered claims C8-C17 | `score_new.py` | printed hit / miss |
+| Order-Flip Test on closed frontier models (API, laptop) | `frontier_flip.py` | `frontier_results/*.json` |
+| Order-Flip Test on short Python programs | `code_test.py`, `code_task.py` | `code/*.json` |
+| Score the registered claims C8-C20 | `score_new.py` | printed hit / miss |
 | Flatten results to one CSV | `export_csv.py` | `earlymind_fullday.csv` |
 | Quick check of the new tests | `smoke.sh`, `test_flip.py` | `SMOKE OK` |
 | Full compute day | `run_fullday.sh` | everything above |

@@ -7,6 +7,7 @@ import benchmark_flip as bf
 import flipstats as fs
 import perturb as pt
 import story_task as st
+import code_task as ct
 
 HEAD = ">>> x = 4\n>>> y = x\n>>> y\n4\n\n"
 NAMES = list("abcdefghijklmnopqrstuvwxyz")
@@ -84,6 +85,20 @@ def test_story():
     print("story ok")
 
 
+def test_code():
+    for level in (1, 2, 3):
+        for it in ct.make_code(150, level):
+            a = it["prompt"].rsplit("```python\n", 1)[1].split("\n```")[0]
+            b = it["prompt_swapped"].rsplit("```python\n", 1)[1].split("\n```")[0]
+            assert a != b and ct.run(a) == ct.run(b) == str(it["label"])
+            assert it["prompt"].endswith("Output:\n") and it["candidates"] == [str(d) for d in range(10)]
+            assert "\nOutput:\n" in it["prompt"].split("```python")[1]                  # shots use the same format
+    lp = np.log(np.full((4, 10), 0.1)); lp[:, 3] = 0
+    m = fs.pair_metrics(lp, lp, [3, 3, 3, 3])
+    assert m["acc_both"] == 1 and m["flip"] == 0 and m["gain"] == 0
+    print("code ok")
+
+
 def test_bad_format_is_caught():
     for bad in (HEAD + ">>> a = 1\n>>> b = c\n>>> a\n",              # not self-contained / odd
                 HEAD + ">>> a = 1\n>>> b = 2\n>>> c = 3\n>>> a\n"):
@@ -112,6 +127,7 @@ if __name__ == "__main__":
     test_perturbations()
     test_filler()
     test_story()
+    test_code()
     test_bad_format_is_caught()
     test_stats()
     bf.selftest()

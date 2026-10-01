@@ -6,7 +6,8 @@
 # Every model is deleted from the cache right after use (the disk is shared).
 # Parts run in priority order; each writes "=== PART n DONE" so progress is easy to follow.
 # Short slot? Run only some parts, e.g.  ONLY="2 3 4" setsid nohup bash run_fullday.sh ...
-#   (2 = reorder vs rename, 3 = OLMo-2, 4 = interleaved layout, 5 = MMLU, 5b-5d = exploratory
+#   (2 = reorder vs rename, 3 = OLMo-2, 4 = interleaved layout, 5 = MMLU, 5e = OLMo-2 trajectory,
+#    5f = 32B/72B scale check (+ code test), 5g = code test, 5b-5d = exploratory
 #    distance / patching / story task; 0-1 and 6-9 are the older replications and sweeps)
 set -u
 cd "$(dirname "$0")"
@@ -99,6 +100,41 @@ fi
 
 if want 5; then
 echo "=== PART 5 DONE"
+fi
+
+if want 5e; then
+echo "=== PART 5e: C18 OLMo-2-7B position trajectory across its training checkpoints $(date)"
+REVS=$(python -c "import model_utils as mu; print(' '.join(r for _, _, r in mu.nearest_revisions('allenai/OLMo-2-1124-7B', [0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.35, 0.5, 0.75, 1.0])))")
+echo "OLMo-2-7B checkpoints: $REVS"
+for r in $REVS; do
+  python position_test.py --model allenai/OLMo-2-1124-7B --revision $r --out $OUT/position_olmo/OLMo-2-1124-7B || echo "FAILED olmo traj $r"
+  cleanrepo allenai/OLMo-2-1124-7B
+done
+echo "=== PART 5e DONE"
+fi
+
+if want 5f; then
+echo "=== PART 5f: C19 scale check: OLMo-2-32B and Qwen2.5-72B $(date)"
+for m in allenai/OLMo-2-0325-32B Qwen/Qwen2.5-72B; do
+  python perturb_test.py --model $m --revision main --batch-size 8 --out $OUT/perturb || echo "FAILED scale perturb $m"
+  python benchmark_flip.py --model $m --batch-size 4 --out $OUT/benchmark || echo "FAILED scale bench $m"
+  python code_test.py --model $m --revision main --batch-size 4 --out $OUT/code || echo "FAILED scale code $m"
+  cleanrepo $m
+done
+echo "=== PART 5f DONE"
+fi
+
+if want 5g; then
+echo "=== PART 5g: C20 Order-Flip Test on short Python programs $(date)"
+for m in pythia-1.4b pythia-6.9b pythia-12b; do
+  python code_test.py --model EleutherAI/$m --step 143000 --out $OUT/code || echo "FAILED code $m"
+  clean $m
+done
+for m in allenai/OLMo-2-1124-7B Qwen/Qwen2.5-7B; do
+  python code_test.py --model $m --revision main --out $OUT/code || echo "FAILED code $m"
+  cleanrepo $m
+done
+echo "=== PART 5g DONE"
 fi
 
 if want 5b; then

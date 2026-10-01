@@ -148,6 +148,29 @@ Exploratory only (not claims): distance filler lines between the chains, the 4-v
 ensemble, how rename and swap flips change across training, and which questions flip.
 Every result is reported, hit or miss. A miss is written up as a miss.
 
+## 4d. Claims registered 1 Oct 2026 (~14:30), still BEFORE any full-day run (C18-C20)
+- **C18, the flip in a second, modern family during training.** OLMo-2-7B (allenai/OLMo-2-1124-7B)
+  at the 10 stage-1 checkpoints nearest to 0.5%, 1%, 2%, 5%, 10%, 20%, 35%, 50%, 75% and 100% of
+  pretraining (chosen by model_utils.nearest_revisions before any is run): at depth 2 or
+  depth 3, the sequence of biased checkpoints (definition as in 4b) changes direction at
+  least once. A miss means the reversals are specific to Pythia.
+- **C19, scale does not remove order dependence.** OLMo-2-32B (allenai/OLMo-2-0325-32B) and
+  Qwen2.5-72B, final models, depth 3: F(orig, swap) >= 0.05 for at least one of the two. Their
+  MMLU option-order results are reported, not part of the claim. A miss means the largest
+  open models tested no longer show the effect on this task, and the paper says so.
+- **C20, the order effect on realistic code.** code_task.py builds short Python programs
+  (2-4 small functions, 2-4 values, one printed; no negative numbers; answer on the line
+  after "Output:", candidates "0"-"9") whose definitions can be reordered without
+  changing the output (checked by running every program in both orders; every value prints a
+  different digit, so the others act as distractors). Final models Pythia-1.4B, 6.9B, 12B,
+  OLMo-2-7B, Qwen2.5-7B, OLMo-2-32B, Qwen2.5-72B; level 2 (3 functions, 3 values); 600
+  programs, 2 worked examples. Among models whose single-order accuracy is >= 0.30 (3x
+  chance), at least half have F(orig, reversed) >= 0.10, and at least 2 models are eligible.
+  A miss means the order effect does not carry over to realistic code, and the paper says so.
+- Exploratory, not claims: frontier_flip.py asks closed frontier models through their APIs
+  (temperature 0) with 2, 4 or 6 chains in both orders and reports the flip rate.
+Every result is reported, hit or miss.
+
 ## 5. Statistics
 - Holm correction across all C4 primary tests (every model x checkpoint x depth run), and
   separately across all C4b primary tests.
@@ -293,3 +316,13 @@ Every result is reported, hit or miss. A miss is written up as a miss.
     items come from their own seed; the vartrack items in tasks.py are unchanged.
   - perturb.py renames variables using the same letters as tasks.py (only the names change).
     Checked on all 1,800 real blocked items: every edit keeps the label.
+
+- 1 Oct 2026, ~14:30: registered C18-C19 (section 4d) and added frontier_flip.py
+  (exploratory; it also asks the code programs). Registered C20 (code programs, code_task.py,
+  code_test.py). position_test.py now runs non-Pythia models in bf16 (Pythia unchanged, fp16).
+- 1 Oct 2026, same afternoon, before any run (independent review): code programs end the
+  prompt with "Output:" plus a newline and use bare-digit candidates, so the answer is one
+  token for Qwen and OLMo tokenizers too; "twice" adds instead of subtracts (no negative
+  numbers); frontier_flip.py saves after every setting, keeps partial results on API
+  errors, uses 6x3 (not 6x4, which needed more names than exist), and sends the
+  reasoning-model request format when needed. smoke.sh also runs the code test on Qwen.

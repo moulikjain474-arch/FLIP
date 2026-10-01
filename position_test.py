@@ -102,7 +102,8 @@ def main():
         raise SystemExit("give exactly one of --step or --revision")
     revision = args.revision or f"step{args.step}"
 
-    dtype = torch.float16 if args.device == "cuda" else torch.float32
+    # Pythia was trained and is run in fp16; other models (OLMo-2, Qwen) in bf16
+    dtype = (torch.float16 if "pythia" in args.model else torch.bfloat16) if args.device == "cuda" else torch.float32
     tok, model = mu.load(args.model, revision, args.device, dtype)
     all_items = build_all(args.n, args.seed, shots=args.shots, layout=args.layout)
     summary = dict(model=args.model, revision=revision, layout=args.layout, tasks={})

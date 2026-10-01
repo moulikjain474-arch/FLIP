@@ -49,19 +49,14 @@ def main():
         ls, _ = mu.run(tok, model, [it["prompt_swapped"] for it in items], cids, batch_size=args.batch_size, device=dev)
         lpo, lps = torch.log_softmax(lo, -1).numpy(), torch.log_softmax(ls, -1).numpy()
         po, ps = lpo.argmax(-1), lps.argmax(-1)
-        co, cs = po == y, ps == y
-        ens = fs.ensemble_correct([lpo, lps], y)
         later = later_n = 0      # in the original prompt the target is later iff not target_first
         for p, target_later in ((po, ~tf), (ps, tf)):
             took_t, took_d = p == y, p == dis
             later += int((took_t & target_later).sum() + (took_d & ~target_later).sum())
             later_n += int((took_t | took_d).sum())
-        single = (co.astype(float) + cs) / 2
-        g = fs.paired_bootstrap(ens, single)
-        r = dict(acc_orig=float(co.mean()), acc_swapped=float(cs.mean()), acc_single_mean=float(single.mean()),
-                 acc_both=float(ens.mean()), gain=g[0], gain_lo=g[1], gain_hi=g[2], flip=fs.flip_rate(co, cs),
-                 distractor_rate=float(((po == dis).mean() + (ps == dis).mean()) / 2),
-                 picks_later=later / later_n if later_n else None, picks_later_n=later_n, n=int(len(y)))
+        r = fs.pair_metrics(lpo, lps, y)
+        r.update(distractor_rate=float(((po == dis).mean() + (ps == dis).mean()) / 2),
+                 picks_later=later / later_n if later_n else None, picks_later_n=later_n)
         lo95, hi95 = fs.wilson(later, later_n) if later_n else (None, None)
         r.update(picks_later_lo=lo95, picks_later_hi=hi95)
         out["tasks"][f"story_d{d}"] = r

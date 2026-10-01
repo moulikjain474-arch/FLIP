@@ -48,7 +48,7 @@ checkpoints are unreliable: tell Claude before trusting its results.
 
 Short slot (say 2-3 hours instead of a full day)? Run only the parts that matter most:
 ```bash
-ONLY="2 3 4 5 5b 5c 5d" setsid nohup bash run_fullday.sh > $PERSIST/log_fullday.txt 2>&1 < /dev/null &
+ONLY="2 3 4 5 5e 5f 5g 5b 5c 5d" setsid nohup bash run_fullday.sh > $PERSIST/log_fullday.txt 2>&1 < /dev/null &
 ```
 Parts 2-5 hold the new claims (C12-C17), 5b-5d the exploratory tests; 0-1 and 6-9 are the older replications and sweeps.
 
@@ -57,7 +57,8 @@ Parts 2-5 hold the new claims (C12-C17), 5b-5d the exploratory tests; 0-1 and 6-
 grep "=== PART" $PERSIST/log_fullday.txt; grep FAILED $PERSIST/log_fullday.txt | tail; df -h /shared-docker | tail -1
 ```
 Parts run in priority order: 0 integrity, 1 order-swap (C10), 2 reorder vs rename (C12,
-C13, C17), 3 OLMo-2 (C16), 4 interleaved layout (C14), 5 MMLU benchmark (C15), 5b-5d exploratory
+C13, C17), 3 OLMo-2 (C16), 4 interleaved layout (C14), 5 MMLU benchmark (C15), 5e OLMo-2 trajectory (C18), 5f 32B/72B
+scale (C19), 5g code programs (C20), 5b-5d exploratory
 (distance, patching, story task), 6 12B
 trajectory (C8), 7 seeds (C9), 8 6.9B layers (C11), 9 main-grid sweeps (P1-P4). If time runs
 out, the most important parts are already done. Disk above 88%: stop and ask.

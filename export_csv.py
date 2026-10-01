@@ -50,12 +50,12 @@ def rows(root):
             for layer, v in r["layers"].items():
                 for k, x in v.items():
                     yield "patch", s["model"].split("/")[-1], s["revision"], t, layer, k, x, r["n_differ"]
-    for f in glob.glob(os.path.join(root, "story", "*.json")):
+    for f in glob.glob(os.path.join(root, "code", "*.json")) + glob.glob(os.path.join(root, "story", "*.json")):
         s = json.load(open(f))
         for t, r in s["tasks"].items():
             for k, v in r.items():
                 if k != "n":
-                    yield "story", s["model"].split("/")[-1], s["revision"], t, "", k, v, r["n"]
+                    yield ("code" if os.path.basename(os.path.dirname(f)) == "code" else "story"), s["model"].split("/")[-1], s["revision"], t, "", k, v, r["n"]
     for f in glob.glob(os.path.join(root, "steer_layers", "*.json")):
         s = json.load(open(f))
         for cond in ("natural", "plant_cor", "plant_dis", "erase_cor"):

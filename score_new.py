@@ -1,11 +1,12 @@
-"""Score the claims registered as C8-C17 in EXPERIMENTS.md from the full-day outputs.
+"""Score the claims registered as C8-C20 in EXPERIMENTS.md from the full-day outputs.
 
   python score_new.py --dir $PERSIST/fullday
 Prints hit / miss for each claim with the numbers behind it. Nothing here is tuned after
-the fact: the thresholds are the ones written in EXPERIMENTS.md section 4b.
+the fact: the thresholds are the ones written in EXPERIMENTS.md sections 4b, 4c and 4d.
 """
 import argparse
 import glob
+import re
 import json
 import os
 
@@ -40,7 +41,7 @@ def load_positions(root, sub="position"):
     out = {}
     for f in glob.glob(os.path.join(root, sub, "**", "*.json"), recursive=True):
         s = json.load(open(f))
-        step = int(s["revision"].replace("step", ""))
+        step = int(re.search(r"step(\d+)", s["revision"]).group(1)) if "step" in s["revision"] else 10**9
         for t, v in s["tasks"].items():
             out[(s["model"].split("/")[-1], step, t)] = v
     return out
@@ -155,6 +156,58 @@ def score_olmo(root):
     print("  C16:", "HIT" if hit else "MISS")
 
 
+def score_olmo_traj(root):
+    print("== C18: OLMo-2-7B position habit changes direction during training (depth 2 or 3)")
+    pos = load_positions(root, "position_olmo")
+    hit = False
+    for t in ("vartrack_d2", "vartrack_d3"):
+        steps = sorted(s for (m, s, tt) in pos if m == "OLMo-2-1124-7B" and tt == t)
+        seq = [bias(pos[("OLMo-2-1124-7B", s, t)]) for s in steps]
+        ch = direction_changes(seq)
+        hit |= ch >= 1
+        print(f"  {t}: {''.join(seq) or 'MISSING'}  changes={ch}  (steps {steps})")
+    print("  C18:", "HIT" if hit else "MISS")
+
+
+def score_scale(root):
+    print("== C19: order dependence at 32B-72B scale (depth 3, flip >= 0.05 in at least one model)")
+    pert = load_perturb(root)
+    hit = False
+    for m in ("OLMo-2-0325-32B", "Qwen2.5-72B"):
+        r = pert.get((m, "main"))
+        if r is None:
+            print(f"  {m}: MISSING"); continue
+        for t in ("vartrack_d1", "vartrack_d2", "vartrack_d3"):
+            s = r[t]["summary"]
+            print(f"  {m} {t}: acc={s['acc_orig']:.3f} flip_swap={s['flip_swap']:.3f} flip_rename={s['flip_rename']:.3f} "
+                  f"both-orders {s['acc_single_mean_swap']:.3f}->{s['acc_ens_swap']:.3f}")
+        hit |= ge(r["vartrack_d3"]["summary"]["flip_swap"], 0.05)
+        b = os.path.join(root, "benchmark", f"{m}.json")
+        if os.path.exists(b):
+            bs = json.load(open(b))["summary"]
+            print(f"  {m} MMLU: acc={bs['acc_orig']:.3f} flip={bs['flip_orig_reversed']:.3f} 2-order gain {bs['gain2']:+.3f}")
+    print("  C19:", "HIT" if hit else "MISS")
+
+
+def score_code(root):
+    print("== C20: order dependence on short Python programs (level 2; models with accuracy >= 0.30)")
+    eligible = flipped = 0
+    for f in sorted(glob.glob(os.path.join(root, "code", "*.json"))):
+        s = json.load(open(f))
+        name = s["model"].split("/")[-1] + " " + s["revision"]
+        for t in ("code_l1", "code_l2", "code_l3"):
+            r = s["tasks"].get(t)
+            if r:
+                print(f"  {name} {t}: acc={r['acc_single_mean']:.3f} flip={r['flip']:.3f} "
+                      f"both-orders {r['acc_single_mean']:.3f}->{r['acc_both']:.3f} [{r['gain_lo']:+.3f},{r['gain_hi']:+.3f}]")
+        r = s["tasks"].get("code_l2")
+        if r and ge(r["acc_single_mean"], 0.30):
+            eligible += 1
+            flipped += ge(r["flip"], 0.10)
+    ok = eligible >= 2 and flipped * 2 >= eligible
+    print("  C20:", "HIT" if ok else "MISS", f"({flipped} of {eligible} eligible models with flip >= 0.10)")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dir", required=True)
@@ -216,7 +269,7 @@ def main():
             hit11 &= ok
             print(f"  step {st} {t}: " + " ".join(f"L{L}={v:.2f}" for L, v in pts) + f"  {'yes' if ok else 'no'}")
     print("  C11:", "HIT" if hit11 else "MISS")
-    for fn in (score_controls, score_layout, score_benchmark, score_olmo):
+    for fn in (score_controls, score_layout, score_benchmark, score_olmo, score_olmo_traj, score_scale, score_code):
         fn(root)
 
 

@@ -26,3 +26,15 @@ def wilson(k, n, z=1.96):
     mid = (p + z * z / (2 * n)) / den
     half = z * np.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / den
     return float(mid - half), float(mid + half)
+
+
+def pair_metrics(logp_a, logp_b, y):
+    """Order-Flip summary for one question set asked in two orders (log-probs [N, K])."""
+    y = np.asarray(y)
+    ca, cb = logp_a.argmax(-1) == y, logp_b.argmax(-1) == y
+    both = ensemble_correct([logp_a, logp_b], y)
+    single = (ca.astype(float) + cb) / 2
+    g = paired_bootstrap(both, single)
+    return dict(acc_orig=float(ca.mean()), acc_swapped=float(cb.mean()), acc_single_mean=float(single.mean()),
+                acc_both=float(both.mean()), gain=g[0], gain_lo=g[1], gain_hi=g[2], flip=flip_rate(ca, cb),
+                same_answer=float((logp_a.argmax(-1) == logp_b.argmax(-1)).mean()), n=int(len(y)))

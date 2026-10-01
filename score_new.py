@@ -106,6 +106,13 @@ def score_controls(root):
         hit17 &= lo > 0
         print(f"  {t}: gain {m_:+.3f}  95% interval [{lo:+.3f}, {hi:+.3f}]")
     print("  C17:", "HIT" if hit17 else "MISS")
+    print("-- exploratory: plain instruction vs asking in both orders (12B final)")
+    if r is not None:
+        for t in ("vartrack_d1", "vartrack_d2", "vartrack_d3"):
+            s = r[t]["summary"]
+            if "acc_instruct_mean" in s:
+                print(f"  {t}: single order {s['acc_single_mean_swap']:.3f} | with instruction {s['acc_instruct_mean']:.3f}"
+                      f" (flip {s['flip_instruct']:.3f} vs {s['flip_swap']:.3f}) | both orders {s['acc_ens_swap']:.3f}")
 
 
 def score_layout(root):

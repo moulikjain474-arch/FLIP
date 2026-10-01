@@ -199,7 +199,13 @@ Every result is reported, hit or miss.
 ## 6. Claims we will NOT make
 - "First" anything; "early-warning system" in general; "reasoning" (say "follows the
   correct chain", because the blocked layout may allow a partial shortcut).
-- Anything beyond this task, this layout and Pythia.
+- That FLIP is the first to study variable binding across training: Wu, Geiger & Milliere
+  (2025) follow it in small models trained from scratch, and Ravulapalli & Chadha (2026)
+  report formation times. The claim is narrower: the position preference, followed across
+  real pretraining checkpoints, model sizes and random seeds.
+- "Primacy" and "recency" are used as descriptive names for the first-chain and last-chain
+  preference only, not as a claim about human-like memory.
+- Anything beyond this task, this layout and the models tested.
 - That position habits are "like human memory": the serial-position comparison is an analogy
   only.
 - That combining both orders is a general fix: it is shown only on this task.
@@ -374,3 +380,9 @@ Every result is reported, hit or miss.
   SCOPE: the 6.9B/12B main-grid sweeps that would score P1-P4 (section 4, C3) are no longer
   run: they test the earlier stage framing, not the position-shortcut question, and cost about
   26 large model loads. P1-P4 are reported as "registered, not tested".
+- 1 Oct 2026, ~20:45, before any run (exploratory, no claim): perturb_test.py --instruct also
+  asks every question with a plain instruction to attend to the asked variable, in both
+  orders, as a prompt-based baseline against asking in both orders (the kind of prompt fix
+  Guo & Vosoughi 2025 found inconsistent). Used in parts 2, 3 and 5f. size_fit.py fits
+  flip rate against parameter count on the final models after the run (descriptive; printed
+  pooled and per family, since families differ in data and recipe as well as size).

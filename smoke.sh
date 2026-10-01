@@ -31,7 +31,7 @@ for m in ("tiiuae/falcon-7b", "mistralai/Mistral-7B-v0.1"):
 import model_utils as mu
 print("OLMo-2-7B checkpoints:", [r for _, _, r in mu.nearest_revisions("allenai/OLMo-2-1124-7B", [0.01, 0.5, 1.0])])
 PY
-python perturb_test.py --model EleutherAI/pythia-410m --step 143000 --n 40 --tasks vartrack_d1 --out $S/perturb
+python perturb_test.py --model EleutherAI/pythia-410m --step 143000 --n 40 --tasks vartrack_d1 --instruct --out $S/perturb
 python perturb_test.py --model allenai/OLMo-2-0425-1B --revision main --n 40 --tasks vartrack_d1 --out $S/perturb
 python position_test.py --model EleutherAI/pythia-410m --step 143000 --layout interleaved --n 40 --tasks vartrack_d1 --out $S/position_interleaved/pythia-410m
 python benchmark_flip.py --model Qwen/Qwen2.5-0.5B --n 40 --out $S/benchmark

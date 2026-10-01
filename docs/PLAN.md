@@ -40,6 +40,16 @@ stronger.
 A miss changes a sentence, not the project.
 
 ## Interview questions to be ready for
+0. Isn't this already known? (About 20 seconds:) "Four close papers. Ravulapalli & Chadha
+   measured how MANY bindings finished models hold; I measure WHICH one a model picks when
+   unsure and how that changes. Gur-Arieh et al. showed finished models retrieve mainly by
+   position; I show how that positional preference forms and flips during pretraining.
+   Wu, Geiger & Milliere found a position heuristic that appears once and is replaced in
+   small models trained from scratch; in real pretrained models it reverses repeatedly and
+   ends differently by seed. Guo & Vosoughi found primacy and recency effects whose prompt
+   fixes were inconsistent; I measure a fix, asking in both orders, against a plain prompt
+   instruction. The gap is the position preference across real pretraining checkpoints,
+   sizes and seeds, where it is decided inside the model, and what it costs."
 1. Isn't the flipping just noise? (Same checkpoint on new questions: SD 0.02; swings up
    to 0.31; five significant reversals.)
 2. Maybe the model copies the worked examples? (With no examples the first-chain habit at

@@ -17,6 +17,11 @@ import string
 NAME_POOL = "abcdefghmnpqrstuvwxyz"   # the letters tasks.py draws variable names from
 ASSIGN = re.compile(r"^>>> (\w+) = (\w+)\s*$")
 VARIANTS = ("orig", "swap", "rename", "swap_rename")
+INSTRUCT_VARIANTS = ("instruct", "instruct_swap")
+# A plain prompt-based mitigation, as tried in earlier work on serial-position effects
+# (Guo & Vosoughi 2025): tell the model what to attend to, then ask in both orders as usual.
+INSTRUCTION = ("# Careful: answer with the value of the variable that is asked about on the last line,\n"
+               "# not simply the first or the last value written.\n\n")
 
 
 def split_problem(prompt):
@@ -78,10 +83,13 @@ def rename_chains(prompt, seed):
     return head + "\n".join([line(l) for l in a + b] + [line(l) for l in tail])
 
 
-def variants(prompt, seed):
-    """All four versions of a prompt, keyed by VARIANTS."""
-    return dict(orig=prompt, swap=swap_chains(prompt), rename=rename_chains(prompt, seed),
-                swap_rename=rename_chains(swap_chains(prompt), seed))
+def variants(prompt, seed, instruct=False):
+    """All versions of a prompt, keyed by VARIANTS (plus INSTRUCT_VARIANTS if instruct)."""
+    v = dict(orig=prompt, swap=swap_chains(prompt), rename=rename_chains(prompt, seed),
+             swap_rename=rename_chains(swap_chains(prompt), seed))
+    if instruct:
+        v.update(instruct=INSTRUCTION + v["orig"], instruct_swap=INSTRUCTION + v["swap"])
+    return v
 
 
 def chain_char_spans(prompt):

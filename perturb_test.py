@@ -17,7 +17,7 @@ import os
 import numpy as np
 
 import flipstats as fs
-from perturb import VARIANTS, final_answer, variants
+from perturb import INSTRUCT_VARIANTS, VARIANTS, final_answer, variants
 
 
 def main():
@@ -30,11 +30,14 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--batch-size", type=int, default=32)
     ap.add_argument("--dtype", choices=("fp16", "bf16"), default=None)
+    ap.add_argument("--instruct", action="store_true",
+                    help="also ask with a plain instruction to attend to the asked variable (both orders)")
     ap.add_argument("--out", default="perturb_results")
     args = ap.parse_args()
     if (args.step is None) == (args.revision is None):
         raise SystemExit("give exactly one of --step or --revision")
     revision = args.revision or f"step{args.step}"
+    names = VARIANTS + (INSTRUCT_VARIANTS if args.instruct else ())
 
     import torch
     import model_utils as mu
@@ -44,19 +47,19 @@ def main():
     items_all = build_all(args.n, args.seed, shots=2, layout="blocked")
     versions = {}
     for t in args.tasks:
-        versions[t] = [variants(it["prompt"], seed=args.seed * 100003 + i) for i, it in enumerate(items_all[t])]
+        versions[t] = [variants(it["prompt"], seed=args.seed * 100003 + i, instruct=args.instruct) for i, it in enumerate(items_all[t])]
         want = [final_answer(v["orig"]) for v in versions[t]]
         if None in want:
             print(f"WARNING {t}: answer could not be computed from the prompt; skipping the answer check")
         else:
-            bad = [(i, k) for i, v in enumerate(versions[t]) for k in VARIANTS if final_answer(v[k]) != want[i]]
+            bad = [(i, k) for i, v in enumerate(versions[t]) for k in names if final_answer(v[k]) != want[i]]
             assert not bad, f"{t}: a version changed the answer, e.g. {bad[:3]}"
             wrong = [i for i, it in enumerate(items_all[t]) if want[i] != str(it["candidates"][it["label"]]).strip()]
             if wrong:
                 print(f"WARNING {t}: the computed answer differs from the item label for {len(wrong)} items, e.g. {wrong[:3]}")
     first = versions[args.tasks[0]][0]
-    print("--- tails of the four versions of item 0 ---")
-    for k in VARIANTS:
+    print(f"--- tails of the {len(names)} versions of item 0 ---")
+    for k in names:
         print(f"[{k}]\n{first[k][-90:]}")
 
     dev = "cuda" if torch.cuda.is_available() else "cpu"
@@ -69,14 +72,14 @@ def main():
         y = np.array([it["label"] for it in items])
         cids = mu.candidate_ids(tok, items[0]["candidates"])
         logp = {}
-        for k in VARIANTS:
+        for k in names:
             lo, _ = mu.run(tok, model, [v[k] for v in versions[t]], cids, batch_size=args.batch_size, device=dev)
             logp[k] = torch.log_softmax(lo, -1).numpy()
-        ok = {k: logp[k].argmax(-1) == y for k in VARIANTS}
+        ok = {k: logp[k].argmax(-1) == y for k in names}
         length = {k: np.array([len(tok(v[k], add_special_tokens=False)["input_ids"]) for v in versions[t]]) for k in VARIANTS}
         ens = dict(swap=fs.ensemble_correct([logp["orig"], logp["swap"]], y),
                    rename=fs.ensemble_correct([logp["orig"], logp["rename"]], y),
-                   all4=fs.ensemble_correct(list(logp.values()), y))
+                   all4=fs.ensemble_correct([logp[k] for k in VARIANTS], y))
         single_swap = (ok["orig"].astype(float) + ok["swap"]) / 2
         s = {f"acc_{k}": float(v.mean()) for k, v in ok.items()}
         s.update(acc_ens_swap=float(ens["swap"].mean()), acc_ens_rename=float(ens["rename"].mean()),
@@ -87,6 +90,9 @@ def main():
                  same_rename=float((logp["orig"].argmax(-1) == logp["rename"].argmax(-1)).mean()),
                  tokens_swap_minus_orig=float((length["swap"] - length["orig"]).mean()),
                  tokens_rename_minus_orig=float((length["rename"] - length["orig"]).mean()), n=int(len(y)))
+        if args.instruct:
+            s.update(acc_instruct_mean=float((ok["instruct"].mean() + ok["instruct_swap"].mean()) / 2),
+                     flip_instruct=fs.flip_rate(ok["instruct"], ok["instruct_swap"]))
         out["tasks"][t] = dict(summary=s, correct={k: v.astype(int).tolist() for k, v in ok.items()},
                                ens_correct={k: v.astype(int).tolist() for k, v in ens.items()})
         print(t, {k: round(v, 3) for k, v in s.items()}, flush=True)

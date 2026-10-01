@@ -44,6 +44,9 @@ def test_perturbations():
         assert [l.split(" = ")[1] if l.split(" = ")[1].isdigit() else "ref" for l in ra + rb] == \
                [l.split(" = ")[1] if l.split(" = ")[1].isdigit() else "ref" for l in a + b]   # same structure
     assert pt.rename_chains(p, 7) == pt.rename_chains(p, 7)          # deterministic
+    v = pt.variants(p, 0, instruct=True)
+    assert v["instruct"] == pt.INSTRUCTION + p and v["instruct_swap"] == pt.INSTRUCTION + v["swap"]
+    assert pt.final_answer(v["instruct"]) == pt.final_answer(v["instruct_swap"]) == pt.final_answer(p)
     print("perturbations ok")
 
 

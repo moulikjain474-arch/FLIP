@@ -20,7 +20,7 @@ clean() { cleanrepo EleutherAI/$1; }
 want() { [[ -z "${ONLY:-}" || " $ONLY " == *" $1 "* ]]; }
 pos()  { python position_test.py --model EleutherAI/$1 --step $2 --out $OUT/position/$1 || echo "FAILED pos $1 $2"; }
 swp()  { python swap_test.py --model EleutherAI/$1 --step $2 --out $OUT/swap || echo "FAILED swap $1 $2"; }
-prt()  { python perturb_test.py --model EleutherAI/$1 --step $2 --out $OUT/perturb || echo "FAILED perturb $1 $2"; }
+prt()  { python perturb_test.py --model EleutherAI/$1 --step $2 --instruct --out $OUT/perturb || echo "FAILED perturb $1 $2"; }
 
 if want 0; then
 echo "=== PART 0: checkpoint integrity (file checksums; no downloads) $(date)"
@@ -68,7 +68,7 @@ fi
 if want 3; then
 echo "=== PART 3: C16 second model family (OLMo-2), same task $(date)"
 for m in allenai/OLMo-2-0425-1B allenai/OLMo-2-1124-7B; do
-  python perturb_test.py --model $m --revision main --out $OUT/perturb || echo "FAILED olmo $m"
+  python perturb_test.py --model $m --revision main --instruct --out $OUT/perturb || echo "FAILED olmo $m"
   cleanrepo $m
 done
 fi
@@ -131,7 +131,7 @@ fi
 if want 5f; then
 echo "=== PART 5f: C19 scale check: OLMo-2-32B and Qwen2.5-72B $(date)"
 for m in allenai/OLMo-2-0325-32B Qwen/Qwen2.5-72B; do
-  python perturb_test.py --model $m --revision main --batch-size 8 --out $OUT/perturb || echo "FAILED scale perturb $m"
+  python perturb_test.py --model $m --revision main --batch-size 8 --instruct --out $OUT/perturb || echo "FAILED scale perturb $m"
   python benchmark_flip.py --model $m --batch-size 4 --out $OUT/benchmark || echo "FAILED scale bench $m"
   python code_test.py --model $m --revision main --batch-size 4 --out $OUT/code || echo "FAILED scale code $m"
   cleanrepo $m

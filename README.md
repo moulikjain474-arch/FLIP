@@ -63,6 +63,7 @@ controls and generalisation tests C12-C20, all registered before those runs and 
 | Order-Flip Test on closed frontier models, incl. hard mode (C21; API, laptop) | `frontier_flip.py` | `frontier_results/*.json` |
 | Attention from the last token to each chain (exploratory) | `attention_test.py` | `attention/*.json` |
 | Order-Flip Test on short Python programs | `code_test.py`, `code_task.py` | `code/*.json` |
+| Flip rate against model size (exploratory, after the run) | `size_fit.py` | printed fit |
 | Score the registered claims C8-C20 (C21: `frontier_flip.py --score`) | `score_new.py` | printed hit / miss |
 | Flatten results to one CSV | `export_csv.py` | `earlymind_fullday.csv` |
 | Quick check of the new tests | `smoke.sh`, `test_flip.py` | `SMOKE OK` |
@@ -76,10 +77,19 @@ Always use `--layout blocked` (the default everywhere except the earlier `sweep.
 - The layer and plant results show where the output is fixed, not the full circuit that
   chooses the chain.
 - Combining both orders is shown to help only on this task.
-- Related work: Wu, Geiger & Milliere 2025 (heuristics in toy models trained from
-  scratch), Gur-Arieh et al. 2026 (retrieval mechanisms in trained models), Ravulapalli &
-  Chadha 2026 (binding capacity in finished models), Guo & Vosoughi 2025 (serial-position
-  effects in LLMs).
+- Related work, and how FLIP differs:
+  - Ravulapalli & Chadha 2026: how many bindings finished models hold (capacity). FLIP:
+    which binding a model picks when unsure, and how that changes during training.
+  - Gur-Arieh et al. 2026: finished models retrieve bindings mainly by position. FLIP: how
+    that positional preference forms and flips during pretraining.
+  - Wu, Geiger & Milliere 2025: in small models trained from scratch, a position heuristic
+    appears once and is replaced. FLIP: in real pretrained models it reverses repeatedly
+    and ends differently by seed.
+  - Guo & Vosoughi 2025: primacy and recency effects in LLMs; prompt fixes inconsistent.
+    FLIP: a measured fix (asking in both orders) against a plain prompt instruction.
+  - Order effects in finished models: Chen et al. 2024 (premise order), Zheng et al. 2024
+    (multiple-choice option position), Hsieh et al. 2024 (RULER), Liu et al. 2024 (lost in
+    the middle).
 
 Compute: Google Colab; Exea Labs (AMD MI300X).
 

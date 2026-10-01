@@ -41,13 +41,27 @@ objectives were to (1) track how models choose between competing variables acros
 training, (2) locate where inside the network the answer is fixed, and (3) measure how
 much a model's answers depend on the irrelevant order in which information is presented.
 
+## 2b. Related work (full paper; not part of the IRIS word limits)
+Ravulapalli & Chadha (2026) measured how many bindings finished models can hold; FLIP asks which
+binding a model picks when unsure, and how that changes during training. Gur-Arieh et al. (2026)
+showed that finished models retrieve bindings mainly by position; FLIP shows how that positional
+preference forms and reverses during pretraining. Wu, Geiger & Milliere (2025) found that small
+models trained from scratch on this task pass through a position heuristic that appears once and
+is then replaced; in real pretrained models the heuristic reverses repeatedly and ends differently
+by seed. Guo & Vosoughi (2025) documented primacy and recency effects in LLMs and found prompt
+fixes inconsistent; FLIP measures a fix, asking in both orders, against a plain prompt instruction.
+Order effects in finished models are known for premises (Chen et al., 2024), multiple-choice
+options (Zheng et al., 2024) and long contexts (Liu et al., 2024; Hsieh et al., 2024). The gap
+FLIP fills: the position preference across real pretraining checkpoints, sizes and seeds, where
+inside the model it is decided, and what it costs.
+
 ## 3. Innovation (50-100 words)
-Previous studies examined binding either in finished models or in small models trained
-on one task. This project follows real pretrained models across their whole training, at
-five sizes and nine seeds, and shows that their position shortcut can reverse repeatedly and
-settles differently depending on the random seed. It introduces an order-swap test that
-exposes hidden inconsistency in otherwise accurate models, and it pre-registered its
-analyses, including a second round of claims fixed before replication runs.
+Earlier studies measured binding in finished models or in small models trained from scratch on
+one task. This project follows real pretrained models across their training checkpoints, sizes
+and random seeds, and finds that their primacy/recency shortcut does not settle once, as in toy
+models, but reverses repeatedly and ends differently by seed. It introduces FLIP, an order-swap
+audit with rename and layout controls, tests a fix (asking in both orders) against a plain prompt
+instruction, and registered its claims in advance of the replication runs.
 
 ## 4. Methodology (150-250 words)
 Task: Python-style prompts with two chains of variable assignments (1-3 steps deep) and
@@ -84,11 +98,11 @@ read the values, and that shortcut is unstable, seed-dependent and not removed b
 Limitations: one synthetic task and one model family.
 
 ## 6. Acknowledgement and references (50-100 words)
-Guide: [name, role]. Compute: Google Colab; Exea Labs (AMD MI300X).
-References: Biderman et al. 2023 (Pythia); van der Wal et al. 2025 (PolyPythias); Wu,
-Geiger & Milliere 2025 (variable binding in transformers); Gur-Arieh et al. 2026 (Mixing
-mechanisms); Ravulapalli & Chadha 2026 (in-context binding capacity); Guo & Vosoughi 2025
-(serial position effects of LLMs); Feng & Steinhardt 2024 (binding IDs).
+Guide: [name, role]. Compute: Google Colab; Exea Labs (AMD MI300X). [Describe any AI-assistant
+help truthfully, e.g. coding and drafting support.]
+References: Biderman et al. 2023 (Pythia); van der Wal et al. 2025 (PolyPythias); OLMo Team 2025
+(OLMo 2); Ravulapalli & Chadha 2026; Gur-Arieh et al. 2026; Wu, Geiger & Milliere 2025; Guo &
+Vosoughi 2025; Feng & Steinhardt 2024; Chen et al. 2024; Zheng et al. 2024.
 
 ## 7. Video (90 s) outline
 1. (10 s) Hook: "Ask a 12-billion-parameter AI the same question twice, just reordered.

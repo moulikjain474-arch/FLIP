@@ -1,6 +1,8 @@
-# EarlyMind
+# FLIP
 
-**First or last? How language models decide which variable you asked about, and why that decision keeps changing during training.**
+**FLIP (First-or-Last Interference Profile): language models choose by position, not meaning, and the habit keeps flipping during training.**
+
+*(Formerly EarlyMind. The repository name is unchanged.)*
 
 Give a language model two chains of assignments and ask about one of them:
 
@@ -10,7 +12,7 @@ Give a language model two chains of assignments and ask about one of them:
 >>> v            ->  0   (the other chain's value, 1, is the typical mistake)
 ```
 
-EarlyMind follows Pythia models (410M to 12B parameters, up to 24 checkpoints per model,
+FLIP follows Pythia models (410M to 12B parameters, up to 24 checkpoints per model,
 9 independent training runs at 410M) through pretraining on this task. It asks what the
 model does before it can reliably pick the right chain, where inside the network the
 answer is decided, and how much the answer depends on something that should not matter:

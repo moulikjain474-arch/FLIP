@@ -6,8 +6,8 @@ rewrite that sentence to say so. No school, city or state anywhere, and no repo 
 ---
 
 ## Title
-First or Last? How Language Models Decide Which Variable You Asked About, and Why the
-Decision Keeps Changing During Training
+FLIP: Language Models Choose by Position, Not Meaning, and the Habit Keeps Flipping
+During Training
 
 ## 1. Abstract (max 250 words)
 When a program or document mentions several variables, a language model must work out

@@ -72,6 +72,7 @@ def test_story():
             qa, qb = a.rsplit("\n\n", 1)[1].split("\n"), b.rsplit("\n\n", 1)[1].split("\n")
             assert qa[0] == qb[1] and qa[1] == qb[0] and qa[2] == qb[2]           # chains swapped
             name = qa[2].split()[1]
+            assert " 1 coins" not in a
             facts, env = " ".join(qa[:2]).split(". "), {}
             for f in facts:          # resolve the story and check the label
                 w = f.rstrip(".").split()

@@ -42,7 +42,7 @@ def rows(root):
         for t, conds in s["tasks"].items():
             for c, r in conds.items():
                 m = s["model"].split("/")[-1]
-                yield "distance", m, s["revision"], t, "", f"{c}.accuracy", r["accuracy"], r["n_usable"]
+                yield "distance", m, s["revision"], t, "", f"{c}.accuracy", r["accuracy"], r.get("n", r["n_usable"])
                 yield "distance", m, s["revision"], t, "", f"{c}.picks_later", r["picks_later"]["rate"], r["picks_later"]["n"]
     for f in glob.glob(os.path.join(root, "patch", "*.json")):
         s = json.load(open(f))

@@ -41,7 +41,7 @@ def main():
         for where, k in CONDITIONS:
             vs = [dict(it, prompt=it["prompt"] if k == 0 else add_filler(it["prompt"], where, k)) for it in items_all[t]]
             for it, v in zip(items_all[t], vs):     # the answer must not change
-                assert final_answer(strip_filler(v["prompt"])) == final_answer(it["prompt"])
+                assert final_answer(strip_filler(v["prompt"])) == str(it["candidates"][it["label"]]).strip()
             versions[(t, where, k)] = vs
     t0 = args.tasks[0]
     print("--- tail with 2 lines between the chains ---\n" + versions[(t0, "between", 2)][0]["prompt"][-120:])
@@ -59,6 +59,7 @@ def main():
             pred = logits.argmax(-1).numpy()
             res = analyse(vs, pred, None)
             res["accuracy"] = float((pred == [v["label"] for v in vs]).mean())
+            res["n"] = len(vs)
             out["tasks"][t][f"{where}{k}"] = res
             print(t, f"{where}{k}", "acc", round(res["accuracy"], 3), "picks_later", res["picks_later"]["rate"], flush=True)
     os.makedirs(args.out, exist_ok=True)

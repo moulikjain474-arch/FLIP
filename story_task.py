@@ -22,7 +22,7 @@ def _chains(depth, rng):
     v_t, v_d = rng.sample(DIGITS, 2)
     out = []
     for chain, v in ((tgt, v_t), (dis, v_d)):
-        s = [f"{chain[0]} has {v} coins."] + [f"{chain[i]} has as many coins as {chain[i - 1]}." for i in range(1, depth + 1)]
+        s = [f"{chain[0]} has {v} {'coin' if v == '1' else 'coins'}."] + [f"{chain[i]} has as many coins as {chain[i - 1]}." for i in range(1, depth + 1)]
         out.append(" ".join(s))
     return out[0], out[1], tgt[-1], v_t, v_d
 
@@ -36,7 +36,7 @@ def make_story(n, depth, seed=0, shots=2):
         for _ in range(shots):
             a, b, q, ans, _ = _chains(depth, rng)
             first, second = (a, b) if rng.random() < 0.5 else (b, a)
-            blocks.append(f"{first}\n{second}\nSo {q} has {ans} coins.")
+            blocks.append(f"{first}\n{second}\nSo {q} has {ans} {'coin' if ans == '1' else 'coins'}.")
         a, b, q, ans, dis = _chains(depth, rng)
         target_first = rng.random() < 0.5
         orders = [(a, b), (b, a)] if target_first else [(b, a), (a, b)]

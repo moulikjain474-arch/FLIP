@@ -90,7 +90,12 @@ controls and generalisation tests C12-C20, all registered before those runs and 
 | Commit layer as a fraction of depth (exploratory) | `commit_depth.py` | printed |
 | Numerical-noise check, two batch sizes (exploratory) | `noise_check.py` | `noise/*.json` |
 | Extra GPU runs: attention across training, noise check | `run_extra.sh` | `attention/`, `noise/` |
-| Score the registered claims C8-C20 (C21: `frontier_flip.py --score`) | `score_new.py` | printed hit / miss |
+| Order effect concentrates where the model is unsure (registered C22) | `uncertainty_gate.py` (`run_c22_c23.sh`) | `uncertainty/*.json` |
+| Order effect on a freshly drawn question set (registered C23) | `perturb_test.py --seed 1` (`run_c22_c23.sh`) | `perturb_seed1/*.json` |
+| Check any model's order sensitivity with one command | `flip_check.py` | printed report |
+| Figures straight from the result files | `make_figures.py` | `figures/*.png` |
+| Every number for the paper, printed from the results | `paper_numbers.py` | printed |
+| Score the registered claims C8-C20, C22, C23 (C21: `frontier_flip.py --score`) | `score_new.py` | printed hit / miss |
 | Flatten results to one CSV | `export_csv.py` | `earlymind_fullday.csv` |
 | Quick check of the new tests | `smoke.sh`, `test_flip.py` | `SMOKE OK` |
 | Full compute day | `run_fullday.sh` | every test above except the frontier API test |

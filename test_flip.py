@@ -248,6 +248,73 @@ def test_confidence_gate_and_claims():
     print("confidence gate and claims ok")
 
 
+def test_flip_check():
+    import numpy as np, flip_check as fc
+    rng = np.random.default_rng(11)
+    n, K = 600, 10
+    y = rng.integers(0, K, n)
+    def lp(right_p):
+        lg = rng.normal(0, 1, (n, K)); r = rng.uniform(size=n) < right_p
+        lg[np.arange(n)[r], y[r]] += 6
+        return lg - np.log(np.exp(lg).sum(1, keepdims=True))
+    # order matters (swap is independent of orig), renaming mostly keeps the answer
+    orig = lp(.6)
+    swap = lp(.6)
+    ren = np.where((rng.uniform(size=n) < .9)[:, None], orig, lp(.6))
+    s = fc.summarise(dict(orig=orig, swap=swap, rename=ren), y)
+    assert s["flip_swap"] > s["flip_rename"] + 0.1 and s["verdict"].startswith("ORDER-SENSITIVE"), s
+    assert s["gain_swap"] > 0 and s["gain_swap_lo"] < s["gain_swap"] < s["gain_swap_hi"]
+    assert abs(s["acc_both_orders"] - s["acc_orig"] - s["gain_swap"]) < 0.2
+    # no order effect: swap behaves like rename
+    same = fc.summarise(dict(orig=orig, swap=ren, rename=ren), y)
+    assert same["verdict"].startswith("NO CLEAR"), same
+    txt = fc.report("vartrack_d2", s)
+    assert "answer changes" in txt and "ORDER-SENSITIVE" in txt
+    print("flip_check ok")
+
+
+def _fake_results(d, rng):
+    import numpy as np, json as _json, os as _os
+    for sub in ("position", "perturb", "benchmark"):
+        _os.makedirs(f"{d}/{sub}", exist_ok=True)
+    for m, steps in (("pythia-1.4b", (1000, 4000, 16000, 64000, 143000)), ("pythia-12b", (1000, 8000, 32000, 143000))):
+        for st in steps:
+            n = 500; k = int(n * float(rng.uniform(.2, .8)))
+            _json.dump(dict(model="EleutherAI/" + m, revision=f"step{st}", tasks={"vartrack_d2": dict(picks_later=dict(k=k, n=n, rate=k / n, ci95=[0, 1]))}),
+                       open(f"{d}/position/{m}__step{st}.json", "w"))
+    for m in ("pythia-1.4b", "pythia-12b", "Qwen2.5-7B"):
+        rev = "main" if "Qwen" in m else "step143000"
+        n = 600
+        co = (rng.uniform(size=n) < .6).astype(int); cs = np.where(rng.uniform(size=n) < .5, co, 1 - co)
+        cr = np.where(rng.uniform(size=n) < .85, co, 1 - co)
+        ens = np.where(rng.uniform(size=n) < .8, np.maximum(co, cs), np.minimum(co, cs))
+        summ = dict(flip_swap=float((co != cs).mean()), flip_rename=float((co != cr).mean()), n=n, acc_instruct_mean=0.55)
+        _json.dump(dict(model="x/" + m, revision=rev, tasks={"vartrack_d2": dict(summary=summ,
+                   correct=dict(orig=co.tolist(), swap=cs.tolist(), rename=cr.tolist()), ens_correct=dict(swap=ens.tolist()))}),
+                   open(f"{d}/perturb/{m}__{rev}.json", "w"))
+    _json.dump(dict(model="x/Mistral-7B-v0.1", revision=None, summary=dict(acc_orig=.6, flip_orig_reversed=.3, acc_single_mean2=.59, acc_ens2=.61,
+               gain2=.02, gain2_lo=.01, gain2_hi=.03, n=1000)), open(f"{d}/benchmark/Mistral-7B-v0.1.json", "w"))
+
+
+def test_figures_and_numbers():
+    import numpy as np, tempfile, io, contextlib, os as _os
+    import make_figures as mf, paper_numbers as pn
+    d = tempfile.mkdtemp(); _fake_results(d, np.random.default_rng(2))
+    out = _os.path.join(d, "figs")
+    _os.makedirs(out)
+    for fn in (mf.fig_position, mf.fig_flip, mf.fig_gain):
+        path = fn(d, out)
+        assert path and _os.path.getsize(path) > 5000, fn.__name__
+    assert mf.fig_flip(tempfile.mkdtemp(), out) is None                       # empty folder: skipped, no crash
+    h = pn.headline(d)
+    assert len(h) == 3 and all(x["lo"] <= x["gain"] <= x["hi"] and 0 <= x["single"] <= 1 for x in h)
+    assert abs(h[0]["both"] - h[0]["single"] - h[0]["gain"]) < 1e-9
+    assert pn.mmlu(d)[0][0] == "Mistral-7B-v0.1"
+    rows = pn.claim_table(d)                                                  # missing data must not crash
+    assert isinstance(rows, list)
+    print("figures and numbers ok")
+
+
 def test_chain_probe_labels():
     import chain_probe as cp
     rng = random.Random(3)
@@ -307,6 +374,8 @@ if __name__ == "__main__":
     test_single_chain_control()
     test_extra_stats()
     test_confidence_gate_and_claims()
+    test_flip_check()
+    test_figures_and_numbers()
     test_chain_probe_labels()
     test_plant_margin()
     test_stats()

@@ -143,6 +143,7 @@ def main():
     with open(os.path.join(args.out, f"{name}.json"), "w") as f:
         json.dump(dict(model=args.model, revision=args.revision, dataset=args.dataset, summary=summary,
                        correct={k: v.astype(int).tolist() for k, v in correct.items()},
+                       pred={k: v.argmax(-1).astype(int).tolist() for k, v in logp.items()},   # chosen original option
                        ens2=ens2.astype(int).tolist(), ens4=ens4.astype(int).tolist()), f)
 
 

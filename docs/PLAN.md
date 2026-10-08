@@ -40,7 +40,9 @@ stronger.
 A miss changes a sentence, not the project.
 
 ## Interview questions to be ready for
-0. Isn't this already known? (About 20 seconds:) "Four close papers. Ravulapalli & Chadha
+0. Isn't this already known? (About 20 seconds:) "Close papers exist, and so is the fix.
+   Combining several orders is permutation self-consistency (Tang et al. 2023); position effects
+   changing during training are studied in small models (Mistry 2025, Salvatore 2025). Four more: Ravulapalli & Chadha
    measured how MANY bindings finished models hold; I measure WHICH one a model picks when
    unsure and how that changes. Gur-Arieh et al. showed finished models retrieve mainly by
    position; I show how that positional preference forms and flips during pretraining.
@@ -66,3 +68,16 @@ A miss changes a sentence, not the project.
    model size had corrupted checkpoints.)
 7. What would you do next? (Find the attention heads that choose the chain; test other
    binding tasks and model families; training interventions that remove the shortcut.)
+8. Isn't the flipping just noise? (Three answers: the chance baseline p1(1-p2)+p2(1-p1) and an
+   exact Fisher test; the rename control (claim C12 tests that reordering flips more than renaming); and, for API models, a
+   same-order repeat. For open models the batch-size check shows how often numerics alone change
+   an answer.)
+9. Doesn't your fix double the cost? (Yes. It is a known cheap fix; the point is measuring when it
+   helps (C13: swap-ensemble vs rename-ensemble) and that cheaper fixes exist, such as fine-tuning.)
+10. How is this different from permutation self-consistency? (They rank lists and vote over many
+   shuffles. With only two orders a vote ties whenever the orders disagree, so I sum the two
+   orders' log-probabilities. And my main contribution is the measurement: training, seeds,
+   layers, controls, not the fix.)
+11. Where is the choice made? (Patching the last-token state from one order into the other, layer
+   by layer, and a single-chain control that shows where a value is read out. Exploratory;
+   mentor suggestion.)

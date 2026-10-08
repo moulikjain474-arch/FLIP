@@ -1,6 +1,9 @@
 # FLIP
 
-**FLIP (First-or-Last Interference Profile): language models choose by position, not meaning, and the habit keeps flipping during training.**
+**FLIP, short for the Order-Flip Test: language models choose by position, not meaning, and the habit keeps flipping during training.**
+
+FLIP is deliberately narrow but testable: one task, one layout, the models tested, with the claims and thresholds
+written down before the runs. Pre-registered nulls are reported as results.
 
 Give a language model two chains of assignments and ask about one of them:
 
@@ -34,11 +37,29 @@ the order in which the two chains are written.
    chain's value into that slot, not from failing to read the values.
 4. **Reordering changes the answer, even at 12B.** Pythia-12B is right in one order and
    wrong in the other on 41-49% of questions. Asking in both orders and combining the
-   answers raises its accuracy from 79% to 91%, with no training.
+   answers raises its accuracy from 79% to 91%, with no training. Combining orders is a
+   known cheap fix (permutation self-consistency, Tang et al. 2023); what FLIP adds is
+   measuring when it helps, and that reordering moves answers more than renaming does
+   (claim C13), so the gain is not just "asking twice".
 
 Reported as nulls: erasing the wrong chain's representation does not help (pre-registered
 test C4), and the model's mistakes give no earlier warning of competence than accuracy.
 Public Pythia-2.8B intermediate checkpoints load identical weights and are excluded.
+
+## Confounds ruled out
+| Possible explanation | Control | Where |
+|---|---|---|
+| The particular variable names | Rename every variable; flips under renaming are the baseline (C12) | `perturb_test.py` |
+| Distance from the question | Insert no-op lines between the chains (exploratory) | `distance_test.py` |
+| The layout of the chains | Interleaved layout (C14) | `position_test.py --layout interleaved` |
+| Copying the worked examples | No worked examples (shots 0) at 1.4B | `position_test.py --shots 0` |
+| The wording of the prompt | Instruction version of the prompt (exploratory) | `perturb_test.py --instruct` |
+| The task format | Story task, short Python programs, MMLU option order (C15 replicates Zong et al. 2024) | `story_test.py`, `code_test.py`, `benchmark_flip.py` |
+| Numerical noise in batched scoring | Same prompts at two batch sizes (exploratory) | `noise_check.py` |
+| Chance | Flip rate expected if answers ignored order, plus an exact Fisher test (exploratory) | `extra_stats.py` |
+
+Swapping the chains keeps the correct answer unchanged by construction (the chains are
+independent), and `test_flip.py` checks this on 500 generated prompts.
 
 ## Pre-registration
 The analysis plan, thresholds and every change (dated, with reasons) are in
@@ -59,11 +80,16 @@ controls and generalisation tests C12-C20, all registered before those runs and 
 | Causal erase / plant, per layer | `steer_stage.py` | `steer_stage/*.json` |
 | Reorder vs rename, with per-question results | `perturb_test.py` | `perturb/*.json` |
 | Order-Flip Test on a real benchmark (MMLU options) | `benchmark_flip.py` | `benchmark/*.json` |
-| Distance, patching, story task (exploratory) | `distance_test.py`, `patch_test.py`, `story_test.py` | `distance/`, `patch/`, `story/` |
-| Order-Flip Test on closed frontier models, incl. hard mode (C21; API, laptop) | `frontier_flip.py` | `frontier_results/*.json` |
+| Distance, patching, story task (exploratory). Patching includes a single-chain control (where a VALUE is read out vs where the CHOICE of chain is made), per-question log-prob margins and a digit-token check | `distance_test.py`, `patch_test.py`, `story_test.py` | `distance/`, `patch/`, `patch_choice/`, `story/` |
+| Order-Flip Test on closed frontier models, incl. hard mode, a same-order repeat (noise floor), optional `--vote K` and `--effort` (C21; API, laptop) | `frontier_flip.py` | `frontier_results/*.json` |
 | Attention from the last token to each chain (exploratory) | `attention_test.py` | `attention/*.json` |
 | Order-Flip Test on short Python programs | `code_test.py`, `code_task.py` | `code/*.json` |
-| Flip rate against model size (exploratory, after the run) | `size_fit.py` | printed fit |
+| Flip rate against model size (descriptive trend, after the run) | `size_fit.py` | printed fit |
+| Strict / lenient accuracy, chance flip rate, Fisher and McNemar tests (exploratory) | `extra_stats.py` (also in `score_new.py`, `export_csv.py`) | printed, `xstat_*` rows |
+| Does attention track the preference across training? (exploratory) | `attn_vs_pref.py` | printed |
+| Commit layer as a fraction of depth (exploratory) | `commit_depth.py` | printed |
+| Numerical-noise check, two batch sizes (exploratory) | `noise_check.py` | `noise/*.json` |
+| Extra GPU runs: attention across training, noise check | `run_extra.sh` | `attention/`, `noise/` |
 | Score the registered claims C8-C20 (C21: `frontier_flip.py --score`) | `score_new.py` | printed hit / miss |
 | Flatten results to one CSV | `export_csv.py` | `earlymind_fullday.csv` |
 | Quick check of the new tests | `smoke.sh`, `test_flip.py` | `SMOKE OK` |
@@ -78,7 +104,14 @@ Always use `--layout blocked` (the default everywhere except the earlier `sweep.
   tests extend it.
 - The layer and plant results show where the output is fixed, not the full circuit that
   chooses the chain.
-- Combining both orders is shown to help only on this task.
+- Combining both orders is shown to help only on this task. It doubles inference cost, and
+  with two orders it needs log-probabilities to break ties (a plain vote ties on every
+  flip); black-box APIs without log-probabilities need several shuffles and a vote
+  (`frontier_flip.py --vote`, exploratory).
+- Model-size trends are descriptive: five sizes, one run each above 410M, and seed-to-seed
+  variation at 410M is large, so no scaling law is claimed.
+- Results above 410M come from one training run per size; a reversal counts as seed-robust
+  only if it is larger than the 410M seed spread (0.31 to 0.69).
 - Related work, and how FLIP differs:
   - Ravulapalli & Chadha 2026: how many bindings finished models hold (capacity). FLIP:
     which binding a model picks when unsure, and how that changes during training.
@@ -87,6 +120,13 @@ Always use `--layout blocked` (the default everywhere except the earlier `sweep.
   - Wu, Geiger & Milliere 2025: in small models trained from scratch, a position heuristic
     appears once and is replaced. FLIP: in real pretrained models it reverses repeatedly
     and ends differently by seed.
+  - Tang et al. 2023 (permutation self-consistency, arXiv 2310.07712): shuffle a list several
+    times and aggregate the rankings. FLIP does not claim the fix; it measures when it helps
+    (reorder vs rename control) and uses a log-probability sum because two orders tie a vote.
+  - Mistry et al. 2025 (how primacy- and recency-like attention structure changes during training
+    of GPT-2) and Salvatore et al. 2025 (a U-shaped position bias appears in models trained from
+    scratch on simple memory tasks). FLIP: in real pretraining runs the preferred
+    direction reverses repeatedly, depends on the seed, and is committed mid-network.
   - Guo & Vosoughi 2025: primacy and recency effects in LLMs; prompt fixes inconsistent.
     FLIP: a measured fix (asking in both orders) against a plain prompt instruction.
   - Exploiting Primacy Effect to Improve LLMs [check authors]: fine-tuning amplifies primacy in

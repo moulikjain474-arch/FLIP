@@ -1,0 +1,136 @@
+{
+  "model": "EleutherAI/pythia-6.9b",
+  "revision": "step143000",
+  "step": 143000,
+  "task": "vartrack_d3",
+  "layer": 10,
+  "scope": "single",
+  "n_test": 300,
+  "K": 10,
+  "rank_primary": 10,
+  "n_rand": 1,
+  "rates": {
+    "natural": {
+      "logp": -0.7385737895965576,
+      "correct": 0.7033333333333334,
+      "distractor": 0.2866666666666667,
+      "planted": 0.0
+    },
+    "erase_dis_orth": {
+      "logp": -0.7335644960403442,
+      "correct": 0.7,
+      "distractor": 0.29,
+      "planted": 0.0
+    },
+    "erase_dis": {
+      "logp": -0.9248128533363342,
+      "correct": 0.57,
+      "distractor": 0.42,
+      "planted": 0.0
+    },
+    "erase_cor": {
+      "logp": -0.8632025122642517,
+      "correct": 0.6233333333333333,
+      "distractor": 0.36333333333333334,
+      "planted": 0.0
+    },
+    "pca_top": {
+      "logp": -0.9129404425621033,
+      "correct": 0.5666666666666667,
+      "distractor": 0.42,
+      "planted": 0.0
+    },
+    "plant_dis": {
+      "logp": -0.9332865476608276,
+      "correct": 0.58,
+      "distractor": 0.41,
+      "planted": 0.0
+    },
+    "plant_dis_orth": {
+      "logp": -0.7392534613609314,
+      "correct": 0.6866666666666666,
+      "distractor": 0.30333333333333334,
+      "planted": 0.0
+    },
+    "plant_cor": {
+      "logp": -0.8713852763175964,
+      "correct": 0.6133333333333333,
+      "distractor": 0.37333333333333335,
+      "planted": 0.0
+    },
+    "random0": {
+      "logp": -0.7401571273803711,
+      "correct": 0.7,
+      "distractor": 0.29,
+      "planted": 0.0
+    },
+    "random_mean": {
+      "logp": -0.7401571273803711,
+      "correct": 0.7,
+      "distractor": 0.29,
+      "planted": 0.0
+    }
+  },
+  "frac_var_removed_main_layer": {
+    "Q_orth": 0.11763153225183487,
+    "Q_dis": 0.2974855303764343,
+    "Q_cor": 0.3328391909599304,
+    "Q_pca": 0.5483753085136414,
+    "Q_rand": [
+      0.0021752286702394485
+    ]
+  },
+  "primary_erase": {
+    "test": "log p(correct): erase_dis_orth vs random_mean",
+    "mean_diff": 0.006592554952949286,
+    "n": 300,
+    "t": 0.8757919669151306,
+    "p": 0.38184577226638794,
+    "d_z": 0.05056388094330922
+  },
+  "primary_plant": {
+    "test": "answers = planted value: plant_dis vs natural",
+    "mean_diff": 0.0,
+    "n": 300,
+    "t": NaN,
+    "p": NaN,
+    "d_z": NaN
+  },
+  "secondary": {
+    "erase_accuracy": {
+      "mean_diff": 0.0,
+      "n": 300,
+      "t": 0.0,
+      "p": 1.0,
+      "d_z": 0.0
+    },
+    "erase_distractor_rate": {
+      "mean_diff": 0.0,
+      "n": 300,
+      "t": 0.0,
+      "p": 1.0,
+      "d_z": 0.0
+    },
+    "plant_dis_orth": {
+      "mean_diff": 0.0,
+      "n": 300,
+      "t": NaN,
+      "p": NaN,
+      "d_z": NaN
+    },
+    "plant_cor": {
+      "mean_diff": 0.0,
+      "n": 300,
+      "t": NaN,
+      "p": NaN,
+      "d_z": NaN
+    },
+    "erase_cor_sanity": {
+      "mean_diff": -0.12462879615214964,
+      "n": 300,
+      "t": -10.665436744689941,
+      "p": 1.0168888491575802e-22,
+      "d_z": -0.615769301270321
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "model": "EleutherAI/pythia-12b",
+  "revision": "step48000",
+  "layout": "blocked",
+  "tasks": {
+    "vartrack_d1": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 313,
+        "correct": 0.8753993610223643,
+        "distractor": 0.12140575079872204
+      },
+      "query_chain_earlier": {
+        "n": 287,
+        "correct": 0.5435540069686411,
+        "distractor": 0.4564459930313589
+      },
+      "correct_gap_later_minus_earlier": 0.3318453540537232,
+      "picks_later": {
+        "k": 405,
+        "n": 599,
+        "rate": 0.676126878130217,
+        "ci95": [
+          0.6376320287782382,
+          0.712376995151099
+        ],
+        "p_vs_half": 4.277644069646423e-18
+      },
+      "shortcut_by_c5": true
+    },
+    "vartrack_d2": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 304,
+        "correct": 0.8092105263157895,
+        "distractor": 0.19078947368421054
+      },
+      "query_chain_earlier": {
+        "n": 296,
+        "correct": 0.5878378378378378,
+        "distractor": 0.41216216216216217
+      },
+      "correct_gap_later_minus_earlier": 0.22137268847795166,
+      "picks_later": {
+        "k": 368,
+        "n": 600,
+        "rate": 0.6133333333333333,
+        "ci95": [
+          0.5737627620835961,
+          0.6514618663620093
+        ],
+        "p_vs_half": 3.125461061275436e-08
+      },
+      "shortcut_by_c5": false
+    },
+    "vartrack_d3": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 303,
+        "correct": 0.7227722772277227,
+        "distractor": 0.2706270627062706
+      },
+      "query_chain_earlier": {
+        "n": 297,
+        "correct": 0.5791245791245792,
+        "distractor": 0.4074074074074074
+      },
+      "correct_gap_later_minus_earlier": 0.1436476981031436,
+      "picks_later": {
+        "k": 340,
+        "n": 594,
+        "rate": 0.5723905723905723,
+        "ci95": [
+          0.5322644894341445,
+          0.6115863232225859
+        ],
+        "p_vs_half": 0.00047745697019864556
+      },
+      "shortcut_by_c5": false
+    }
+  }
+}

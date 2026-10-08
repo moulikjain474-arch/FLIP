@@ -1,0 +1,60 @@
+== 1. Registered claims
+  C8: HIT
+  C9: MISS
+  C10: HIT
+  C11: HIT
+  C12: HIT (3 of 3 primary cells with diff >= 0.05)
+  C13: HIT
+  C17: HIT
+  C14: HIT (2 of 3 biased)
+  C15: HIT (3 models, 3 with flip >= 0.10, gain in all: True)
+  C16: HIT
+  C18: HIT
+  C19: HIT
+  C20: HIT (3 of 3 eligible models with flip >= 0.10)
+  C22: MISS (1 of 2 models)
+  C23: HIT (2 of 2 model-seed runs; models present: ['pythia-12b', 'pythia-6.9b'])
+
+== 2. Final checkpoints: one order vs both orders (single = average of the two orders)
+  OLMo-2-0325-32B    vartrack_d1: single 97.8% -> both 100.0% (gain +2.2, 95% +1.4 to +3.1) | answer changes: reorder 4.5%, rename 4.3% | with plain instruction 99.4%  n=600
+  OLMo-2-0325-32B    vartrack_d2: single 90.3% -> both 99.0% (gain +8.7, 95% +7.1 to +10.3) | answer changes: reorder 19.3%, rename 12.8% | with plain instruction 94.5%  n=600
+  OLMo-2-0325-32B    vartrack_d3: single 77.9% -> both 94.7% (gain +16.8, 95% +14.6 to +18.9) | answer changes: reorder 40.8%, rename 24.2% | with plain instruction 83.8%  n=600
+  OLMo-2-0425-1B     vartrack_d1: single 75.6% -> both 79.2% (gain +3.6, 95% +1.3 to +5.8) | answer changes: reorder 31.5%, rename 29.8% | with plain instruction 73.3%  n=600
+  OLMo-2-0425-1B     vartrack_d2: single 66.2% -> both 73.7% (gain +7.4, 95% +4.7 to +10.2) | answer changes: reorder 50.8%, rename 28.7% | with plain instruction 61.2%  n=600
+  OLMo-2-0425-1B     vartrack_d3: single 51.8% -> both 57.7% (gain +5.8, 95% +2.5 to +9.2) | answer changes: reorder 70.7%, rename 18.5% | with plain instruction 50.2%  n=600
+  OLMo-2-1124-7B-Instruct vartrack_d1: single 94.5% -> both 99.2% (gain +4.7, 95% +3.4 to +5.9) | answer changes: reorder 10.7%, rename 8.7% | with plain instruction 97.8%  n=600
+  OLMo-2-1124-7B-Instruct vartrack_d2: single 74.3% -> both 92.3% (gain +18.0, 95% +15.7 to +20.4) | answer changes: reorder 48.0%, rename 25.2% | with plain instruction 85.8%  n=600
+  OLMo-2-1124-7B-Instruct vartrack_d3: single 60.1% -> both 83.5% (gain +23.4, 95% +20.6 to +26.2) | answer changes: reorder 70.2%, rename 20.3% | with plain instruction 68.3%  n=600
+  OLMo-2-1124-7B     vartrack_d1: single 97.0% -> both 99.3% (gain +2.3, 95% +1.5 to +3.2) | answer changes: reorder 5.3%, rename 3.8% | with plain instruction 97.1%  n=600
+  OLMo-2-1124-7B     vartrack_d2: single 87.7% -> both 97.0% (gain +9.3, 95% +7.7 to +11.0) | answer changes: reorder 21.3%, rename 14.5% | with plain instruction 91.7%  n=600
+  OLMo-2-1124-7B     vartrack_d3: single 78.6% -> both 93.5% (gain +14.9, 95% +12.8 to +17.1) | answer changes: reorder 39.2%, rename 20.5% | with plain instruction 80.9%  n=600
+  Qwen2.5-72B        vartrack_d1: single 100.0% -> both 100.0% (gain +0.0, 95% +0.0 to +0.0) | answer changes: reorder 0.0%, rename 0.0% | with plain instruction 100.0%  n=600
+  Qwen2.5-72B        vartrack_d2: single 100.0% -> both 100.0% (gain +0.0, 95% +0.0 to +0.0) | answer changes: reorder 0.0%, rename 0.2% | with plain instruction 100.0%  n=600
+  Qwen2.5-72B        vartrack_d3: single 99.9% -> both 100.0% (gain +0.1, 95% +0.0 to +0.2) | answer changes: reorder 0.2%, rename 0.3% | with plain instruction 99.9%  n=600
+  Qwen2.5-7B-Instruct vartrack_d1: single 99.2% -> both 100.0% (gain +0.8, 95% +0.3 to +1.3) | answer changes: reorder 1.7%, rename 1.2% | with plain instruction 99.2%  n=600
+  Qwen2.5-7B-Instruct vartrack_d2: single 94.2% -> both 100.0% (gain +5.8, 95% +4.6 to +7.2) | answer changes: reorder 11.7%, rename 10.5% | with plain instruction 92.8%  n=600
+  Qwen2.5-7B-Instruct vartrack_d3: single 91.2% -> both 99.7% (gain +8.5, 95% +7.0 to +10.0) | answer changes: reorder 17.7%, rename 14.0% | with plain instruction 89.8%  n=600
+  Qwen2.5-7B         vartrack_d1: single 100.0% -> both 100.0% (gain +0.0, 95% +0.0 to +0.0) | answer changes: reorder 0.0%, rename 0.2% | with plain instruction 99.9%  n=600
+  Qwen2.5-7B         vartrack_d2: single 96.8% -> both 100.0% (gain +3.2, 95% +2.3 to +4.2) | answer changes: reorder 6.5%, rename 6.5% | with plain instruction 95.6%  n=600
+  Qwen2.5-7B         vartrack_d3: single 92.4% -> both 99.8% (gain +7.4, 95% +6.0 to +8.8) | answer changes: reorder 15.2%, rename 14.2% | with plain instruction 91.0%  n=600
+  pythia-1.4b        vartrack_d1: single 71.8% -> both 79.3% (gain +7.5, 95% +5.2 to +9.7) | answer changes: reorder 32.3%, rename 24.8% | with plain instruction 76.2%  n=600
+  pythia-1.4b        vartrack_d2: single 60.2% -> both 65.7% (gain +5.5, 95% +3.0 to +8.1) | answer changes: reorder 40.3%, rename 26.0% | with plain instruction 62.8%  n=600
+  pythia-1.4b        vartrack_d3: single 54.6% -> both 56.3% (gain +1.8, 95% -0.9 to +4.3) | answer changes: reorder 44.5%, rename 27.3% | with plain instruction 56.2%  n=600
+  pythia-12b         vartrack_d1: single 77.3% -> both 90.3% (gain +13.0, 95% +10.6 to +15.3) | answer changes: reorder 41.3%, rename 18.3% | with plain instruction 75.2%  n=600
+  pythia-12b         vartrack_d2: single 73.7% -> both 85.8% (gain +12.2, 95% +9.7 to +14.7) | answer changes: reorder 45.7%, rename 16.7% | with plain instruction 71.7%  n=600
+  pythia-12b         vartrack_d3: single 65.1% -> both 72.7% (gain +7.6, 95% +4.8 to +10.3) | answer changes: reorder 48.5%, rename 22.5% | with plain instruction 66.7%  n=600
+  pythia-410m        vartrack_d1: single 62.1% -> both 67.5% (gain +5.4, 95% +2.8 to +8.1) | answer changes: reorder 45.2%, rename 20.3% | with plain instruction 61.9%  n=600
+  pythia-410m        vartrack_d2: single 57.2% -> both 59.2% (gain +2.0, 95% -0.9 to +5.0) | answer changes: reorder 53.0%, rename 23.8% | with plain instruction 57.8%  n=600
+  pythia-410m        vartrack_d3: single 54.6% -> both 55.8% (gain +1.2, 95% -1.5 to +4.1) | answer changes: reorder 47.5%, rename 29.3% | with plain instruction 54.9%  n=600
+  pythia-6.9b        vartrack_d1: single 93.8% -> both 99.0% (gain +5.2, 95% +4.0 to +6.6) | answer changes: reorder 11.8%, rename 11.5% | with plain instruction 89.4%  n=600
+  pythia-6.9b        vartrack_d2: single 83.8% -> both 91.0% (gain +7.2, 95% +5.2 to +9.2) | answer changes: reorder 26.5%, rename 18.8% | with plain instruction 79.5%  n=600
+  pythia-6.9b        vartrack_d3: single 72.7% -> both 77.2% (gain +4.5, 95% +2.1 to +6.9) | answer changes: reorder 35.0%, rename 27.3% | with plain instruction 69.8%  n=600
+
+== 3. MMLU option order
+  Mistral-7B-v0.1              acc 60.5%  answers change 30.2%  two orders 58.7% -> 61.2% (gain +2.5, 95% +0.8 to +4.2)
+  OLMo-2-0325-32B              acc 73.8%  answers change 22.2%  two orders 71.7% -> 74.5% (gain +2.8, 95% +1.3 to +4.3)
+  OLMo-2-1124-7B-Instruct      acc 59.0%  answers change 22.2%  two orders 58.3% -> 60.1% (gain +1.8, 95% +0.2 to +3.4)
+  OLMo-2-1124-7B               acc 61.4%  answers change 23.9%  two orders 59.8% -> 62.1% (gain +2.4, 95% +0.8 to +3.9)
+  Qwen2.5-72B                  acc 82.5%  answers change 10.1%  two orders 81.5% -> 82.9% (gain +1.5, 95% +0.4 to +2.5)
+  Qwen2.5-7B-Instruct          acc 71.2%  answers change 13.5%  two orders 70.5% -> 72.4% (gain +1.8, 95% +0.7 to +3.0)
+  Qwen2.5-7B                   acc 70.0%  answers change 15.5%  two orders 70.0% -> 71.7% (gain +1.7, 95% +0.4 to +2.9)

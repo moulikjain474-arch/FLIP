@@ -1,0 +1,136 @@
+{
+  "model": "EleutherAI/pythia-6.9b",
+  "revision": "step143000",
+  "step": 143000,
+  "task": "vartrack_d1",
+  "layer": 22,
+  "scope": "single",
+  "n_test": 300,
+  "K": 10,
+  "rank_primary": 10,
+  "n_rand": 1,
+  "rates": {
+    "natural": {
+      "logp": -0.28993579745292664,
+      "correct": 0.92,
+      "distractor": 0.07333333333333333,
+      "planted": 0.0
+    },
+    "erase_dis_orth": {
+      "logp": -0.2886335551738739,
+      "correct": 0.9233333333333333,
+      "distractor": 0.07333333333333333,
+      "planted": 0.0
+    },
+    "erase_dis": {
+      "logp": -0.9047187566757202,
+      "correct": 0.7566666666666667,
+      "distractor": 0.15333333333333332,
+      "planted": 0.006666666666666667
+    },
+    "erase_cor": {
+      "logp": -2.1032590866088867,
+      "correct": 0.2633333333333333,
+      "distractor": 0.30333333333333334,
+      "planted": 0.04666666666666667
+    },
+    "pca_top": {
+      "logp": -2.0654993057250977,
+      "correct": 0.27,
+      "distractor": 0.3,
+      "planted": 0.05
+    },
+    "plant_dis": {
+      "logp": -1.156332015991211,
+      "correct": 0.5733333333333334,
+      "distractor": 0.08,
+      "planted": 0.28
+    },
+    "plant_dis_orth": {
+      "logp": -0.28997012972831726,
+      "correct": 0.92,
+      "distractor": 0.07666666666666666,
+      "planted": 0.0
+    },
+    "plant_cor": {
+      "logp": -4.3162713050842285,
+      "correct": 0.0,
+      "distractor": 0.0,
+      "planted": 1.0
+    },
+    "random0": {
+      "logp": -0.2904359996318817,
+      "correct": 0.9233333333333333,
+      "distractor": 0.07,
+      "planted": 0.0
+    },
+    "random_mean": {
+      "logp": -0.2904359996318817,
+      "correct": 0.9233333333333333,
+      "distractor": 0.07,
+      "planted": 0.0
+    }
+  },
+  "frac_var_removed_main_layer": {
+    "Q_orth": 0.09291694313287735,
+    "Q_dis": 0.3167476952075958,
+    "Q_cor": 0.47461947798728943,
+    "Q_pca": 0.5569014549255371,
+    "Q_rand": [
+      0.002098449505865574
+    ]
+  },
+  "primary_erase": {
+    "test": "log p(correct): erase_dis_orth vs random_mean",
+    "mean_diff": 0.0018024310376495124,
+    "n": 300,
+    "t": 0.4222237765789032,
+    "p": 0.6731649041175842,
+    "d_z": 0.024377096659705475
+  },
+  "primary_plant": {
+    "test": "answers = planted value: plant_dis vs natural",
+    "mean_diff": 0.28,
+    "n": 300,
+    "t": 10.783217413081209,
+    "p": 4.0526203185066407e-23,
+    "d_z": 0.6225693476172696
+  },
+  "secondary": {
+    "erase_accuracy": {
+      "mean_diff": 0.0,
+      "n": 300,
+      "t": 0.0,
+      "p": 1.0,
+      "d_z": 0.0
+    },
+    "erase_distractor_rate": {
+      "mean_diff": 0.0033333333333333335,
+      "n": 300,
+      "t": 0.3328389565935845,
+      "p": 0.7394890975712389,
+      "d_z": 0.01921646611861002
+    },
+    "plant_dis_orth": {
+      "mean_diff": 0.0,
+      "n": 300,
+      "t": NaN,
+      "p": NaN,
+      "d_z": NaN
+    },
+    "plant_cor": {
+      "mean_diff": 1.0,
+      "n": 300,
+      "t": NaN,
+      "p": NaN,
+      "d_z": NaN
+    },
+    "erase_cor_sanity": {
+      "mean_diff": -1.8133232297825936,
+      "n": 300,
+      "t": -37.7154541015625,
+      "p": 0.0,
+      "d_z": -2.177503107348561
+    }
+  }
+}

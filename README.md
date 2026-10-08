@@ -92,6 +92,7 @@ controls and generalisation tests C12-C20, all registered before those runs and 
 | Extra GPU runs: attention across training, noise check | `run_extra.sh` | `attention/`, `noise/` |
 | Order effect concentrates where the model is unsure (registered C22) | `uncertainty_gate.py` (`run_c22_c23.sh`) | `uncertainty/*.json` |
 | Order effect on a freshly drawn question set (registered C23) | `perturb_test.py --seed 1` (`run_c22_c23.sh`) | `perturb_seed1/*.json` |
+| Which chain is picked in each order, by confidence (exploratory, post hoc) | `position_decomposition.py` (`run_decomp.sh`) | `decomp/*.json` |
 | Check any model's order sensitivity with one command | `flip_check.py` | printed report |
 | Figures straight from the result files | `make_figures.py` | `figures/*.png` |
 | Every number for the paper, printed from the results | `paper_numbers.py` | printed |

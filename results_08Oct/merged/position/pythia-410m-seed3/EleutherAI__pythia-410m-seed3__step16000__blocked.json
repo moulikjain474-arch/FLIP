@@ -1,0 +1,82 @@
+{
+  "model": "EleutherAI/pythia-410m-seed3",
+  "revision": "step16000",
+  "layout": "blocked",
+  "tasks": {
+    "vartrack_d1": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 313,
+        "correct": 0.35782747603833864,
+        "distractor": 0.43450479233226835
+      },
+      "query_chain_earlier": {
+        "n": 287,
+        "correct": 0.4425087108013937,
+        "distractor": 0.34146341463414637
+      },
+      "correct_gap_later_minus_earlier": -0.08468123476305506,
+      "picks_later": {
+        "k": 210,
+        "n": 473,
+        "rate": 0.4439746300211416,
+        "ci95": [
+          0.3998277592982779,
+          0.4890242200592277
+        ],
+        "p_vs_half": 0.01671318016069982
+      },
+      "shortcut_by_c5": false
+    },
+    "vartrack_d2": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 304,
+        "correct": 0.18092105263157895,
+        "distractor": 0.5
+      },
+      "query_chain_earlier": {
+        "n": 296,
+        "correct": 0.40540540540540543,
+        "distractor": 0.23986486486486486
+      },
+      "correct_gap_later_minus_earlier": -0.22448435277382647,
+      "picks_later": {
+        "k": 126,
+        "n": 398,
+        "rate": 0.3165829145728643,
+        "ci95": [
+          0.2728231317494557,
+          0.3638496268698609
+        ],
+        "p_vs_half": 1.9655981907738414e-13
+      },
+      "shortcut_by_c5": true
+    },
+    "vartrack_d3": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 303,
+        "correct": 0.1188118811881188,
+        "distractor": 0.48514851485148514
+      },
+      "query_chain_earlier": {
+        "n": 297,
+        "correct": 0.3434343434343434,
+        "distractor": 0.15151515151515152
+      },
+      "correct_gap_later_minus_earlier": -0.22462246224622462,
+      "picks_later": {
+        "k": 81,
+        "n": 330,
+        "rate": 0.24545454545454545,
+        "ci95": [
+          0.20212570081473147,
+          0.29464162836174024
+        ],
+        "p_vs_half": 5.0771904201515314e-21
+      },
+      "shortcut_by_c5": true
+    }
+  }
+}

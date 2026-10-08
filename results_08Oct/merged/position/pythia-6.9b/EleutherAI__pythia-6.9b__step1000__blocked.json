@@ -1,0 +1,82 @@
+{
+  "model": "EleutherAI/pythia-6.9b",
+  "revision": "step1000",
+  "layout": "blocked",
+  "tasks": {
+    "vartrack_d1": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 313,
+        "correct": 0.12779552715654952,
+        "distractor": 0.07667731629392971
+      },
+      "query_chain_earlier": {
+        "n": 287,
+        "correct": 0.06620209059233449,
+        "distractor": 0.10104529616724739
+      },
+      "correct_gap_later_minus_earlier": 0.06159343656421502,
+      "picks_later": {
+        "k": 69,
+        "n": 112,
+        "rate": 0.6160714285714286,
+        "ci95": [
+          0.5235731054057493,
+          0.7008713083454421
+        ],
+        "p_vs_half": 0.017765781280387142
+      },
+      "shortcut_by_c5": false
+    },
+    "vartrack_d2": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 304,
+        "correct": 0.1118421052631579,
+        "distractor": 0.13157894736842105
+      },
+      "query_chain_earlier": {
+        "n": 296,
+        "correct": 0.08108108108108109,
+        "distractor": 0.13851351351351351
+      },
+      "correct_gap_later_minus_earlier": 0.03076102418207681,
+      "picks_later": {
+        "k": 75,
+        "n": 139,
+        "rate": 0.539568345323741,
+        "ci95": [
+          0.4567572807295883,
+          0.6202510977819937
+        ],
+        "p_vs_half": 0.3964150849517261
+      },
+      "shortcut_by_c5": false
+    },
+    "vartrack_d3": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 303,
+        "correct": 0.09900990099009901,
+        "distractor": 0.07590759075907591
+      },
+      "query_chain_earlier": {
+        "n": 297,
+        "correct": 0.11784511784511785,
+        "distractor": 0.12121212121212122
+      },
+      "correct_gap_later_minus_earlier": -0.018835216855018835,
+      "picks_later": {
+        "k": 66,
+        "n": 124,
+        "rate": 0.532258064516129,
+        "ci95": [
+          0.4447896327073294,
+          0.6177878068741526
+        ],
+        "p_vs_half": 0.5297694043652676
+      },
+      "shortcut_by_c5": false
+    }
+  }
+}

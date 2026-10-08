@@ -1,0 +1,82 @@
+{
+  "model": "EleutherAI/pythia-12b",
+  "revision": "step8000",
+  "layout": "blocked",
+  "tasks": {
+    "vartrack_d1": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 313,
+        "correct": 0.43769968051118213,
+        "distractor": 0.4057507987220447
+      },
+      "query_chain_earlier": {
+        "n": 287,
+        "correct": 0.36585365853658536,
+        "distractor": 0.397212543554007
+      },
+      "correct_gap_later_minus_earlier": 0.07184602197459677,
+      "picks_later": {
+        "k": 251,
+        "n": 483,
+        "rate": 0.5196687370600414,
+        "ci95": [
+          0.4751323778978239,
+          0.5638946896329703
+        ],
+        "p_vs_half": 0.4127970110835338
+      },
+      "shortcut_by_c5": false
+    },
+    "vartrack_d2": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 304,
+        "correct": 0.3355263157894737,
+        "distractor": 0.35855263157894735
+      },
+      "query_chain_earlier": {
+        "n": 296,
+        "correct": 0.3783783783783784,
+        "distractor": 0.30405405405405406
+      },
+      "correct_gap_later_minus_earlier": -0.04285206258890473,
+      "picks_later": {
+        "k": 192,
+        "n": 413,
+        "rate": 0.4648910411622276,
+        "ci95": [
+          0.41733206656589605,
+          0.5130971420351649
+        ],
+        "p_vs_half": 0.1681911640374528
+      },
+      "shortcut_by_c5": false
+    },
+    "vartrack_d3": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 303,
+        "correct": 0.2838283828382838,
+        "distractor": 0.33003300330033003
+      },
+      "query_chain_earlier": {
+        "n": 297,
+        "correct": 0.26936026936026936,
+        "distractor": 0.2895622895622896
+      },
+      "correct_gap_later_minus_earlier": 0.014468113478014466,
+      "picks_later": {
+        "k": 172,
+        "n": 352,
+        "rate": 0.48863636363636365,
+        "ci95": [
+          0.43682086226464373,
+          0.5406972244346067
+        ],
+        "p_vs_half": 0.7091299439159752
+      },
+      "shortcut_by_c5": false
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "model": "EleutherAI/pythia-6.9b",
+  "step": 16000,
+  "revision": "step16000",
+  "tasks": {
+    "vartrack_d1": {
+      "acc_original": 0.5233333333333333,
+      "acc_swapped": 0.5333333333333333,
+      "acc_combined": 0.5666666666666667,
+      "same_answer_both_orders": 0.45166666666666666,
+      "correct_in_exactly_one_order": 0.5366666666666666,
+      "n": 600
+    },
+    "vartrack_d2": {
+      "acc_original": 0.49666666666666665,
+      "acc_swapped": 0.535,
+      "acc_combined": 0.5783333333333334,
+      "same_answer_both_orders": 0.43666666666666665,
+      "correct_in_exactly_one_order": 0.5183333333333333,
+      "n": 600
+    },
+    "vartrack_d3": {
+      "acc_original": 0.5183333333333333,
+      "acc_swapped": 0.49833333333333335,
+      "acc_combined": 0.5583333333333333,
+      "same_answer_both_orders": 0.40166666666666667,
+      "correct_in_exactly_one_order": 0.5233333333333333,
+      "n": 600
+    }
+  }
+}

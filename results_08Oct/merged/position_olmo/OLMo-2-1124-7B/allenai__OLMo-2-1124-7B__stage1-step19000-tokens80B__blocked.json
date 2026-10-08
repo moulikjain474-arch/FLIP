@@ -1,0 +1,82 @@
+{
+  "model": "allenai/OLMo-2-1124-7B",
+  "revision": "stage1-step19000-tokens80B",
+  "layout": "blocked",
+  "tasks": {
+    "vartrack_d1": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 313,
+        "correct": 0.8881789137380192,
+        "distractor": 0.0926517571884984
+      },
+      "query_chain_earlier": {
+        "n": 287,
+        "correct": 0.445993031358885,
+        "distractor": 0.5156794425087108
+      },
+      "correct_gap_later_minus_earlier": 0.44218588237913414,
+      "picks_later": {
+        "k": 426,
+        "n": 583,
+        "rate": 0.7307032590051458,
+        "ci95": [
+          0.6932705812568404,
+          0.7651154636315928
+        ],
+        "p_vs_half": 1.172801013705281e-29
+      },
+      "shortcut_by_c5": true
+    },
+    "vartrack_d2": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 304,
+        "correct": 0.7269736842105263,
+        "distractor": 0.20723684210526316
+      },
+      "query_chain_earlier": {
+        "n": 296,
+        "correct": 0.4222972972972973,
+        "distractor": 0.5236486486486487
+      },
+      "correct_gap_later_minus_earlier": 0.304676386913229,
+      "picks_later": {
+        "k": 376,
+        "n": 564,
+        "rate": 0.6666666666666666,
+        "ci95": [
+          0.6267491233573597,
+          0.7043291209981084
+        ],
+        "p_vs_half": 1.894377966870408e-15
+      },
+      "shortcut_by_c5": true
+    },
+    "vartrack_d3": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 303,
+        "correct": 0.6171617161716172,
+        "distractor": 0.27722772277227725
+      },
+      "query_chain_earlier": {
+        "n": 297,
+        "correct": 0.36363636363636365,
+        "distractor": 0.5488215488215489
+      },
+      "correct_gap_later_minus_earlier": 0.25352535253525355,
+      "picks_later": {
+        "k": 350,
+        "n": 542,
+        "rate": 0.6457564575645757,
+        "ci95": [
+          0.6045931625872369,
+          0.6848681023658192
+        ],
+        "p_vs_half": 1.1112534556686764e-11
+      },
+      "shortcut_by_c5": false
+    }
+  }
+}

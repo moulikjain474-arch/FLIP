@@ -315,6 +315,43 @@ def test_figures_and_numbers():
     print("figures and numbers ok")
 
 
+def test_position_decomposition():
+    import numpy as np, position_decomposition as pdc
+    rng = random.Random(8)
+    cands = [str(d) for d in range(10)]
+    po = [p for p in (make_prompt(rng, rng.randint(1, 3)) for _ in range(400)) if len(set(pt.chain_values(p)[0])) == 2][:300]
+    ps = [pt.swap_chains(p) for p in po]
+    vo = [pt.chain_values(p) for p in po]
+    vs = [pt.chain_values(p) for p in ps]
+    idx = lambda v: cands.index(v)
+    def run(fo, fs_):
+        d, g = pdc.decompose(po, ps, [fo(i) for i in range(300)], [fs_(i) for i in range(300)], cands, margin_orig=np.arange(300))
+        return d, g
+    # always the chain written first (slot 1) in both orders -> A then B -> first_both for every question
+    d, _ = run(lambda i: idx(vo[i][0][0]), lambda i: idx(vs[i][0][0]))
+    assert d["share"]["first_both"] == 1.0 and d["position_driven"] == 1.0 and all(c["position_driven"] == 1.0 for c in d["by_confidence"])
+    # always the chain written second -> second_both
+    d, _ = run(lambda i: idx(vo[i][0][1]), lambda i: idx(vs[i][0][1]))
+    assert d["share"]["second_both"] == 1.0
+    # always the queried chain -> right_both; always the other chain -> wrong_chain_both
+    d, _ = run(lambda i: idx(vo[i][0][vo[i][1]]), lambda i: idx(vs[i][0][vs[i][1]]))
+    assert d["share"]["right_both"] == 1.0 and d["position_driven"] == 0.0
+    d, _ = run(lambda i: idx(vo[i][0][1 - vo[i][1]]), lambda i: idx(vs[i][0][1 - vs[i][1]]))
+    assert d["share"]["wrong_chain_both"] == 1.0
+    # an answer matching neither chain
+    d, _ = run(lambda i: next(j for j in range(10) if cands[j] not in vo[i][0]), lambda i: idx(vs[i][0][0]))
+    assert d["share"]["neither"] == 1.0 and abs(sum(d["share"].values()) - 1) < 1e-9
+    # position-driven answers are always flips (correct in exactly one order)
+    fo = lambda i: idx(vo[i][0][0]); fs2 = lambda i: idx(vs[i][0][0])
+    ok_o = np.array([cands[fo(i)] == vo[i][0][vo[i][1]] for i in range(300)])
+    ok_s = np.array([cands[fs2(i)] == vs[i][0][vs[i][1]] for i in range(300)])
+    assert (ok_o != ok_s).all()
+    amb = next(p for p in (make_prompt(rng, 2) for _ in range(500)) if len(set(pt.chain_values(p)[0])) == 1)
+    dd, gg = pdc.decompose([amb], [pt.swap_chains(amb)], [0], [0], cands)
+    assert gg == ["ambiguous"] and dd["n"] == 0 and dd["n_ambiguous"] == 1 and dd["position_driven"] == 0.0
+    print("position decomposition ok")
+
+
 def test_chain_probe_labels():
     import chain_probe as cp
     rng = random.Random(3)
@@ -376,6 +413,7 @@ if __name__ == "__main__":
     test_confidence_gate_and_claims()
     test_flip_check()
     test_figures_and_numbers()
+    test_position_decomposition()
     test_chain_probe_labels()
     test_plant_margin()
     test_stats()

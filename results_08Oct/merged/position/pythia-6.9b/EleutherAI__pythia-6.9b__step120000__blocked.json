@@ -1,0 +1,82 @@
+{
+  "model": "EleutherAI/pythia-6.9b",
+  "revision": "step120000",
+  "layout": "blocked",
+  "tasks": {
+    "vartrack_d1": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 313,
+        "correct": 0.9616613418530351,
+        "distractor": 0.038338658146964855
+      },
+      "query_chain_earlier": {
+        "n": 287,
+        "correct": 0.8641114982578397,
+        "distractor": 0.13240418118466898
+      },
+      "correct_gap_later_minus_earlier": 0.09754984359519536,
+      "picks_later": {
+        "k": 339,
+        "n": 599,
+        "rate": 0.5659432387312187,
+        "ci95": [
+          0.5259555119439738,
+          0.6050905207120338
+        ],
+        "p_vs_half": 0.0014174284449293098
+      },
+      "shortcut_by_c5": false
+    },
+    "vartrack_d2": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 304,
+        "correct": 0.9078947368421053,
+        "distractor": 0.08552631578947369
+      },
+      "query_chain_earlier": {
+        "n": 296,
+        "correct": 0.7398648648648649,
+        "distractor": 0.25675675675675674
+      },
+      "correct_gap_later_minus_earlier": 0.1680298719772404,
+      "picks_later": {
+        "k": 352,
+        "n": 597,
+        "rate": 0.5896147403685092,
+        "ci95": [
+          0.5497046841743538,
+          0.6283788573114555
+        ],
+        "p_vs_half": 1.366302287327203e-05
+      },
+      "shortcut_by_c5": false
+    },
+    "vartrack_d3": {
+      "n_usable": 600,
+      "query_chain_later": {
+        "n": 303,
+        "correct": 0.7293729372937293,
+        "distractor": 0.24752475247524752
+      },
+      "query_chain_earlier": {
+        "n": 297,
+        "correct": 0.7373737373737373,
+        "distractor": 0.25252525252525254
+      },
+      "correct_gap_later_minus_earlier": -0.00800080008000803,
+      "picks_later": {
+        "k": 296,
+        "n": 590,
+        "rate": 0.5016949152542373,
+        "ci95": [
+          0.46146893085467566,
+          0.5418989706193874
+        ],
+        "p_vs_half": 0.9671655283229202
+      },
+      "shortcut_by_c5": false
+    }
+  }
+}

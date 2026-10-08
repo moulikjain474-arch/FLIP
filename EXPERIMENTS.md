@@ -483,3 +483,10 @@ Thresholds are fixed here and are not changed after the run. Each claim is score
   replication), section 4f, before either was run. New code: `uncertainty_gate.py`, `flipstats.confidence_gate`
   and `top2_margin`, `score_new.py` `score_c22` / `score_c23`, `check_seed.py`; `perturb_test.py` now writes
   `__seed<N>` file names for non-zero seeds so a fresh-seed run can never overwrite the seed-0 result.
+- 8 Oct 2026 (~22:45 IST), exploratory, written AFTER the first C22 result (6.9B supported, 12B not):
+  `position_decomposition.py` sorts each question's pair of answers (original order, swapped order) into
+  right chain twice, wrong chain twice, first-written chain twice, second-written chain twice, or neither,
+  overall and inside confidence thirds, for Pythia-12B and 6.9B (step 143000) and, as a check on the
+  pattern, OLMo-2-7B, OLMo-2-1B and Qwen2.5-7B. It is motivated by the C22 result at 12B, so it is
+  post hoc, registers no claim, and changes none. C22 stays a MISS (1 of 2 models).
+

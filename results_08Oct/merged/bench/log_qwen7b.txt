@@ -1,0 +1,31 @@
+nohup: ignoring input
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files:  25%|██▌       | 1/4 [00:11<00:33, 11.19s/it]Fetching 4 files:  50%|█████     | 2/4 [00:15<00:13,  6.97s/it]Fetching 4 files:  75%|███████▌  | 3/4 [00:17<00:04,  4.77s/it]Fetching 4 files: 100%|██████████| 4/4 [00:18<00:00,  3.52s/it]Fetching 4 files: 100%|██████████| 4/4 [00:18<00:00,  4.74s/it]
+Loading weights:   0%|          | 0/339 [00:00<?, ?it/s]Loading weights:   0%|          | 1/339 [00:00<02:26,  2.31it/s]Loading weights:   1%|          | 2/339 [00:00<02:25,  2.31it/s]Loading weights:   1%|          | 4/339 [00:01<01:10,  4.77it/s]Loading weights:   5%|▌         | 17/339 [00:01<00:13, 23.25it/s]Loading weights:   9%|▊         | 29/339 [00:01<00:08, 38.47it/s]Loading weights:  10%|█         | 35/339 [00:01<00:07, 40.18it/s]Loading weights:  12%|█▏        | 42/339 [00:01<00:06, 45.96it/s]Loading weights:  14%|█▍        | 49/339 [00:01<00:06, 43.54it/s]Loading weights:  17%|█▋        | 57/339 [00:01<00:06, 43.57it/s]Loading weights:  22%|██▏       | 76/339 [00:02<00:04, 63.65it/s]Loading weights:  25%|██▌       | 86/339 [00:02<00:04, 61.35it/s]Loading weights:  27%|██▋       | 93/339 [00:02<00:04, 54.49it/s]Loading weights:  33%|███▎      | 112/339 [00:02<00:02, 76.91it/s]Loading weights:  37%|███▋      | 124/339 [00:02<00:02, 72.99it/s]Loading weights:  39%|███▉      | 132/339 [00:02<00:02, 70.30it/s]Loading weights:  41%|████▏     | 140/339 [00:03<00:02, 71.37it/s]Loading weights:  44%|████▍     | 149/339 [00:03<00:02, 70.30it/s]Loading weights:  47%|████▋     | 160/339 [00:03<00:02, 67.17it/s]Loading weights:  50%|█████     | 171/339 [00:03<00:02, 58.28it/s]Loading weights:  55%|█████▍    | 185/339 [00:03<00:02, 70.15it/s]Loading weights:  58%|█████▊    | 196/339 [00:03<00:01, 72.75it/s]Loading weights:  60%|██████    | 204/339 [00:03<00:01, 70.76it/s]Loading weights:  63%|██████▎   | 212/339 [00:04<00:02, 51.95it/s]Loading weights:  68%|██████▊   | 232/339 [00:04<00:01, 75.08it/s]Loading weights:  71%|███████   | 241/339 [00:04<00:01, 74.45it/s]Loading weights:  74%|███████▎  | 250/339 [00:04<00:01, 60.96it/s]Loading weights:  76%|███████▌  | 258/339 [00:04<00:01, 63.64it/s]Loading weights:  78%|███████▊  | 266/339 [00:04<00:01, 65.79it/s]Loading weights:  81%|████████  | 275/339 [00:05<00:00, 66.51it/s]Loading weights:  83%|████████▎ | 283/339 [00:05<00:00, 69.15it/s]Loading weights:  86%|████████▋ | 293/339 [00:05<00:00, 72.14it/s]Loading weights:  89%|████████▉ | 301/339 [00:05<00:00, 62.14it/s]Loading weights:  93%|█████████▎| 315/339 [00:05<00:00, 61.45it/s]Loading weights:  97%|█████████▋| 328/339 [00:05<00:00, 66.44it/s]Loading weights: 100%|██████████| 339/339 [00:05<00:00, 57.55it/s]
+The following is a multiple choice question about professional law.
+
+A defendant was charged with killing a victim during a barroom fight. The defendant claimed that he acted in self-defense when he was attacked by the victim. At trial, the defendant called a witness who testified that he witnessed the altercation and that the victim was the aggressor. The witness further testified that he has known the defendant for 10 years and that the defendant is a peaceable man who was acting reasonably in self-defense. The prosecution then offered the testimony of the victim's brother-in-law, who proposed to testify that the victim was a peaceable and law-abiding person. Upon objection by the defendant's attorney, the brother-in-law's proposed testimony is
+A. admissible, for the purpose of rebutting the contention that the defendant was a peaceable person.
+B. admissible, for the purpose of repudiating the defendant's claim of self-defense.
+C. inadmissible, because the victim's character cannot be proved by the brother-in-law's testimony.
+D. inadmissible, because the defendant did not directly attack the victim's character.
+Answer:
+orig accuracy 0.68
+reversed accuracy 0.683
+shift1 accuracy 0.677
+shift2 accuracy 0.66
+{
+  "acc_orig": 0.68,
+  "acc_reversed": 0.6833333333333333,
+  "acc_shift1": 0.6766666666666666,
+  "acc_shift2": 0.66,
+  "flip_orig_reversed": 0.16333333333333333,
+  "acc_single_mean2": 0.6816666666666666,
+  "acc_ens2": 0.6866666666666666,
+  "acc_ens4": 0.68,
+  "acc_mean4": 0.675,
+  "n": 300,
+  "gain2": 0.005,
+  "gain2_lo": -0.018333333333333333,
+  "gain2_hi": 0.028333333333333332
+}

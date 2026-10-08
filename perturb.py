@@ -143,3 +143,21 @@ def final_answer(prompt):
         return None
     q = re.match(r"^>>> (\w+)\s*$", tail[0])
     return env.get(q.group(1)) if q else None
+
+
+def single_chain_control(prompt, seed):
+    """Control pair for the order-patching test: the final problem with ONLY the queried chain.
+
+    Returns (src_prompt, tgt_prompt, v_src, v_tgt). The two prompts are identical except for the
+    chain's start digit (v_src vs a different v_tgt), so there is no second chain to choose
+    between: patching the source's last-token state into the target at a layer shows where a VALUE
+    is read out. Compare with the two-chain order patch, which shows where the CHOICE of chain is made.
+    """
+    head, a, b, tail = split_problem(prompt)
+    _, which = chain_values(prompt)
+    chain = [a, b][which]
+    v_src = ASSIGN.match(chain[0]).group(2)
+    rng = random.Random(seed)
+    v_tgt = rng.choice([d for d in "0123456789" if d != v_src])
+    mk = lambda v: head + "\n".join([chain[0].rsplit(" = ", 1)[0] + " = " + v] + chain[1:] + tail)
+    return mk(v_src), mk(v_tgt), v_src, v_tgt

@@ -9,6 +9,8 @@ the equal-cost ensemble orig+rename.
 
   python perturb_test.py --model EleutherAI/pythia-12b --step 143000
   python perturb_test.py --model allenai/OLMo-2-1124-7B --revision main
+  python perturb_test.py --model EleutherAI/pythia-12b --step 143000 --seed 1 --out $PERSIST/fullday/perturb_seed1
+(--seed 1 draws a fresh question set; keep fresh-seed runs in their own folder, see claim C23.)
 """
 import argparse
 import json
@@ -66,7 +68,7 @@ def main():
     dtype = args.dtype or ("fp16" if "pythia" in args.model else "bf16")
     tok, model = mu.load(args.model, revision, dev,
                          (torch.float16 if dtype == "fp16" else torch.bfloat16) if dev == "cuda" else torch.float32)
-    out = dict(model=args.model, revision=revision, step=args.step, tasks={})
+    out = dict(model=args.model, revision=revision, step=args.step, seed=args.seed, tasks={})
     for t in args.tasks:
         items = items_all[t]
         y = np.array([it["label"] for it in items])
@@ -97,7 +99,10 @@ def main():
                                ens_correct={k: v.astype(int).tolist() for k, v in ens.items()})
         print(t, {k: round(v, 3) for k, v in s.items()}, flush=True)
     os.makedirs(args.out, exist_ok=True)
-    with open(os.path.join(args.out, f"{args.model.split('/')[-1]}__{revision}.json"), "w") as f:
+    # seed 0 keeps the original file name; any other seed (fresh question set, claim C23) gets a suffix
+    # so it can never overwrite the seed-0 result. Run fresh seeds into a separate --out folder.
+    name = f"{args.model.split('/')[-1]}__{revision}" + (f"__seed{args.seed}" if args.seed else "") + ".json"
+    with open(os.path.join(args.out, name), "w") as f:
         json.dump(out, f)
 
 

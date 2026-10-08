@@ -8,7 +8,7 @@ than the main task (more chains, deeper) so that strong models are not at 100%.
   python3 frontier_flip.py --provider openai --model <model-name> --n 200
   python3 frontier_flip.py --selftest
 In hard mode the "reversed" fields hold the SHUFFLED version. Re-running the same model adds
-to (never overwrites) its saved file. Reports accuracy in each order, flip rate (correct in exactly one order), and how often the
+new settings to its saved file (a re-run of a setting already in the file replaces that setting). Reports accuracy in each order, flip rate (correct in exactly one order), and how often the
 two orders give the same answer. Every reply is saved, so the scoring can be re-checked.
 """
 import argparse
@@ -156,10 +156,15 @@ def is_reasoning(model):
     return model.startswith(("o1", "o3", "o4", "gpt-5"))
 
 
+EFFORT = None          # set from --effort; only sent to OpenAI reasoning models
+
+
 def ask(provider, model, prompt):
     if provider == "openai":
         body = {"model": model, "messages": [{"role": "user", "content": prompt}]}
         body.update({"max_completion_tokens": 4000} if is_reasoning(model) else {"temperature": 0, "max_tokens": 5})
+        if EFFORT and is_reasoning(model):
+            body["reasoning_effort"] = EFFORT
         r = _post("https://api.openai.com/v1/chat/completions",
                   {"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}", "Content-Type": "application/json"}, body)
         return r["choices"][0]["message"]["content"] or ""
@@ -182,7 +187,53 @@ def score(items, replies_fwd, replies_rev):
                 unparsed=sum(parse(r) is None for r in replies_fwd + replies_rev) / (2 * n), n=n)
 
 
+def reshuffle(prompt, seed):
+    """Hard-mode prompt with its fact sentences randomly re-ordered (filler stays in its slots; answer unchanged)."""
+    head, rest = prompt.split("\n\n", 1)
+    body, q = rest.rsplit("\n\nHow many coins", 1)
+    sents = re.split(r"(?<=\.) ", body)
+    slots = [i for i, x in enumerate(sents) if re.fullmatch(r"[A-Z][a-z]+ has .* coins\.", x)]
+    facts = [sents[i] for i in slots]
+    random.Random(seed).shuffle(facts)
+    for i, f in zip(slots, facts):
+        sents[i] = f
+    return head + "\n\n" + " ".join(sents) + "\n\nHow many coins" + q
+
+
+def majority(replies):
+    """Most common parsed digit among replies; ties go to the earliest; None if nothing parsed."""
+    seen = [parse(r) for r in replies]
+    seen = [x for x in seen if x is not None]
+    if not seen:
+        return None
+    best = max(set(seen), key=lambda d: (seen.count(d), -seen.index(d)))
+    return best
+
+
+def fname(args):
+    if args.effort and not (args.provider == "openai" and is_reasoning(args.model)):
+        print(f"note: --effort only applies to OpenAI reasoning models; ignored for {args.model}")
+        args.effort = None
+    return f"{args.provider}__{args.model.replace('/', '_')}" + (f"__effort-{args.effort}" if args.effort else "") + ".json"
+
+
+def same_order_disagree(first, repeat):
+    """Share of re-asked questions whose parsed answer changed when the identical prompt was sent again."""
+    m = min(len(first), len(repeat))
+    return sum(parse(a) != parse(b) for a, b in zip(first[:m], repeat[:m])) / m if m else float("nan")
+
+
 def selftest():
+    assert same_order_disagree(["1", "2", "3"], ["1", "2", "4"]) == 1 / 3 and same_order_disagree(["1"], ["1"]) == 0
+    assert majority(["7", "3", "3", "x"]) == "3" and majority(["5", "6"]) == "5" and majority(["x"]) is None
+    for level in HARD_LEVELS:
+        for h in make_hard(15, level):
+            for sd in range(4):
+                r = reshuffle(h["fwd"], sd)
+                assert resolve_story(r) == h["answer"], "reshuffle changed the answer"
+                assert sorted(re.split(r"(?<=\.) ", r.split("\n\n", 1)[1])) == sorted(re.split(r"(?<=\.) ", h["fwd"].split("\n\n", 1)[1]))
+            assert reshuffle(h["fwd"], 1) != h["fwd"] or level == 0
+            assert reshuffle(h["fwd"], 1) == reshuffle(h["fwd"], 1)
     items = make_items(300, 4, 3)
     for it in items:                       # the answer really is what the session prints
         env = {}
@@ -223,6 +274,13 @@ def main():
                     help="chains x depth (e.g. 4x3), codeL (program level L) or hardL (hard mode level L)")
     ap.add_argument("--score", metavar="DIR", help="score C21 from saved results in DIR, then exit")
     ap.add_argument("--out", default="frontier_results")
+    ap.add_argument("--repeat", type=int, default=20,
+                    help="re-ask this many questions a second time in the SAME order (noise floor); 0 = off")
+    ap.add_argument("--effort", choices=("low", "medium", "high"), default=None,
+                    help="reasoning effort for OpenAI reasoning models (own result file; default: the API default)")
+    ap.add_argument("--vote", type=int, default=0, metavar="K",
+                    help="hard levels only: also shuffle the facts K ways, take the majority answer (works without log-probs)")
+    ap.add_argument("--vote-n", type=int, default=50, help="questions per level for --vote")
     ap.add_argument("--selftest", action="store_true")
     args = ap.parse_args()
     if args.selftest:
@@ -231,8 +289,11 @@ def main():
         return score_c21(args.score)
     if not (args.provider and args.model):
         raise SystemExit("give --provider and --model")
-    path = os.path.join(args.out, f"{args.provider}__{args.model.replace('/', '_')}.json")
-    out = json.load(open(path)) if os.path.exists(path) else dict(provider=args.provider, model=args.model, settings={})
+    global EFFORT
+    path = os.path.join(args.out, fname(args))
+    EFFORT = args.effort
+    out = json.load(open(path)) if os.path.exists(path) else dict(provider=args.provider, model=args.model,
+                                                                  effort=args.effort, settings={})
     for setting in args.settings.split(","):
         if setting.startswith("hard"):
             items = make_hard(args.n, int(setting[4:]))
@@ -261,6 +322,27 @@ def main():
         s = score(items, fwd, rev)
         out["settings"][setting] = dict(summary=s, replies_forward=fwd, replies_reversed=rev,
                                         answers=[it["answer"] for it in items])
+        if args.repeat > 0:                 # same prompt, same order, asked again: API noise floor (amendment to C21)
+            try:
+                rep = [ask(args.provider, args.model, pf) for pf, _ in prompts[:args.repeat]]
+                out["settings"][setting]["replies_forward_repeat"] = rep
+                out["settings"][setting]["summary"].update(same_order_disagree=same_order_disagree(fwd, rep))
+            except (RuntimeError, KeyError, IndexError, TypeError) as e:
+                print(f"  repeat failed in {setting}: {e}")
+        if args.vote > 0 and setting.startswith("hard"):     # black-box fix: several shuffles, majority vote
+            try:
+                votes = [[ask(args.provider, args.model, reshuffle(it["fwd"], 1000 * i + j + 1)) for j in range(args.vote)]
+                         for i, it in enumerate(items[:args.vote_n])]
+                ans = [it["answer"] for it in items[:args.vote_n]]
+                out["settings"][setting]["replies_vote"] = votes
+                out["settings"][setting]["summary"].update(
+                    vote_k=args.vote, vote_n=len(votes),
+                    acc_reversed_same_subset=sum(parse(r) == a for r, a in zip(out["settings"][setting]["replies_reversed"][:len(votes)], ans)) / len(votes),
+                    vote_acc=sum(majority(v) == a for v, a in zip(votes, ans)) / len(votes),
+                    vote_single_acc=sum(parse(r) == a for v, a in zip(votes, ans) for r in v) / (len(votes) * args.vote))
+            except (RuntimeError, KeyError, IndexError, TypeError) as e:
+                print(f"  vote failed in {setting}: {e}")
+        s = out["settings"][setting]["summary"]
         print(setting, {k: round(v, 3) if isinstance(v, float) else v for k, v in s.items()}, flush=True)
         save(out, args)                    # after every setting, so nothing paid for is lost
 
@@ -291,14 +373,17 @@ def score_c21(folder):
             ok = d >= 0.05 - 1e-9 and lo > 0
             hit |= ok
             unparsed = sum(parse(x) is None for x in r["replies_forward"][:n] + r["replies_reversed"]) / (2 * n)
-            print(f"  {s['provider']} {s['model']} {level}: forward {cf.mean():.3f}  shuffled {cs.mean():.3f}  "
-                  f"drop {d:+.3f} [{lo:+.3f},{hi:+.3f}]  n={n}  unparsed {unparsed:.2f}  {'yes' if ok else 'no'}")
+            rep = r.get("replies_forward_repeat")
+            floor = (f"  same-order disagreement {same_order_disagree(r['replies_forward'], rep):.3f} (n={len(rep)})"
+                     if rep else "  (no same-order repeat)")
+            print(f"  {s['provider']} {s['model']}{'@' + s['effort'] if s.get('effort') else ''} {level}: forward {cf.mean():.3f}  shuffled {cs.mean():.3f}  "
+                  f"drop {d:+.3f} [{lo:+.3f},{hi:+.3f}]  n={n}  unparsed {unparsed:.2f}  {'yes' if ok else 'no'}{floor}")
     print("  C21:", "HIT" if hit else ("MISS" if files else "NOT RUN"))
 
 
 def save(out, args):
     os.makedirs(args.out, exist_ok=True)
-    with open(os.path.join(args.out, f"{args.provider}__{args.model.replace('/', '_')}.json"), "w") as f:
+    with open(os.path.join(args.out, fname(args)), "w") as f:
         json.dump(out, f, indent=1)
 
 

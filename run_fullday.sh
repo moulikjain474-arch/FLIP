@@ -59,8 +59,8 @@ fi
 
 if want 2; then
 echo "=== PART 2: C12 / C13 / C17 reorder vs rename, with per-question results $(date)"
-for s in 143000 64000 32000; do prt pythia-12b $s; clean pythia-12b; done
-for s in 143000 64000 32000; do prt pythia-6.9b $s; clean pythia-6.9b; done
+for s in ${P2_STEPS:-143000 64000 32000}; do prt pythia-12b $s; clean pythia-12b; done
+for s in ${P2_STEPS:-143000 64000 32000}; do prt pythia-6.9b $s; clean pythia-6.9b; done
 for m in pythia-1.4b pythia-410m; do prt $m 143000; clean $m; done
 fi
 
@@ -251,6 +251,16 @@ for s in 16000 143000; do
   clean pythia-6.9b
 done
 echo "=== PART 8 DONE"
+fi
+
+if want 9; then
+echo "=== PART 9: exploratory (mentor R1): where is the CHOICE made? order patching + single-chain control, 1.4B $(date)"
+for s in ${P9_STEPS:-4000 16000 32000 64000 143000}; do
+  python patch_test.py --model EleutherAI/pythia-1.4b --step $s --every 1 --tasks vartrack_d1 vartrack_d2 vartrack_d3 \
+    --out $OUT/patch_choice || echo "FAILED patch_choice 1.4b $s"
+done
+clean pythia-1.4b
+echo "=== PART 9 DONE"
 fi
 
 echo "=== ALL DONE $(date)"

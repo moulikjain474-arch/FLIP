@@ -1,4 +1,4 @@
-"""Score the claims registered as C8-C20 in EXPERIMENTS.md from the full-day outputs.
+"""Score the claims registered as C8-C20, C22 and C23 in EXPERIMENTS.md from the run outputs.
 
   python score_new.py --dir $PERSIST/fullday
 Prints hit / miss for each claim with the numbers behind it. Nothing here is tuned after
@@ -322,12 +322,70 @@ def score_instruct(root):
                 print(f"  {name} MMLU: acc {s['acc_orig']:.3f}  flip {s['flip_orig_reversed']:.3f}")
 
 
+C22_MODELS = ("pythia-6.9b", "pythia-12b")
+
+
+def score_c22(root):
+    print("== C22: low-confidence third flips >= 2x the high-confidence third, exact Fisher p < 0.05 "
+          "(6.9B and 12B, step 143000, depth 2, confidence = original-order top-2 margin)")
+    passed = 0
+    for m in C22_MODELS:
+        f = os.path.join(root, "uncertainty", f"{m}__step143000.json")
+        if not os.path.exists(f):
+            print(f"  {m}: MISSING"); continue
+        r = json.load(open(f))["tasks"].get("vartrack_d2")
+        if r is None:
+            print(f"  {m}: MISSING task vartrack_d2"); continue
+        g = r["summary"]["gate_orig_margin"]
+        ok = ge(g["low_flip"], 2 * g["high_flip"]) and g["low_flip"] > 0 and g["fisher_p"] < 0.05
+        passed += ok
+        ratio = "n/a (high third never flips)" if g["ratio"] is None else f"{g['ratio']:.2f}"
+        print(f"  {m}: flip by confidence tertile (low->high) " + " ".join(f"{x:.3f}" for x in g["group_flip"])
+              + f" | ratio {ratio} | low-high {g['diff']:+.3f} [{g['diff_lo']:+.3f},{g['diff_hi']:+.3f}]"
+              + f" | Fisher p={g['fisher_p']:.3g} | Spearman(margin, flip)={g['spearman_margin_flip']:+.2f}"
+              + f" | acc by tertile " + " ".join(f"{x:.2f}" for x in r["summary"]["acc_orig_by_group"]) + f"  {'yes' if ok else 'no'}")
+    print("  C22:", "HIT" if passed == len(C22_MODELS) else "MISS", f"({passed} of {len(C22_MODELS)} models)")
+
+
+def score_c23(root):
+    print("== C23: fresh question set (seed >= 1): swap flip >= 0.20, flip(swap) - flip(rename) >= 0.05, "
+          "both-orders gain interval above 0 (6.9B and 12B, step 143000, depth 2)")
+    passed = tested = 0
+    for m in C22_MODELS:
+        files = sorted(glob.glob(os.path.join(root, "perturb_seed*", f"{m}__step143000__seed*.json")))
+        if not files:
+            print(f"  {m}: MISSING"); continue
+        for f in files:
+            s = json.load(open(f))
+            r = s["tasks"].get("vartrack_d2")
+            if r is None:
+                print(f"  {m} seed {s.get('seed')}: MISSING task vartrack_d2"); continue
+            sm, c = r["summary"], r["correct"]
+            single = (np.array(c["orig"], float) + np.array(c["swap"], float)) / 2
+            gain, lo, hi = fs.paired_bootstrap(r["ens_correct"]["swap"], single)
+            ok = ge(sm["flip_swap"], 0.20) and ge(sm["flip_swap"] - sm["flip_rename"], 0.05) and lo > 0
+            tested += 1
+            passed += ok
+            print(f"  {m} seed {s.get('seed')}: flip swap {sm['flip_swap']:.3f} rename {sm['flip_rename']:.3f} | "
+                  f"both-orders gain {gain:+.3f} [{lo:+.3f},{hi:+.3f}] | n={sm['n']}  {'yes' if ok else 'no'}")
+    # a model counts once: HIT needs every tested model/seed to pass and both models to be present
+    have = {m for m in C22_MODELS if glob.glob(os.path.join(root, "perturb_seed*", f"{m}__step143000__seed*.json"))}
+    print("  C23:", "HIT" if tested and passed == tested and have == set(C22_MODELS) else "MISS",
+          f"({passed} of {tested} model-seed runs; models present: {sorted(have)})")
+
+
+def score_extra(root):
+    """Exploratory descriptive statistics (not claims): strict/lenient, chance flip rate, Fisher, McNemar."""
+    import extra_stats
+    extra_stats.show(root)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dir", required=True)
     root = ap.parse_args().dir
     for fn in (score_c8, score_c9, score_c10, score_c11, score_controls, score_layout, score_benchmark,
-               score_olmo, score_olmo_traj, score_scale, score_code, score_instruct):
+               score_olmo, score_olmo_traj, score_scale, score_code, score_c22, score_c23, score_instruct, score_extra):
         try:
             fn(root)
         except Exception as e:          # one broken result must not hide the other claims

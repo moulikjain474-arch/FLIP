@@ -3,7 +3,9 @@
 Fits  flip = c * N^beta  (a straight line in log-log) on the FINAL models in the perturb
 results, where flip = share of questions correct in exactly one order and N = parameters.
 Prints the fit for all models and per family, so a family difference is not hidden by the
-pooled line. This is descriptive: models differ in data and recipe, not only in size.
+pooled line. This is a DESCRIPTIVE TREND, not a scaling law: five sizes, one run each above 410M, and
+seed-to-seed variation at 410M is large (Choshen et al., ICML), so the exponent has no meaningful interval.
+Models also differ in data and recipe, not only in size. Never describe the fit as a law.
 
   python size_fit.py --dir $PERSIST/fullday --task vartrack_d2
 """

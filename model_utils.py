@@ -17,7 +17,11 @@ TOKENS_PER_STEP = 2_097_152  # Pythia: 1024 sequences x 2048 tokens per optimize
 
 def load(model_name, revision=None, device="cuda", dtype=torch.float16):
     """Tokenizer (left-padded) + model at one training checkpoint (revision)."""
-    tok = AutoTokenizer.from_pretrained(model_name, revision=revision)
+    try:  # TOKFALLBACK
+        tok = AutoTokenizer.from_pretrained(model_name, revision=revision)
+    except ValueError:
+        tok = AutoTokenizer.from_pretrained(model_name)  # tokenizer is identical across checkpoints
+
     tok.padding_side = "left"            # the last prompt token is always at position -1
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token or "<|endoftext|>"

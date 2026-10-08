@@ -9,6 +9,8 @@ import glob
 import json
 import os
 
+import extra_stats
+
 
 def rows(root):
     for f in glob.glob(os.path.join(root, "position*", "**", "*.json"), recursive=True):
@@ -45,12 +47,19 @@ def rows(root):
                 m = s["model"].split("/")[-1]
                 yield "distance", m, s["revision"], t, "", f"{c}.accuracy", r["accuracy"], r.get("n", r["n_usable"])
                 yield "distance", m, s["revision"], t, "", f"{c}.picks_later", r["picks_later"]["rate"], r["picks_later"]["n"]
-    for f in glob.glob(os.path.join(root, "patch", "*.json")):
+    for f in glob.glob(os.path.join(root, "patch", "*.json")) + glob.glob(os.path.join(root, "patch_choice", "*.json")):
         s = json.load(open(f))
+        src = "_choice" if os.path.basename(os.path.dirname(f)) == "patch_choice" else ""
         for t, r in s["tasks"].items():
             for layer, v in r["layers"].items():
                 for k, x in v.items():
-                    yield "patch", s["model"].split("/")[-1], s["revision"], t, layer, k, x, r["n_differ"]
+                    yield "patch" + src, s["model"].split("/")[-1], s["revision"], t, layer, k, x, r["n_differ"]
+            for layer, v in r.get("control", {}).get("layers", {}).items():
+                for k, x in v.items():
+                    yield "patch_control" + src, s["model"].split("/")[-1], s["revision"], t, layer, k, x, r["control"]["n"]
+            for k in ("margin_first_minus_second_orig", "margin_first_minus_second_swap"):
+                if r.get(k):
+                    yield "patch_margin" + src, s["model"].split("/")[-1], s["revision"], t, "", k + ".mean", sum(r[k]) / len(r[k]), len(r[k])
     for f in glob.glob(os.path.join(root, "code", "*.json")) + glob.glob(os.path.join(root, "story", "*.json")):
         s = json.load(open(f))
         for t, r in s["tasks"].items():
@@ -72,6 +81,35 @@ def rows(root):
                     yield "layer", s["model"].split("/")[-1], s["revision"], s["task"], s["layer"], f"{cond}.{k}", v, s["n_test"]
 
 
+def gate_rows(root):
+    """Claim C22 (uncertainty_gate.py) and C23 (fresh-seed perturb runs)."""
+    for f in glob.glob(os.path.join(root, "uncertainty", "*.json")):
+        s = json.load(open(f))
+        m = s["model"].split("/")[-1]
+        for t, r in s["tasks"].items():
+            sm = r["summary"]
+            for gname in ("gate_orig_margin", "gate_swap_margin", "gate_min_margin"):
+                g = sm[gname]
+                for k in ("low_flip", "high_flip", "diff", "diff_lo", "diff_hi", "ratio", "fisher_p", "spearman_margin_flip"):
+                    if g.get(k) is not None:
+                        yield "gate", m, s["revision"], t, "", f"{gname}.{k}", g[k], sm["n"]
+                for i, v in enumerate(g["group_flip"]):
+                    yield "gate", m, s["revision"], t, "", f"{gname}.group{i}_flip", v, g["group_n"][i]
+            for i, v in enumerate(sm["acc_orig_by_group"]):
+                yield "gate", m, s["revision"], t, "", f"acc_orig_group{i}", v, sm["n"]
+    for f in glob.glob(os.path.join(root, "perturb_seed*", "*.json")):
+        s = json.load(open(f))
+        for t, r in s["tasks"].items():
+            for k, v in r["summary"].items():
+                if k != "n":
+                    yield "perturb_seed%s" % s.get("seed", "?"), s["model"].split("/")[-1], s["revision"], t, "", k, v, r["summary"]["n"]
+
+
+def extra_rows(root):
+    for kind, m, rev, t, k, v, n in extra_stats.rows(root):
+        yield kind, m, rev, t, "", k, v, n
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dir", required=True)
@@ -81,7 +119,7 @@ def main():
         w = csv.writer(fh)
         w.writerow(["kind", "model", "revision", "task", "layer", "metric", "value", "n"])
         n = 0
-        for r in rows(args.dir):
+        for r in list(rows(args.dir)) + list(gate_rows(args.dir)) + list(extra_rows(args.dir)):
             w.writerow(r)
             n += 1
     print(f"wrote {n} rows to {args.out}")

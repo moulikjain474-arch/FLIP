@@ -139,6 +139,8 @@ def main():
     ap.add_argument("--batch-size", type=int, default=32)
     ap.add_argument("--out", default="steer_stage_results")
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
+    ap.add_argument("--save-items", action="store_true", help="also store per-item margins and outcomes (P3)")
+    ap.add_argument("--rank-sweep", action="store_true", help="also plant inside the top-r components, r=1..rank (P4)")
     args = ap.parse_args()
     if (args.step is None) == (args.revision is None):
         raise SystemExit("give exactly one of --step or --revision")
@@ -225,6 +227,11 @@ def main():
         "plant_cor": plant("Q_cor", "cm_cor"),
     }
     conditions.update({f"random{k}": erase(lambda G, k=k: G["Q_rand"][k]) for k in range(args.n_rand)})
+    if args.rank_sweep:
+        for r in range(1, rank + 1):
+            for l in geo:
+                geo[l][f"Q_orth_r{r}"] = geo[l]["Q_orth"][:, :r]
+            conditions[f"plant_dis_orth_r{r}"] = plant(f"Q_orth_r{r}", "cm_dis")
 
     labels = np.array([it["label"] for it in test])
     dis = np.array([it["_dis"] for it in test])
@@ -259,6 +266,17 @@ def main():
             erase_cor_sanity=paired(res["erase_cor"]["logp"], res["natural"]["logp"]),
         ),
     )
+    if args.save_items:
+        lo_nat, _ = mu.run(tok, model, [it["prompt"] for it in test], cids, batch_size=args.batch_size,
+                           device=args.device)
+        lp_nat = torch.log_softmax(lo_nat, -1).numpy()
+        ar = np.arange(len(test))
+        summary["items"] = dict(
+            margin_natural=(lp_nat[ar, labels] - lp_nat[ar, dis]).tolist(),
+            correct_natural=res["natural"]["correct"].tolist(),
+            planted_natural=res["natural"]["planted"].tolist(),
+            planted_plant_dis=res["plant_dis"]["planted"].tolist(),
+            planted_plant_dis_orth=res["plant_dis_orth"]["planted"].tolist())
     os.makedirs(args.out, exist_ok=True)
     tag = iou.tag(args.seed, args.n, args.shots, args.layout)
     name = f"{args.model.replace('/', '__')}__{revision}__{tag}__{args.task}__L{layer}__{args.scope}.json"

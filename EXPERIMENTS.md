@@ -220,6 +220,20 @@ Thresholds are fixed here and are not changed after the run. Each claim is score
   Nothing here changes C1-C21. Both are labelled exploratory-to-confirmatory: they were written after the main
   run, so they are prospective tests of new predictions, not part of the original pre-registration.
 
+## 4g. Outcomes recorded 8 Oct 2026 (~23:40 IST)
+Scored by `score_new.py` on the merged results (`results_08Oct/merged`); full tables in `results_08Oct/*.txt`.
+- C8, C10-C20 and C23: HIT as scored (C12: 3 of 3 primary cells; C14: 2 of 3 biased; C15: 3 models; C19, C20 as listed).
+  C9: MISS. C22: MISS (1 of 2 models).
+- **C9 detail.** Depth 3, nine 410M runs: step 16,000 = F-LF--FFF (L=1, F=5); step 64,000 = --FFL--FF (L=1, F=4).
+  The rule needed at least 2 L and 2 F at one step. The runs mostly agree in direction, so the habit is not
+  shown to depend on the seed. Every text that said otherwise is reworded.
+- **C22 detail.** Pythia-6.9B supported at every depth; Pythia-12B not supported (flip rates by confidence third
+  at depth 2: 0.51 / 0.42 / 0.44, ratio 1.16, Fisher p = 0.19). The claim needed both models.
+- Exploratory, run after the results were seen, and not registered: `position_decomposition.py` (recency),
+  `order_specific_edge.py` (both orders vs original + renamed, exact McNemar, 33 cells; only cells with
+  p < 0.0015 survive a Bonferroni correction for 33 tests), the MMLU runs at n=300 for Qwen2.5-14B and 32B, and
+  the M steering readout by layer. None of them changes a registered claim.
+
 ## 5. Statistics
 - Holm correction across all C4 primary tests (every model x checkpoint x depth run), and
   separately across all C4b primary tests.
@@ -490,3 +504,6 @@ Thresholds are fixed here and are not changed after the run. Each claim is score
   pattern, OLMo-2-7B, OLMo-2-1B and Qwen2.5-7B. It is motivated by the C22 result at 12B, so it is
   post hoc, registers no claim, and changes none. C22 stays a MISS (1 of 2 models).
 
+- 8 Oct 2026 (~23:40 IST), after all runs: outcomes recorded in section 4g. C9 and C22 are misses, reported as
+  misses; the seed wording in README.md and docs/PAPER_DRAFT_v4.md was changed to match C9. Results, scripts
+  and figures are committed under `results_08Oct/`. No threshold was changed after the fact.

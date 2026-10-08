@@ -28,9 +28,11 @@ the order in which the two chains are written.
    measurement noise
    (the same checkpoint on new questions differs by about 0.02; checkpoints 1000 steps
    apart differ by up to 0.31) and are not caused by the worked examples in the prompt.
-2. **The final habit depends on size and random seed.** Fully trained models end with
-   different habits; across 9 training runs of the same 410M model, only the random
-   seed differs, yet the depth-3 preference ranges from 0.31 to 0.69.
+2. **The final habit differs across sizes; a seed effect is not confirmed.** Fully trained
+   models end with different habits. Across 9 training runs of the same 410M model the
+   depth-3 preference ranged from 0.31 to 0.69 in the 1 Oct exploration, but the registered
+   test of opposite directions (C9) was a MISS: at steps 16,000 and 64,000 most runs were
+   first-chain biased (5 of 9 and 4 of 9) and only 1 of 9 was later-chain biased.
 3. **The answer is decided halfway through the network.** Writing a number into the
    model's activations does nothing before about layer 12 of 24, and controls the answer
    after about layer 14, at every stage of training. Errors come from putting the wrong
@@ -45,6 +47,31 @@ the order in which the two chains are written.
 Reported as nulls: erasing the wrong chain's representation does not help (pre-registered
 test C4), and the model's mistakes give no earlier warning of competence than accuracy.
 Public Pythia-2.8B intermediate checkpoints load identical weights and are excluded.
+
+## Final results (8 Oct 2026; numbers in [results_08Oct/](results_08Oct/))
+Where these differ from the 1 Oct figures above, cite these. Scripts regenerate every number
+(`paper_numbers.py`, `order_specific_edge.py`, `exploratory_summary.py`, `make_figures.py`).
+
+- **Claims:** 15 registered claims scored, 13 hit, 2 missed (C9, C22). Both misses are reported.
+- **C9 (seed decides) missed.** Nine 410M runs, depth 3: first-chain bias in 5 of 9 (step 16,000)
+  and 4 of 9 (step 64,000), later-chain bias in 1 of 9 each. The seeds mostly agree in direction.
+- **C22 (confidence) missed.** Pythia-6.9B: the least-confident third flips 2.6-2.8 times as often as the
+  most-confident third (depths 1-2). Pythia-12B: ratio 1.0-1.2, p >= 0.13. The claim needed both.
+- **C23 (fresh question set) held** for both models.
+- **Order-specific gain (exploratory, run after the data were in).** Against an equal-cost control
+  (original + renamed), asking in both orders wins clearly in models of about 7B and up. Depth 3:
+  OLMo-2-7B-Instruct 83.5% vs 60.2%, OLMo-2-32B 94.7% vs 80.0%, Qwen2.5-7B 99.8% vs 94.8%; Pythia-12B
+  depth 1: 90.3% vs 79.3% (exact McNemar p < 1e-7 each, 600 questions). In Pythia-410M, 1.4B and
+  6.9B at depth 3 the gain is mostly generic ensembling. Qwen2.5-7B at depth 2: reordering and
+  renaming change answers equally often (6.5% vs 6.5%).
+- **Scale.** Qwen2.5-72B is at the ceiling on the toy task (99.8-100%) but changes 10.1% of MMLU answers.
+- **Recency (exploratory).** Wrong answers are mostly the later-written chain in both orders:
+  Pythia-12B depth 1, 39% later vs 3% earlier; OLMo-2-1B depth 3, 69% vs 0% (`position_decomposition.py`).
+- **MMLU option order, 9 models.** 10-30% of answers change. Asking in both orders gains 1.5-2.8 points in
+  the seven main-run models (95% intervals above zero); Qwen2.5-14B +2.3 and Qwen2.5-32B +0.3 at 300
+  questions (reported separately, `results_08Oct/merged/bench_n300`).
+- **Steering, Pythia-6.9B.** A planted answer wins about 0% at layer 14 and 55-76% (depth 3) or 19-35%
+  (depth 1) at layer 22. There is no random-direction control of the same size yet.
 
 ## Confounds ruled out
 | Possible explanation | Control | Where |
@@ -98,6 +125,8 @@ controls and generalisation tests C12-C20, all registered before those runs and 
 | Every number for the paper, printed from the results | `paper_numbers.py` | printed |
 | Score the registered claims C8-C20, C22, C23 (C21: `frontier_flip.py --score`) | `score_new.py` | printed hit / miss |
 | Flatten results to one CSV | `export_csv.py` | `earlymind_fullday.csv` |
+| Both orders vs the equal-cost control (exploratory) | `order_specific_edge.py` | `results_08Oct/order_specific_edge.txt` |
+| Decomposition and C22 numbers from saved JSONs | `exploratory_summary.py` | `results_08Oct/exploratory_summary.txt` |
 | Quick check of the new tests | `smoke.sh`, `test_flip.py` | `SMOKE OK` |
 | Full compute day | `run_fullday.sh` | every test above except the frontier API test |
 | Figures from the 1 Oct session | `results/exea_2026-10-01/make_figs.py` | `plots/*.png` |
@@ -110,7 +139,8 @@ Always use `--layout blocked` (the default everywhere except the earlier `sweep.
   tests extend it.
 - The layer and plant results show where the output is fixed, not the full circuit that
   chooses the chain.
-- Combining both orders is shown to help only on this task. It doubles inference cost, and
+- Combining both orders helps a lot where the order effect is order-specific on this task (about 7B and
+  up) and only a little on MMLU (1.5-2.8 points). It doubles inference cost, and
   with two orders it needs log-probabilities to break ties (a plain vote ties on every
   flip); black-box APIs without log-probabilities need several shuffles and a vote
   (`frontier_flip.py --vote`, exploratory).
@@ -125,14 +155,14 @@ Always use `--layout blocked` (the default everywhere except the earlier `sweep.
     that positional preference forms and flips during pretraining.
   - Wu, Geiger & Milliere 2025: in small models trained from scratch, a position heuristic
     appears once and is replaced. FLIP: in real pretrained models it reverses repeatedly
-    and ends differently by seed.
+    and ends differently across sizes (a seed effect was not confirmed, C9).
   - Tang et al. 2023 (permutation self-consistency, arXiv 2310.07712): shuffle a list several
     times and aggregate the rankings. FLIP does not claim the fix; it measures when it helps
     (reorder vs rename control) and uses a log-probability sum because two orders tie a vote.
   - Mistry et al. 2025 (how primacy- and recency-like attention structure changes during training
     of GPT-2) and Salvatore et al. 2025 (a U-shaped position bias appears in models trained from
     scratch on simple memory tasks). FLIP: in real pretraining runs the preferred
-    direction reverses repeatedly, depends on the seed, and is committed mid-network.
+    direction reverses repeatedly and is committed mid-network.
   - Guo & Vosoughi 2025: primacy and recency effects in LLMs; prompt fixes inconsistent.
     FLIP: a measured fix (asking in both orders) against a plain prompt instruction.
   - Exploiting Primacy Effect to Improve LLMs [check authors]: fine-tuning amplifies primacy in

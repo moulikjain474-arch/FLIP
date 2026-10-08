@@ -185,6 +185,41 @@ Every result is reported, hit or miss.
   Design follows published failure modes: premise order (Chen et al., ICML 2024), more hops
   and distractors (same; RULER, COLM 2024), long irrelevant context (RULER).
 
+- **Amendment to C21, 8 Oct 2026, before any frontier run.** The threshold and the test are unchanged.
+  frontier_flip.py now also re-asks the first 20 questions of each setting a second time in the
+  identical order (`--repeat 20`, default) and reports the same-order disagreement rate next to every
+  C21 line, because API models are not deterministic even at temperature 0 and OpenAI reasoning models
+  take no temperature setting. A shuffle drop is read against this floor. Open-model runs need no repeat
+  (log-probability scoring is deterministic).
+
+## 4f. Claims registered 8 Oct 2026 (~22:30 IST), AFTER the main results were seen, BEFORE these two tests were run (C22, C23)
+
+Disclosure: the main results (C8-C18) had been scored when these were written, and the C22 questions are
+the same seed-0 questions as the swap tests. What did NOT exist when the thresholds below were fixed:
+any per-question confidence split of the order effect (C22), and any run on a fresh question set (C23).
+Thresholds are fixed here and are not changed after the run. Each claim is scored by `score_new.py`
+(`score_c22`, `score_c23`). Commit this file before running the tests, so the dated commit shows the order.
+
+- **C22, the order effect concentrates where the model is unsure.** `uncertainty_gate.py`; Pythia-6.9B and 12B,
+  step 143000, depth 2, 600 questions (seed 0), asked in the original and the swapped order. Confidence of a
+  question is the log-probability gap between the model's best and second-best answer in the ORIGINAL order.
+  Questions are cut into three equal groups by confidence. A question flips if it is answered correctly in
+  exactly one of the two orders. Support for a model: the flip rate of the least-confident third is at least
+  twice that of the most-confident third AND an exact two-sided Fisher test on those two thirds gives p < 0.05.
+  C22 holds if both models are supported. A miss means the order effect is not concentrated in unsure
+  questions, and the wording "when unsure" is removed from every text. Descriptive only (not part of the
+  rule): the same split by swapped-order margin and by the smaller of the two margins, the rank correlation
+  of margin with flipping, and accuracy per third (the confident third should be more accurate).
+- **C23, the order effect is not a quirk of one question set.** `perturb_test.py --seed 1`, a freshly drawn
+  question set (and fresh renamings), same two models, step 143000, depth 2, 600 questions. Support for a
+  model: flip rate between original and swapped order >= 0.20, flip(original, swapped) - flip(original,
+  renamed) >= 0.05, and the 95% paired-bootstrap interval of the both-orders accuracy gain over the
+  single-order average lies above 0. C23 holds if both models are supported (every fresh seed that was run
+  must be supported). A miss means the seed-0 numbers do not generalise to new questions.
+- If a model cannot be run in time, that claim is reported as NOT RUN for that model, never as a hit.
+  Nothing here changes C1-C21. Both are labelled exploratory-to-confirmatory: they were written after the main
+  run, so they are prospective tests of new predictions, not part of the original pre-registration.
+
 ## 5. Statistics
 - Holm correction across all C4 primary tests (every model x checkpoint x depth run), and
   separately across all C4b primary tests.
@@ -205,7 +240,20 @@ Every result is reported, hit or miss.
   real pretraining checkpoints, model sizes and random seeds.
 - "Primacy" and "recency" are used as descriptive names for the first-chain and last-chain
   preference only, not as a claim about human-like memory.
-- Anything beyond this task, this layout and the models tested.
+- That combining the two orders is a new method: it is permutation self-consistency (Tang et
+  al. 2023; also Sadanandan & Behzadan 2026). We measure when it helps and whether it beats an
+  equally costly rename ensemble (C13).
+- That position effects changing during training is new: Mistry et al. 2025 (primacy/recency-like
+  attention structure during GPT-2 training) and Salvatore et al. 2025 (position bias in models trained
+  from scratch) study it in small models. Ours is narrower: in
+  real pretraining runs the preferred direction reverses repeatedly, depends on the seed, and is
+  committed mid-network.
+- A scaling law for the flip rate: five sizes, one run each above 410M, and seed variation at
+  410M is large (Choshen et al., ICML). The size plot is a descriptive trend only.
+- That the MMLU option test (C15) is a contribution: it replicates Zong et al. (ICML 2024) and is
+  a sanity check on a real benchmark.
+- That the fix is free: it doubles inference cost, and with two orders it needs log-probabilities
+  (a plain vote ties on every flip).
 - That position habits are "like human memory": the serial-position comparison is an analogy
   only.
 - That combining both orders is a general fix: it is shown only on this task.
@@ -403,3 +451,35 @@ Every result is reported, hit or miss.
   OLMo-2-7B checkpoint list cannot be fetched. The last OLMo trajectory point is the final
   stage-1 checkpoint, not the released model after stage 2. Base vs instruct comparisons
   (5j) use raw prompts without chat templates, so prompt format is a confound.
+
+- 8 Oct 2026, exploratory and descriptive, added AFTER pre-registration (they re-express or
+  decompose pre-registered numbers and change no claim): flipstats.py `order_stats` and
+  `pair_metrics` now also report, per question set asked in two orders: strict accuracy (right in
+  both orders) and lenient accuracy (right in at least one); the both-right / flip / both-wrong
+  split; the chance flip rate p1(1-p2)+p2(1-p1) built from each order's own accuracy; a two-sided exact
+  Fisher test on the 2x2 table (odds ratio below 1 means errors are anti-correlated across orders);
+  and an exact McNemar test of the two-order ensemble against the original-order answer (questions
+  fixed vs broken). They appear in the swap results and in the CSV export automatically.
+- 8 Oct 2026, exploratory additions, all labelled exploratory, none changes a registered claim:
+  (1) `extra_stats.py`: strict / lenient accuracy, both-right / flip / both-wrong, chance flip rate,
+  Fisher and McNemar tests, computed from saved results (swap results keep only rates, so the 2x2 table is
+  reconstructed from them exactly). (2) `patch_test.py`: single-chain control, per-question log-prob
+  margin, digit-token check; run as Part 9 on Pythia-1.4B at 5 checkpoints (mentor feedback via the
+  program director, 8 Oct). (3) `attn_vs_pref.py`, `commit_depth.py`, `noise_check.py`, `run_extra.sh`
+  (attention at every 12B trajectory checkpoint and 410M seed checkpoint, depth fraction of the commit layer,
+  batch-size noise check). (4) `frontier_flip.py`: same-order repeat (amendment to C21 above),
+  `--vote K` (black-box fix, hard levels, capped questions), `--effort` (reasoning-effort confound; each effort
+  writes its own result file, and `--score` lists them as separate rows). (5) Wording: C13 is the headline of
+  the fix result; combining orders is a known fix; position-bias-in-training is not claimed as new; the size
+  fit is a descriptive trend; C15 is a replication. Seed framing: 1.4B, 6.9B and 12B have one run each, so C8
+  describes what happened in one training run.
+- 8 Oct 2026, wording only, no claim changes: (a) C15 is a replication of Zong et al. (ICML 2024) and a sanity
+  check on a real benchmark, not a contribution. (b) C11 intervention-validity wording (in the terms of recent
+  intervention papers): regime structure across layers (no effect at layers 4, 8, 10; effect at some layer
+  <= 22), a matched random-subspace control (`--n-rand`), negative-control layers where planting must fail,
+  and the replication gap (the plant is run on 6.9B only). (c) The project is "narrow but testable": one task,
+  one layout, the models tested; pre-registered nulls (C4 erase test, early-warning) are results.
+- 8 Oct 2026 (~22:30 IST): registered C22 (uncertainty gating of the order effect) and C23 (fresh-seed
+  replication), section 4f, before either was run. New code: `uncertainty_gate.py`, `flipstats.confidence_gate`
+  and `top2_margin`, `score_new.py` `score_c22` / `score_c23`, `check_seed.py`; `perturb_test.py` now writes
+  `__seed<N>` file names for non-zero seeds so a fresh-seed run can never overwrite the seed-0 result.

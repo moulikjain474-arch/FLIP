@@ -6,7 +6,7 @@
 #
 # S  smoke: unit tests, both patches, one tiny steering run with the new control, one tiny ARC run
 # R  claim C24: plant into RANDOM subspaces of the same rank (6.9B layers 14-26, depths 1 and 3; 12B layer sweep)
-# M  models: perturb / decomposition / MMLU (n=1000) / ARC option order for 10 models, one download each
+# M  models: perturb / decomposition / MMLU (n=1000) / ARC option order / medication wording (C26), one download each
 # D  C9 follow-up (exploratory): 410M seeds at steps 4000, 8000, 32000, 143000
 # E  attention (410M seeds, trimmed 12B) and the numerical-noise check
 # ONLY="R M" runs just those parts. Results go to $PERSIST/fullday (same layout as before) and benchmark_arc/.
@@ -27,6 +27,8 @@ python3 patch_steer_stage.py && python3 patch_plant_rand.py || { echo "FAILED pa
 python steer_stage.py --model EleutherAI/pythia-410m --step 143000 --task vartrack_d1 --n 300 --layer 12 \
   --scope single --n-rand 2 --plant-rand --out $OUT/smoke_plant > $PERSIST/smoke_plant.txt 2>&1 \
   && python3 plant_control_report.py --dir $OUT/smoke_plant | tail -3 || { echo "FAILED steer smoke (see $PERSIST/smoke_plant.txt)"; SMOKE_OK=0; }
+python story_test.py --model EleutherAI/pythia-410m --step 143000 --theme med --n 40 --depths 1 --out $OUT/smoke_med > $PERSIST/smoke_med.txt 2>&1 \
+  && echo "med smoke ok" || { echo "FAILED med smoke (see $PERSIST/smoke_med.txt)"; }
 cleanrepo EleutherAI/pythia-410m
 python benchmark_flip.py --model Qwen/Qwen2.5-0.5B --dataset arc --n 40 --out $OUT/smoke_arc > $PERSIST/smoke_arc.txt 2>&1 \
   && echo "arc smoke ok" || { echo "FAILED arc smoke (see $PERSIST/smoke_arc.txt)"; }
@@ -45,6 +47,7 @@ for t in vartrack_d1 vartrack_d3; do
       --n-rand 5 --plant-rand --save-items --out $OUT/plant_rand || echo "FAILED plant_rand 6.9b $t $L"
   done
 done
+python story_test.py --model EleutherAI/pythia-6.9b --step 143000 --theme med --out $OUT/story_med || echo "FAILED med 6.9b"
 cleanrepo EleutherAI/pythia-6.9b
 for t in vartrack_d1 vartrack_d3; do
   for L in 8 12 16 20 24 28 32; do
@@ -52,6 +55,7 @@ for t in vartrack_d1 vartrack_d3; do
       --n-rand 3 --plant-rand --out $OUT/plant_rand || echo "FAILED plant_rand 12b $t $L"
   done
 done
+python story_test.py --model EleutherAI/pythia-12b --step 143000 --theme med --out $OUT/story_med || echo "FAILED med 12b"
 cleanrepo EleutherAI/pythia-12b
 python3 plant_control_report.py --dir $OUT/plant_rand || true
 fi
@@ -65,6 +69,7 @@ run_model() {
   echo "=== MODEL $m $(date)"
   if [[ $dp == 1 ]]; then python perturb_test.py --model $m --revision main --batch-size $b --instruct --out $OUT/perturb || echo "FAILED perturb $m"; fi
   if [[ $dd == 1 ]]; then python position_decomposition.py --model $m --revision main --batch-size $b --out $OUT/decomp || echo "FAILED decomp $m"; fi
+  python story_test.py --model $m --revision main --theme med --batch-size $b --out $OUT/story_med || echo "FAILED med $m"
   if [[ $dm == 1 ]]; then python benchmark_flip.py --model $m --batch-size $b "$@" --out $OUT/benchmark || echo "FAILED mmlu $m"; fi
   python benchmark_flip.py --model $m --batch-size $b "$@" --dataset arc --out $OUT/benchmark_arc || echo "FAILED arc $m"
   cleanrepo $m
@@ -81,6 +86,7 @@ run_model allenai/OLMo-2-1124-13B 8 1 1 1
 run_model Qwen/Qwen2.5-32B 8 1 1 1
 run_model allenai/OLMo-2-0325-32B 8 0 1 0
 run_model Qwen/Qwen2.5-72B 4 0 0 0
+run_model Qwen/Qwen2.5-72B-Instruct 4 1 0 1
 echo "=== PART M DONE"
 fi
 

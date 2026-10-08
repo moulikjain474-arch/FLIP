@@ -88,6 +88,49 @@ def test_story():
     print("story ok")
 
 
+def test_med():
+    for d in (1, 2, 3):
+        items = st.make_story(200, d, theme="med")
+        assert items == st.make_story(200, d, theme="med")
+        for it in items:
+            a, b = it["prompt"], it["prompt_swapped"]
+            qa, qb = a.rsplit("\n\n", 1)[1].split("\n"), b.rsplit("\n\n", 1)[1].split("\n")
+            assert qa[0] == qb[1] and qa[1] == qb[0] and qa[2:] == qb[2:]
+            assert " 0 mg" not in a and it["task"] == f"med_d{d}"
+            drug = qa[2].split("mg of ")[1].split(" does")[0]
+            name = qa[2].split("patient ")[1].split(" take")[0]
+            env = {}
+            for f in " ".join(qa[:2]).split(". "):
+                w = f.rstrip(".").split()
+                assert drug in f
+                env[w[1]] = w[3] if w[3].isdigit() else env[w[-1]]
+            assert env[name] == it["meta"]["answer"] == st.DIGITS[it["label"]]
+    print("med ok")
+
+
+def test_score_c26():
+    import contextlib, io, json as _json, os, tempfile
+    import score_new as sn
+    with tempfile.TemporaryDirectory() as d:
+        os.makedirs(os.path.join(d, "story_med"))
+        for i, m in enumerate(sn.C26_MODELS):
+            good = i < 4
+            r = dict(flip=0.08 if good else 0.02, gain=0.03, gain_lo=0.01 if good else -0.01, gain_hi=0.05,
+                     acc_orig=0.9, acc_swapped=0.88, n=600)
+            _json.dump(dict(model="x/" + m, revision="main", theme="med", tasks={"med_d3": r}),
+                       open(os.path.join(d, "story_med", m + "__main__med.json"), "w"))
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            sn.score_c26(d)
+        assert "C26: HIT (4 of 7 supported)" in buf.getvalue(), buf.getvalue()
+        os.remove(os.path.join(d, "story_med", sn.C26_MODELS[0] + "__main__med.json"))
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            sn.score_c26(d)
+        assert "C26: MISS (3 of 7 supported; NOT RUN:" in buf.getvalue()
+    print("score c26 ok")
+
+
 def test_code():
     for level in (1, 2, 3):
         for it in ct.make_code(150, level):
@@ -464,5 +507,7 @@ if __name__ == "__main__":
     test_plant_margin()
     test_plant_control_report()
     test_score_c24_c25()
+    test_med()
+    test_score_c26()
     test_stats()
     bf.selftest()

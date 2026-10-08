@@ -24,6 +24,8 @@ def main():
     ap.add_argument("--n", type=int, default=600)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--batch-size", type=int, default=32)
+    ap.add_argument("--theme", choices=("coins", "med"), default="coins",
+                    help="med = the same task worded as a medication record (claim C26)")
     ap.add_argument("--out", default="story_results")
     args = ap.parse_args()
     if (args.step is None) == (args.revision is None):
@@ -36,9 +38,10 @@ def main():
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     dtype = (torch.float16 if "pythia" in args.model else torch.bfloat16) if dev == "cuda" else torch.float32
     tok, model = mu.load(args.model, revision, dev, dtype)
-    out = dict(model=args.model, revision=revision, tasks={})
+    out = dict(model=args.model, revision=revision, theme=args.theme, tasks={})
+    key = "med" if args.theme == "med" else "story"
     for d in args.depths:
-        items = make_story(args.n, d, args.seed)
+        items = make_story(args.n, d, args.seed, theme=args.theme)
         if d == args.depths[0]:
             print(items[0]["prompt"][-200:] + " ->" + items[0]["candidates"][items[0]["label"]])
         cids = mu.candidate_ids(tok, items[0]["candidates"])
@@ -59,10 +62,10 @@ def main():
                  picks_later=later / later_n if later_n else None, picks_later_n=later_n)
         lo95, hi95 = fs.wilson(later, later_n) if later_n else (None, None)
         r.update(picks_later_lo=lo95, picks_later_hi=hi95)
-        out["tasks"][f"story_d{d}"] = r
-        print(f"story_d{d}", {k: (round(v, 3) if isinstance(v, float) else v) for k, v in r.items()}, flush=True)
+        out["tasks"][f"{key}_d{d}"] = r
+        print(f"{key}_d{d}", {k: (round(v, 3) if isinstance(v, float) else v) for k, v in r.items()}, flush=True)
     os.makedirs(args.out, exist_ok=True)
-    with open(os.path.join(args.out, f"{args.model.split('/')[-1]}__{revision}.json"), "w") as f:
+    with open(os.path.join(args.out, f"{args.model.split('/')[-1]}__{revision}" + ("__med" if args.theme == "med" else "") + ".json"), "w") as f:
         json.dump(out, f, indent=2)
 
 

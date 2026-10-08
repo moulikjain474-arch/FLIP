@@ -249,6 +249,19 @@ Thresholds are fixed now and will not change after seeing data. Anything else th
 - **Exploratory only (no threshold):** 410M seeds at steps 4000, 8000, 32000, 143000 (follow-up to the C9 miss),
   attention and numerical-noise checks, position decomposition and perturbation for the larger models.
 
+## 4i. Claim registered 9 Oct 2026 (~02:00 IST) BEFORE the 12-hour run (C26)
+
+- **C26 (medication-record wording).** The same two-chain task, worded as a medication record
+  ("Patient A takes 4 mg of warfarin. Patient B takes the same warfarin dose as patient A."; both chains use the same
+  drug; doses 1-9 mg). Swapping the order of the two records must not change the answer. HIT if, at depth 3, in at
+  least 4 of these 7 models the flip rate is >= 0.05 AND the both-orders ensemble gain has a 95% CI entirely above 0:
+  Qwen2.5-7B-Instruct, OLMo-2-1124-7B-Instruct, Qwen2.5-14B, OLMo-2-1124-13B, Qwen2.5-32B, OLMo-2-0325-32B,
+  Qwen2.5-72B. A model not run counts as not supported. Otherwise MISS. Pythia 6.9B/12B and Qwen2.5-72B-Instruct
+  are descriptive. Script: story_test.py --theme med; scored by score_new.py (score_c26).
+- This is synthetic text in a clinical format, not real patient data, and says nothing about any deployed clinical
+  system. Prior work already shows answer-OPTION shuffling changes medical QA answers (e.g. MedGemma on MedMCQA);
+  C26 is about the order of FACTS in the context, which those papers do not test.
+
 ## 5. Statistics
 - Holm correction across all C4 primary tests (every model x checkpoint x depth run), and
   separately across all C4b primary tests.
@@ -523,3 +536,4 @@ Thresholds are fixed now and will not change after seeing data. Anything else th
   misses; the seed wording in README.md and docs/PAPER_DRAFT_v4.md was changed to match C9. Results, scripts
   and figures are committed under `results_08Oct/`. No threshold was changed after the fact.
 - 9 Oct 2026: registered C24 and C25 (section 4h) before the 12-hour run. Thresholds not changed afterwards.
+- 9 Oct 2026 ~02:00 IST: registered C26 (section 4i) before the 12-hour run. Thresholds not changed afterwards.

@@ -149,6 +149,8 @@ def test_score_c26():
         assert len(st.make_story(20, dd, theme="med")) == 20
     import gen_test
     gen_test.selftest()
+    import frontier_med
+    frontier_med.selftest()
     print("score c26 ok")
 
 

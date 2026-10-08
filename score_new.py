@@ -479,6 +479,23 @@ def score_c28(root):
           + (f"; NOT RUN: {missing}" if missing else "") + ")")
 
 
+def score_c29(root):
+    print("== C29: frontier model via API, medication wording: flip >= 0.03 at depth 3 or 6 in either mode "
+          "(unparsed < 0.20) for at least one frontier model")
+    files = sorted(glob.glob(os.path.join(root, "frontier_med", "*.json")))
+    hit = False
+    for f in files:
+        s = json.load(open(f))
+        for t, r in sorted(s["tasks"].items()):
+            if "flip" not in r:
+                continue
+            ok = ge(r["flip"], 0.03) and r["unparsed"] < 0.20
+            hit = hit or ok
+            print(f"  {s.get('model', os.path.basename(f))} {t}: acc {r['acc_orig']:.3f}/{r['acc_swapped']:.3f} | "
+                  f"flip {r['flip']:.3f} | unparsed {r['unparsed']:.3f} n={r['n']}  {'yes' if ok else 'no'}")
+    print("  C29:", "HIT" if hit else ("MISS" if files else "NOT RUN"))
+
+
 def score_extra(root):
     """Exploratory descriptive statistics (not claims): strict/lenient, chance flip rate, Fisher, McNemar."""
     import extra_stats
@@ -490,7 +507,7 @@ def main():
     ap.add_argument("--dir", required=True)
     root = ap.parse_args().dir
     for fn in (score_c8, score_c9, score_c10, score_c11, score_controls, score_layout, score_benchmark,
-               score_olmo, score_olmo_traj, score_scale, score_code, score_c22, score_c23, score_c24, score_c25, score_c26, score_c27, score_c28, score_instruct, score_extra):
+               score_olmo, score_olmo_traj, score_scale, score_code, score_c22, score_c23, score_c24, score_c25, score_c26, score_c27, score_c28, score_c29, score_instruct, score_extra):
         try:
             fn(root)
         except Exception as e:          # one broken result must not hide the other claims

@@ -283,6 +283,14 @@ Thresholds are fixed now and will not change after seeing data. Anything else th
   Script: gen_test.py; scored by score_new.py (score_c28). The parser is fixed now; if hand-checking shows it
   misreads answers, any re-parse is reported as a correction alongside the registered result, not instead of it.
 
+## 4l. Claim registered 9 Oct 2026 (~02:00 IST) BEFORE any frontier run (C29)
+
+- **C29 (frontier model, medication wording).** frontier_med.py asks one closed frontier model through its API the
+  same 100 medication-record questions per depth (3 and 6) as gen_test.py, in both record orders, in the direct and
+  the step-by-step mode, temperature 0 where the API allows it. HIT if, for at least one frontier model, the flip
+  rate is >= 0.03 at depth 3 or 6 in either mode with fewer than 20% unparsed answers. Otherwise MISS. Which model
+  is run depends on API access; the model name is recorded in the result file. Every reply is saved.
+
 ## 5. Statistics
 - Holm correction across all C4 primary tests (every model x checkpoint x depth run), and
   separately across all C4b primary tests.
@@ -560,3 +568,4 @@ Thresholds are fixed now and will not change after seeing data. Anything else th
 - 9 Oct 2026 ~02:00 IST: registered C26 (section 4i) before the 12-hour run. Thresholds not changed afterwards.
 - 9 Oct 2026 ~02:15 IST: registered C27 (section 4j) before the 12-hour run. Thresholds not changed afterwards.
 - 9 Oct 2026 ~02:30 IST: registered C28 (section 4k) before the 12-hour run. Thresholds not changed afterwards.
+- 9 Oct 2026 ~02:00 IST: registered C29 (section 4l) before any frontier run. Thresholds not changed afterwards.

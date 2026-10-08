@@ -438,6 +438,23 @@ def score_c26(root):
           + (f"; NOT RUN: {missing}" if missing else "") + ")")
 
 
+def score_c27(root):
+    print("== C27: harder medication wording (depth 6 or 9): Qwen2.5-72B or Qwen2.5-72B-Instruct has flip >= 0.05 AND "
+          "both-orders gain interval above 0 at depth 6 or 9")
+    hit, seen = False, False
+    for f in sorted(glob.glob(os.path.join(root, "story_med_deep", "*.json"))):
+        s = json.load(open(f))
+        m = s["model"].split("/")[-1]
+        for t, r in sorted(s["tasks"].items()):
+            ok = ge(r["flip"], 0.05) and r["gain_lo"] > 0
+            if m in ("Qwen2.5-72B", "Qwen2.5-72B-Instruct"):
+                seen = True
+                hit = hit or ok
+            print(f"  {m} {t}: acc {r['acc_orig']:.3f}/{r['acc_swapped']:.3f} | flip {r['flip']:.3f} | "
+                  f"gain {r['gain']:+.3f} [{r['gain_lo']:+.3f},{r['gain_hi']:+.3f}]  {'yes' if ok else 'no'}")
+    print("  C27:", "HIT" if hit else ("MISS" if seen else "NOT RUN (no 72B results in story_med_deep)"))
+
+
 def score_extra(root):
     """Exploratory descriptive statistics (not claims): strict/lenient, chance flip rate, Fisher, McNemar."""
     import extra_stats
@@ -449,7 +466,7 @@ def main():
     ap.add_argument("--dir", required=True)
     root = ap.parse_args().dir
     for fn in (score_c8, score_c9, score_c10, score_c11, score_controls, score_layout, score_benchmark,
-               score_olmo, score_olmo_traj, score_scale, score_code, score_c22, score_c23, score_c24, score_c25, score_c26, score_instruct, score_extra):
+               score_olmo, score_olmo_traj, score_scale, score_code, score_c22, score_c23, score_c24, score_c25, score_c26, score_c27, score_instruct, score_extra):
         try:
             fn(root)
         except Exception as e:          # one broken result must not hide the other claims

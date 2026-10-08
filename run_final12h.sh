@@ -70,6 +70,7 @@ run_model() {
   if [[ $dp == 1 ]]; then python perturb_test.py --model $m --revision main --batch-size $b --instruct --out $OUT/perturb || echo "FAILED perturb $m"; fi
   if [[ $dd == 1 ]]; then python position_decomposition.py --model $m --revision main --batch-size $b --out $OUT/decomp || echo "FAILED decomp $m"; fi
   python story_test.py --model $m --revision main --theme med --batch-size $b --out $OUT/story_med || echo "FAILED med $m"
+  python story_test.py --model $m --revision main --theme med --depths 6 9 --batch-size $b --out $OUT/story_med_deep || echo "FAILED med deep $m"
   if [[ $dm == 1 ]]; then python benchmark_flip.py --model $m --batch-size $b "$@" --out $OUT/benchmark || echo "FAILED mmlu $m"; fi
   python benchmark_flip.py --model $m --batch-size $b "$@" --dataset arc --out $OUT/benchmark_arc || echo "FAILED arc $m"
   cleanrepo $m

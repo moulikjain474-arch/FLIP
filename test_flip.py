@@ -128,6 +128,16 @@ def test_score_c26():
         with contextlib.redirect_stdout(buf):
             sn.score_c26(d)
         assert "C26: MISS (3 of 7 supported; NOT RUN:" in buf.getvalue()
+        os.makedirs(os.path.join(d, "story_med_deep"))
+        r = dict(flip=0.09, gain=0.04, gain_lo=0.01, gain_hi=0.07, acc_orig=0.8, acc_swapped=0.75, n=600)
+        _json.dump(dict(model="Qwen/Qwen2.5-72B", revision="main", theme="med", tasks={"med_d9": r}),
+                   open(os.path.join(d, "story_med_deep", "Qwen2.5-72B__main__med.json"), "w"))
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            sn.score_c27(d)
+        assert "C27: HIT" in buf.getvalue()
+    for dd in (6, 9):
+        assert len(st.make_story(20, dd, theme="med")) == 20
     print("score c26 ok")
 
 

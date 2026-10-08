@@ -23,7 +23,7 @@ FINAL = ("step143000", "main")
 
 def claim_table(root):
     fns = (sn.score_c8, sn.score_c9, sn.score_c10, sn.score_c11, sn.score_controls, sn.score_layout, sn.score_benchmark,
-           sn.score_olmo, sn.score_olmo_traj, sn.score_scale, sn.score_code, sn.score_c22, sn.score_c23, sn.score_c24, sn.score_c25, sn.score_c26)
+           sn.score_olmo, sn.score_olmo_traj, sn.score_scale, sn.score_code, sn.score_c22, sn.score_c23, sn.score_c24, sn.score_c25, sn.score_c26, sn.score_c27)
     rows = []
     for fn in fns:
         buf = io.StringIO()

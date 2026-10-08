@@ -7,6 +7,7 @@
 # S  smoke: unit tests, both patches, one tiny steering run with the new control, one tiny ARC run
 # R  claim C24: plant into RANDOM subspaces of the same rank (6.9B layers 14-26, depths 1 and 3; 12B layer sweep)
 # M  models: perturb / decomposition / MMLU (n=1000) / ARC option order / medication wording (C26), one download each
+# L  more families: R1-Distill-Llama-8B, Llama-3.1-70B-Instruct (needs HF_TOKEN)
 # D  C9 follow-up (exploratory): 410M seeds at steps 4000, 8000, 32000, 143000
 # E  attention (410M seeds, trimmed 12B) and the numerical-noise check
 # ONLY="R M" runs just those parts. Results go to $PERSIST/fullday (same layout as before) and benchmark_arc/.
@@ -33,6 +34,9 @@ cleanrepo EleutherAI/pythia-410m
 python benchmark_flip.py --model Qwen/Qwen2.5-0.5B --dataset arc --n 40 --out $OUT/smoke_arc > $PERSIST/smoke_arc.txt 2>&1 \
   && echo "arc smoke ok" || { echo "FAILED arc smoke (see $PERSIST/smoke_arc.txt)"; }
 cleanrepo Qwen/Qwen2.5-0.5B
+python gen_test.py --model Qwen/Qwen2.5-0.5B-Instruct --n 4 --depths 3 --cot-tokens 64 --batch-size 4 --out $OUT/smoke_gen > $PERSIST/smoke_gen.txt 2>&1 \
+  && echo "gen smoke ok" || { echo "FAILED gen smoke (see $PERSIST/smoke_gen.txt)"; }
+cleanrepo Qwen/Qwen2.5-0.5B-Instruct
 echo "=== PART S DONE smoke_ok=$SMOKE_OK"
 fi
 
@@ -73,6 +77,7 @@ run_model() {
   python story_test.py --model $m --revision main --theme med --depths 6 9 --batch-size $b --out $OUT/story_med_deep || echo "FAILED med deep $m"
   if [[ $dm == 1 ]]; then python benchmark_flip.py --model $m --batch-size $b "$@" --out $OUT/benchmark || echo "FAILED mmlu $m"; fi
   python benchmark_flip.py --model $m --batch-size $b "$@" --dataset arc --out $OUT/benchmark_arc || echo "FAILED arc $m"
+  if [[ "${GEN:-0}" == 1 ]]; then python gen_test.py --model $m --batch-size $b --out $OUT/gen || echo "FAILED gen $m"; fi
   cleanrepo $m
 }
 if want M; then
@@ -80,15 +85,38 @@ echo "=== PART M: models $(date)"
 run_model allenai/OLMo-2-1124-7B 16 0 0 0
 run_model Qwen/Qwen2.5-7B 16 0 0 0
 run_model mistralai/Mistral-7B-v0.1 16 0 0 0 --bos
-run_model allenai/OLMo-2-1124-7B-Instruct 16 0 1 0
-run_model Qwen/Qwen2.5-7B-Instruct 16 0 0 0
+GEN=1 run_model allenai/OLMo-2-1124-7B-Instruct 16 0 1 0
+GEN=1 run_model Qwen/Qwen2.5-7B-Instruct 16 0 0 0
 run_model Qwen/Qwen2.5-14B 8 1 1 1
 run_model allenai/OLMo-2-1124-13B 8 1 1 1
 run_model Qwen/Qwen2.5-32B 8 1 1 1
 run_model allenai/OLMo-2-0325-32B 8 0 1 0
 run_model Qwen/Qwen2.5-72B 4 0 0 0
-run_model Qwen/Qwen2.5-72B-Instruct 4 1 0 1
+GEN=1 run_model Qwen/Qwen2.5-72B-Instruct 4 1 0 1
 echo "=== PART M DONE"
+fi
+
+# ---------------------------------------------------------------- L
+# L  more model families: DeepSeek-R1-Distill-Llama-8B (last year's ROBO winner's model) and Llama-3.1-70B-Instruct
+#    (gated: needs HF_TOKEN with the licence accepted; skipped if not set)
+if want L; then
+echo "=== PART L: more families $(date)"
+m=deepseek-ai/DeepSeek-R1-Distill-Llama-8B
+python gen_test.py --model $m --modes cot --cot-tokens 1024 --batch-size 16 --out $OUT/gen || echo "FAILED gen $m"
+python story_test.py --model $m --revision main --theme med --batch-size 16 --out $OUT/story_med || echo "FAILED med $m"
+python story_test.py --model $m --revision main --theme med --depths 6 9 --batch-size 16 --out $OUT/story_med_deep || echo "FAILED med deep $m"
+cleanrepo $m
+if [[ -n "${HF_TOKEN:-}" ]]; then
+  m=meta-llama/Llama-3.1-70B-Instruct
+  python story_test.py --model $m --revision main --theme med --batch-size 4 --out $OUT/story_med || echo "FAILED med $m"
+  python story_test.py --model $m --revision main --theme med --depths 6 9 --batch-size 4 --out $OUT/story_med_deep || echo "FAILED med deep $m"
+  python gen_test.py --model $m --batch-size 4 --out $OUT/gen || echo "FAILED gen $m"
+  python benchmark_flip.py --model $m --batch-size 4 --out $OUT/benchmark || echo "FAILED mmlu $m"
+  cleanrepo $m
+else
+  echo "SKIPPED Llama-3.1-70B-Instruct: HF_TOKEN not set"
+fi
+echo "=== PART L DONE"
 fi
 
 # ---------------------------------------------------------------- D

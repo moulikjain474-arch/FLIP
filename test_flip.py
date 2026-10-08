@@ -136,8 +136,19 @@ def test_score_c26():
         with contextlib.redirect_stdout(buf):
             sn.score_c27(d)
         assert "C27: HIT" in buf.getvalue()
+        os.makedirs(os.path.join(d, "gen"))
+        for i, m in enumerate(sn.C28_MODELS[:2]):
+            r = dict(flip=0.10, acc_orig=0.9, acc_swapped=0.8, different_answer=0.1, unparsed=0.3 if i else 0.0, n=150)
+            _json.dump(dict(model="x/" + m, tasks={"cot_d3": r, "direct_d3": dict(r, unparsed=0.0)}),
+                       open(os.path.join(d, "gen", m + ".json"), "w"))
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            sn.score_c28(d)
+        assert "C28: MISS (1 of 4 supported" in buf.getvalue(), buf.getvalue()   # 2nd model: too many unparsed
     for dd in (6, 9):
         assert len(st.make_story(20, dd, theme="med")) == 20
+    import gen_test
+    gen_test.selftest()
     print("score c26 ok")
 
 

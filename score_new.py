@@ -455,6 +455,30 @@ def score_c27(root):
     print("  C27:", "HIT" if hit else ("MISS" if seen else "NOT RUN (no 72B results in story_med_deep)"))
 
 
+C28_MODELS = ["Qwen2.5-7B-Instruct", "OLMo-2-1124-7B-Instruct", "Qwen2.5-72B-Instruct", "DeepSeek-R1-Distill-Llama-8B"]
+
+
+def score_c28(root):
+    print("== C28: generated answers with step-by-step reasoning (cot): flip >= 0.05 at depth 3 or 6 (unparsed < 0.20), "
+          "in at least 2 of 4 models (a model not run counts as not supported)")
+    supported, seen = 0, set()
+    for f in sorted(glob.glob(os.path.join(root, "gen", "*.json"))):
+        s = json.load(open(f))
+        m = s["model"].split("/")[-1]
+        ok_model = False
+        for t, r in sorted(s["tasks"].items()):
+            ok = t.startswith("cot") and ge(r["flip"], 0.05) and r["unparsed"] < 0.20
+            ok_model = ok_model or ok
+            print(f"  {m} {t}: acc {r['acc_orig']:.3f}/{r['acc_swapped']:.3f} | flip {r['flip']:.3f} | "
+                  f"different answer {r['different_answer']:.3f} | unparsed {r['unparsed']:.3f} n={r['n']}")
+        if m in C28_MODELS:
+            seen.add(m)
+            supported += ok_model
+    missing = [m for m in C28_MODELS if m not in seen]
+    print("  C28:", "HIT" if supported >= 2 else "MISS", f"({supported} of {len(C28_MODELS)} supported"
+          + (f"; NOT RUN: {missing}" if missing else "") + ")")
+
+
 def score_extra(root):
     """Exploratory descriptive statistics (not claims): strict/lenient, chance flip rate, Fisher, McNemar."""
     import extra_stats
@@ -466,7 +490,7 @@ def main():
     ap.add_argument("--dir", required=True)
     root = ap.parse_args().dir
     for fn in (score_c8, score_c9, score_c10, score_c11, score_controls, score_layout, score_benchmark,
-               score_olmo, score_olmo_traj, score_scale, score_code, score_c22, score_c23, score_c24, score_c25, score_c26, score_c27, score_instruct, score_extra):
+               score_olmo, score_olmo_traj, score_scale, score_code, score_c22, score_c23, score_c24, score_c25, score_c26, score_c27, score_c28, score_instruct, score_extra):
         try:
             fn(root)
         except Exception as e:          # one broken result must not hide the other claims

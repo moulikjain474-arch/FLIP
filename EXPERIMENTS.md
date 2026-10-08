@@ -234,6 +234,21 @@ Scored by `score_new.py` on the merged results (`results_08Oct/merged`); full ta
   p < 0.0015 survive a Bonferroni correction for 33 tests), the MMLU runs at n=300 for Qwen2.5-14B and 32B, and
   the M steering readout by layer. None of them changes a registered claim.
 
+## 4h. New claims, registered 9 Oct 2026 BEFORE the 12-hour run (C24, C25)
+
+Thresholds are fixed now and will not change after seeing data. Anything else the run produces is labelled exploratory.
+
+- **C24 (random-subspace plant control).** Planting the class mean of the exact third number into the learned
+  (distractor) subspace makes the model answer that number. Control: plant the same values inside random subspaces of
+  the same rank (5 draws, same layer, same items). HIT if, for Pythia-6.9B step 143000 at layer 22, at depth 1 AND
+  depth 3, (plant_dis - plant_rand) >= 0.15 and paired p < 0.05. Otherwise MISS. Other layers and 12B are descriptive.
+  Script: plant_control_report.py (patch_plant_rand.py adds --plant-rand to steer_stage.py).
+- **C25 (ARC-Challenge option order).** Same test as MMLU: answers change when options are reordered, and the
+  two-order ensemble helps. HIT if in at least 7 of the 10 models the answer-change rate (orig vs reversed) is >= 0.03
+  AND the two-order ensemble gain has a 95% CI entirely above 0. Otherwise MISS.
+- **Exploratory only (no threshold):** 410M seeds at steps 4000, 8000, 32000, 143000 (follow-up to the C9 miss),
+  attention and numerical-noise checks, position decomposition and perturbation for the larger models.
+
 ## 5. Statistics
 - Holm correction across all C4 primary tests (every model x checkpoint x depth run), and
   separately across all C4b primary tests.
@@ -507,3 +522,4 @@ Scored by `score_new.py` on the merged results (`results_08Oct/merged`); full ta
 - 8 Oct 2026 (~23:40 IST), after all runs: outcomes recorded in section 4g. C9 and C22 are misses, reported as
   misses; the seed wording in README.md and docs/PAPER_DRAFT_v4.md was changed to match C9. Results, scripts
   and figures are committed under `results_08Oct/`. No threshold was changed after the fact.
+- 9 Oct 2026: registered C24 and C25 (section 4h) before the 12-hour run. Thresholds not changed afterwards.

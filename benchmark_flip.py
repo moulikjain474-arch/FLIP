@@ -48,6 +48,19 @@ def letter_ids(tok):
     return ids
 
 
+def arc_rows(raw):
+    """ARC-Challenge rows -> the MMLU row shape (subject, question, choices, answer index). Keeps only questions
+    with exactly four options whose answer key is A-D or 1-4 (about 97% of the test split)."""
+    out = []
+    for r in raw:
+        labels, texts = list(r["choices"]["label"]), list(r["choices"]["text"])
+        key = str(r["answerKey"]).strip()
+        if len(texts) != 4 or key not in labels:
+            continue
+        out.append(dict(subject="science", question=r["question"], choices=texts, answer=labels.index(key)))
+    return out
+
+
 def selftest():
     rng = np.random.default_rng(0)
     y = rng.integers(0, 4, 50)
@@ -59,6 +72,13 @@ def selftest():
         assert (to_original(shown, order).argmax(-1) == y).all(), name
     p = make_prompt("high_school_physics", " Q? ", ["w", "x", "y", "z"], ORDERS["reversed"])
     assert "A. z\nB. y\nC. x\nD. w\nAnswer:" in p
+    raw = [dict(question="q1", choices=dict(label=["A", "B", "C", "D"], text=["a", "b", "c", "d"]), answerKey="C"),
+           dict(question="q2", choices=dict(label=["1", "2", "3", "4"], text=["a", "b", "c", "d"]), answerKey="2"),
+           dict(question="q3", choices=dict(label=["A", "B", "C"], text=["a", "b", "c"]), answerKey="A"),
+           dict(question="q4", choices=dict(label=["A", "B", "C", "D", "E"], text=list("abcde")), answerKey="E")]
+    got = arc_rows(raw)
+    assert [g["question"] for g in got] == ["q1", "q2"] and [g["answer"] for g in got] == [2, 1]
+    assert all(g["subject"] == "science" and len(g["choices"]) == 4 for g in got)
     print("benchmark selftest ok")
 
 
@@ -70,6 +90,8 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--batch-size", type=int, default=16)
     ap.add_argument("--bos", action="store_true", help="prepend the BOS token (needed for Mistral)")
+    ap.add_argument("--dataset", choices=("mmlu", "arc"), default="mmlu",
+                    help="mmlu = cais/mmlu test (default); arc = ARC-Challenge test, four-option questions only")
     ap.add_argument("--out", default="benchmark_results")
     ap.add_argument("--selftest", action="store_true")
     args = ap.parse_args()
@@ -85,9 +107,13 @@ def main():
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     tok, model = mu.load(args.model, args.revision, dev, torch.bfloat16 if dev == "cuda" else torch.float32)
     ids = letter_ids(tok)
-    ds = load_dataset("cais/mmlu", "all", split="test")
-    pick = np.random.default_rng(args.seed).choice(len(ds), args.n, replace=False)
-    rows = [ds[int(i)] for i in pick]
+    if args.dataset == "arc":
+        pool = arc_rows(load_dataset("allenai/ai2_arc", "ARC-Challenge", split="test"))
+    else:
+        pool = load_dataset("cais/mmlu", "all", split="test")
+    n = min(args.n, len(pool))
+    pick = np.random.default_rng(args.seed).choice(len(pool), n, replace=False)
+    rows = [pool[int(i)] for i in pick]
     y = np.array([r["answer"] for r in rows])
     prefix = (tok.bos_token or "") if args.bos else ""
 
@@ -113,9 +139,9 @@ def main():
     summary.update(gain2=gain[0], gain2_lo=gain[1], gain2_hi=gain[2])
     print(json.dumps(summary, indent=2))
     os.makedirs(args.out, exist_ok=True)
-    name = args.model.split("/")[-1] + (f"__{args.revision}" if args.revision else "")
+    name = args.model.split("/")[-1] + (f"__{args.revision}" if args.revision else "") + ("__arc" if args.dataset == "arc" else "")
     with open(os.path.join(args.out, f"{name}.json"), "w") as f:
-        json.dump(dict(model=args.model, revision=args.revision, summary=summary,
+        json.dump(dict(model=args.model, revision=args.revision, dataset=args.dataset, summary=summary,
                        correct={k: v.astype(int).tolist() for k, v in correct.items()},
                        ens2=ens2.astype(int).tolist(), ens4=ens4.astype(int).tolist()), f)
 

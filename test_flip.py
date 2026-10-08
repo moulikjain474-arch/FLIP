@@ -401,6 +401,52 @@ def test_stats():
     print("stats ok")
 
 
+def test_plant_control_report():
+    import plant_control_report as pcr
+
+    def summ(task, layer, plant, rand, diff, p, step=143000, model="EleutherAI/pythia-6.9b"):
+        return dict(model=model, step=step, task=task, layer=layer, n_test=300,
+                    rates=dict(natural=dict(planted=0.0), plant_dis=dict(planted=plant)),
+                    plant_rand=dict(rate=rand, plant_dis_minus_rand=dict(mean_diff=diff, p=p)))
+    assert pcr.rows(dict(model="m", rates={})) is None                      # a run without the control is skipped
+    t = [pcr.rows(summ("vartrack_d1", 22, 0.35, 0.01, 0.34, 1e-9)), pcr.rows(summ("vartrack_d3", 22, 0.7, 0.0, 0.7, 1e-30))]
+    assert pcr.c24(t) == "HIT"
+    t[0]["diff"] = 0.10
+    assert pcr.c24(t) == "MISS"                                            # one depth under the 0.15 bar
+    t[0]["diff"], t[0]["p"] = 0.2, 0.2
+    assert pcr.c24(t) == "MISS"                                            # not significant
+    assert pcr.c24(t[:1]).startswith("NOT RUN")                            # depth 3 missing
+    assert pcr.c24([pcr.rows(summ("vartrack_d1", 18, 0.3, 0.0, 0.3, 1e-9)),
+                    pcr.rows(summ("vartrack_d3", 18, 0.3, 0.0, 0.3, 1e-9))]).startswith("NOT RUN")   # wrong layer
+    print("plant control report ok")
+
+
+def test_score_c24_c25():
+    import contextlib, io, json as _json, os, tempfile
+    import score_new as sn
+    with tempfile.TemporaryDirectory() as d:
+        os.makedirs(os.path.join(d, "benchmark_arc"))
+        for i, m in enumerate(sn.C25_MODELS):
+            good = i < 7                                              # 7 models supported, 3 not
+            sm = dict(acc_orig=0.8, flip_orig_reversed=0.06 if good else 0.01, gain2=0.01,
+                      gain2_lo=0.002 if good else -0.01, gain2_hi=0.02, n=1000)
+            _json.dump(dict(model="x/" + m, summary=sm), open(os.path.join(d, "benchmark_arc", m + "__arc.json"), "w"))
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            sn.score_c25(d)
+        assert "C25: HIT (7 of 10 supported)" in buf.getvalue()
+        os.remove(os.path.join(d, "benchmark_arc", sn.C25_MODELS[0] + "__arc.json"))     # one model not run: 6 left
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            sn.score_c25(d)
+        assert "C25: MISS (6 of 10 supported; NOT RUN: ['OLMo-2-1124-7B'])" in buf.getvalue()
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            sn.score_c24(d)                                             # no plant_rand folder: must say NOT RUN, not crash
+        assert "C24: NOT RUN" in buf.getvalue()
+    print("score c24 c25 ok")
+
+
 if __name__ == "__main__":
     test_perturbations()
     test_filler()
@@ -416,5 +462,7 @@ if __name__ == "__main__":
     test_position_decomposition()
     test_chain_probe_labels()
     test_plant_margin()
+    test_plant_control_report()
+    test_score_c24_c25()
     test_stats()
     bf.selftest()

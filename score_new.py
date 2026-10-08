@@ -374,6 +374,45 @@ def score_c23(root):
           f"({passed} of {tested} model-seed runs; models present: {sorted(have)})")
 
 
+C25_MODELS = ["OLMo-2-1124-7B", "Qwen2.5-7B", "Mistral-7B-v0.1", "OLMo-2-1124-7B-Instruct", "Qwen2.5-7B-Instruct",
+              "Qwen2.5-14B", "OLMo-2-1124-13B", "Qwen2.5-32B", "OLMo-2-0325-32B", "Qwen2.5-72B"]
+
+
+def score_c24(root):
+    import plant_control_report as pcr
+    print("== C24: plant in the learned subspace beats plant in random subspaces of the same rank by >= 0.15, "
+          "paired p < 0.05 (6.9B step 143000, layer 22, depths 1 and 3)")
+    table = []
+    for f in sorted(glob.glob(os.path.join(root, "plant_rand", "*.json"))):
+        x = pcr.rows(json.load(open(f)))
+        if x:
+            table.append(x)
+    for x in table:
+        if x["model"] == "pythia-6.9b" and x["step"] == 143000 and x["layer"] == 22:
+            print(f"  {x['task']}: learned {x['plant_dis']:.3f} random {x['plant_rand']:.3f} "
+                  f"diff {x['diff']:+.3f} p={x['p']:.2g} n={x['n']}")
+    print("  C24:", pcr.c24(table))
+
+
+def score_c25(root):
+    print("== C25: ARC-Challenge option order: flip(original, reversed) >= 0.03 AND both-orders gain interval above 0, "
+          "in at least 7 of 10 models (a model not run counts as not supported)")
+    supported, seen = 0, set()
+    for f in sorted(glob.glob(os.path.join(root, "benchmark_arc", "*.json"))):
+        s = json.load(open(f))
+        m = s["model"].split("/")[-1]
+        sm = s["summary"]
+        ok = ge(sm["flip_orig_reversed"], 0.03) and sm["gain2_lo"] > 0
+        if m in C25_MODELS:
+            seen.add(m)
+            supported += ok
+        print(f"  {m}: acc {sm['acc_orig']:.3f} | flip {sm['flip_orig_reversed']:.3f} | two orders gain "
+              f"{sm['gain2']:+.3f} [{sm['gain2_lo']:+.3f},{sm['gain2_hi']:+.3f}] n={sm['n']}  {'yes' if ok else 'no'}")
+    missing = [m for m in C25_MODELS if m not in seen]
+    print("  C25:", "HIT" if supported >= 7 else "MISS", f"({supported} of {len(C25_MODELS)} supported"
+          + (f"; NOT RUN: {missing}" if missing else "") + ")")
+
+
 def score_extra(root):
     """Exploratory descriptive statistics (not claims): strict/lenient, chance flip rate, Fisher, McNemar."""
     import extra_stats
@@ -385,7 +424,7 @@ def main():
     ap.add_argument("--dir", required=True)
     root = ap.parse_args().dir
     for fn in (score_c8, score_c9, score_c10, score_c11, score_controls, score_layout, score_benchmark,
-               score_olmo, score_olmo_traj, score_scale, score_code, score_c22, score_c23, score_instruct, score_extra):
+               score_olmo, score_olmo_traj, score_scale, score_code, score_c22, score_c23, score_c24, score_c25, score_instruct, score_extra):
         try:
             fn(root)
         except Exception as e:          # one broken result must not hide the other claims

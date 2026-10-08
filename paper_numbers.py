@@ -23,7 +23,7 @@ FINAL = ("step143000", "main")
 
 def claim_table(root):
     fns = (sn.score_c8, sn.score_c9, sn.score_c10, sn.score_c11, sn.score_controls, sn.score_layout, sn.score_benchmark,
-           sn.score_olmo, sn.score_olmo_traj, sn.score_scale, sn.score_code, sn.score_c22, sn.score_c23)
+           sn.score_olmo, sn.score_olmo_traj, sn.score_scale, sn.score_code, sn.score_c22, sn.score_c23, sn.score_c24, sn.score_c25)
     rows = []
     for fn in fns:
         buf = io.StringIO()
@@ -57,9 +57,9 @@ def headline(root):
     return out
 
 
-def mmlu(root):
+def mmlu(root, folder="benchmark"):
     out = []
-    for f in sorted(glob.glob(os.path.join(root, "benchmark", "*.json"))):
+    for f in sorted(glob.glob(os.path.join(root, folder, "*.json"))):
         s = json.load(open(f))["summary"]
         out.append((os.path.basename(f)[:-5], s))
     return out
@@ -83,6 +83,13 @@ def main():
         print(f"  {name:<28} acc {100 * s['acc_orig']:.1f}%  answers change {100 * s['flip_orig_reversed']:.1f}%  "
               f"two orders {100 * s['acc_single_mean2']:.1f}% -> {100 * s['acc_ens2']:.1f}% (gain {100 * s['gain2']:+.1f}, "
               f"95% {100 * s['gain2_lo']:+.1f} to {100 * s['gain2_hi']:+.1f})")
+    arc = mmlu(root, "benchmark_arc")
+    if arc:
+        print("\n== 4. ARC-Challenge option order (claim C25)")
+        for name, s in arc:
+            print(f"  {name:<28} acc {100 * s['acc_orig']:.1f}%  answers change {100 * s['flip_orig_reversed']:.1f}%  "
+                  f"two orders {100 * s['acc_single_mean2']:.1f}% -> {100 * s['acc_ens2']:.1f}% (gain {100 * s['gain2']:+.1f}, "
+                  f"95% {100 * s['gain2_lo']:+.1f} to {100 * s['gain2_hi']:+.1f})")
 
 
 if __name__ == "__main__":

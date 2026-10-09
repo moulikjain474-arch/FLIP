@@ -513,6 +513,53 @@ def test_score_c24_c25():
     print("score c24 c25 ok")
 
 
+def test_audits_and_ladder():
+    import os
+    import tempfile
+    import json as _json
+    import selection_null as sel
+    import ladder_report as lr
+    import digit_breakdown as db
+    # selection-matched null: learned best 0.62 vs best-layer random draws below 0.2 -> PASS; a lucky random layer -> FAIL
+    def layers(rand_best):
+        return {l: dict(learned=v, natural=0.01, draws=[0.05, 0.08, rand_best if l == 18 else 0.04]) for l, v in
+                ((14, 0.3), (18, 0.55), (22, 0.62), (26, 0.4))}
+    a = sel.audit(layers(0.1))
+    assert a["learned_layer"] == 22 and abs(a["margin"] - 0.52) < 1e-9 and a["all_draws_below"]
+    b = sel.audit(layers(0.55))
+    assert abs(b["margin"] - 0.07) < 1e-9
+    res = {("pythia-6.9b", 143000, t): a for t in ("vartrack_d1", "vartrack_d3")}
+    assert sel.verdict(res) == "PASS"
+    res[("pythia-6.9b", 143000, "vartrack_d3")] = b
+    assert sel.verdict(res) == "FAIL"
+    assert sel.verdict({}).startswith("NOT RUN")
+    with tempfile.TemporaryDirectory() as d:        # collect() reads real steer_stage summaries
+        for L, v in ((14, 0.3), (22, 0.62)):
+            rates = {"natural": {"planted": 0.01}, "plant_dis": {"planted": v}, "plant_rand_mean": {"planted": 0.1},
+                     "plant_rand0": {"planted": 0.05}, "plant_rand1": {"planted": 0.07}}
+            _json.dump(dict(model="x/pythia-6.9b", step=143000, task="vartrack_d1", layer=L, rates=rates,
+                            plant_rand=dict(rate=0.06)), open(os.path.join(d, f"f{L}.json"), "w"))
+        got = sel.collect(d)[("pythia-6.9b", 143000, "vartrack_d1")]
+        assert sorted(got) == [14, 22] and got[22]["draws"] == [0.05, 0.07]
+    # ladder: readable at 8000, used at 32000 -> HIT; used first -> MISS; never used -> MISS
+    def mk(read_from, use_from):
+        steer, probe = {}, {}
+        for st in lr.STEPS:
+            for d in (1, 3):
+                t = f"vartrack_d{d}"
+                use = st >= use_from
+                steer[(st, t)] = dict(natural=0.5, rank=9, layer=22, n=300, plant_diff=0.4 if use else 0.0,
+                                      plant_p=1e-6 if use else 0.5, erase_diff=-0.1, erase_p=0.01)
+                probe[(st, t)] = dict(acc=0.9 if st >= read_from else 0.5, layer=14, chance=0.5, picks_later=0.5)
+        return steer, probe
+    assert lr.evaluate(*mk(8000, 32000))[1] == "HIT"
+    assert lr.evaluate(*mk(64000, 32000))[1] == "MISS"
+    assert lr.evaluate(*mk(8000, 10**9))[0][3][2] == "readable but never used"
+    assert lr.evaluate({}, {})[1] == "NOT RUN"
+    db.selftest()
+    print("audits and ladder ok")
+
+
 if __name__ == "__main__":
     test_perturbations()
     test_filler()
@@ -532,5 +579,6 @@ if __name__ == "__main__":
     test_score_c24_c25()
     test_med()
     test_score_c26()
+    test_audits_and_ladder()
     test_stats()
     bf.selftest()

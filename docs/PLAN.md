@@ -23,7 +23,7 @@ remaining work is replication (one compute day) and communication, not new ideas
 | Full Exea day (as early as possible) | `smoke.sh` first, then `run_fullday.sh` (runbook: docs/EXEA.md). Then `score_new.py` and `export_csv.py`. |
 | Same or next day | Export the CSV, make final figures, (P1-P4 are registered but no longer tested; see EXPERIMENTS.md Changes). |
 | 4-7 Oct | Write the synopsis (docs/PAPER_DRAFT.md), fill every [TBD], rewrite anything a result contradicts. |
-| 8-9 Oct | Figures final (3 in the main text: position flips, noise floor / seeds, order-swap; 1 mechanism figure). Video script and recording. |
+| 8-9 Oct | Figures final (3 in the main text: position flips, noise floor / seeds, order-swap; 1 causal-handle figure (random vs learned subspace) and the checkpoint ladder). Video script and recording. |
 | 10-11 Oct | Full read-through against IRIS rules: word limits, anonymity (no school, city, state, no repo link), references. Someone else reads it cold. |
 | 12 Oct | Submit. 13 Oct is the buffer, not the plan. |
 

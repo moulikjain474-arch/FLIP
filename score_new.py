@@ -496,6 +496,18 @@ def score_c29(root):
     print("  C29:", "HIT" if hit else ("MISS" if files else "NOT RUN"))
 
 
+def score_c30(root):
+    print("== C30: Pythia-6.9B checkpoint ladder, layer 22: the chain identity is readable (probe >= majority + 0.05) at an "
+          "earlier checkpoint than the learned subspace is used (plant - random >= 0.15, p < 0.05), at depths 1 and 3")
+    import ladder_report as lr
+    steer = lr.load_steer(os.path.join(root, "ladder"))
+    probe = lr.load_probe(os.path.join(root, "ladder_probe"))
+    res, verdict = lr.evaluate(steer, probe)
+    for d, (a, b, o) in res.items():
+        print(f"  depth {d}: first readable {a}, first used {b} -> {o}")
+    print("  C30:", verdict)
+
+
 def score_extra(root):
     """Exploratory descriptive statistics (not claims): strict/lenient, chance flip rate, Fisher, McNemar."""
     import extra_stats
@@ -507,7 +519,7 @@ def main():
     ap.add_argument("--dir", required=True)
     root = ap.parse_args().dir
     for fn in (score_c8, score_c9, score_c10, score_c11, score_controls, score_layout, score_benchmark,
-               score_olmo, score_olmo_traj, score_scale, score_code, score_c22, score_c23, score_c24, score_c25, score_c26, score_c27, score_c28, score_c29, score_instruct, score_extra):
+               score_olmo, score_olmo_traj, score_scale, score_code, score_c22, score_c23, score_c24, score_c25, score_c26, score_c27, score_c28, score_c29, score_c30, score_instruct, score_extra):
         try:
             fn(root)
         except Exception as e:          # one broken result must not hide the other claims

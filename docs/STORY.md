@@ -15,7 +15,7 @@ Language models often answer by where a fact sits, not what it says.
    Result: the registered C30 is a MISS (the chain probe was already at 1.000 at the first registered checkpoint, step 4000).
    Early checkpoints added afterwards (exploratory) show readable before used on 6.9B: the probe is at 0.97 or more by
    step 2000 while planting in the learned subspace moves the answer by at most +0.03, and by +0.27 (d1) at step 4000.
-   The same ladder on Pythia-1.4B is a MISS. One training run per size, so this is not a seed result.
+   The same ladder on Pythia-1.4B is a registered MISS, but it only ran from step 4000 (probe already ~1.0), so it cannot separate readable from used. One training run per size, so this is not a seed result.
 3. **A fix that beats an equal-cost control.** Asking in both orders: 60% -> 84% correct. Asking twice with renamed
    variables (same cost): 60%. Exact McNemar p = 2e-21.
 
@@ -26,7 +26,7 @@ Prior work shows that premise order (Chen et al., ICML 2024) and answer-option o
 change answers of finished models. We show when the shortcut forms during training, that it is driven by position
 rather than random instability, that a small learned subspace is a causal handle on the answer (erase or overwrite it
 and the answer changes; random subspaces of the same size do not do this, C24; A1 repeats the check with the random
-subspaces given the same layer search [after run: A1]), and a fix that beats an equal-cost control. We do not claim to have
+subspaces given the same layer search: PASS on Pythia-6.9B step 143000, learned margin over the largest of 5 random draws +0.46 (depth 1) and +0.82 (depth 3) at layer 26), and a fix that beats an equal-cost control. We do not claim to have
 located where the computation happens.
 
 ## Answers to the obvious attacks
@@ -94,5 +94,5 @@ not support that; the anomaly that kept appearing, answers changing with the ord
 5. More compute? Frontier models, real documents (with ethics approval), training with order-shuffled data.
 6. Is it position or something else? Digits (A2) and padding (A3) are the two checks; say what each found.
 7. How do you know the subspace is special? Random subspaces of the same size do much less (C24); A1 gives them the
-   same layer search [after run: A1]. Say plainly that this shows a causal handle, not where the computation is.
+   same layer search: PASS on Pythia-6.9B step 143000, learned margin over the largest of 5 random draws +0.46 (depth 1) and +0.82 (depth 3) at layer 26. Say plainly that this shows a causal handle, not where the computation is.
 8. Why Pythia checkpoints? You can watch readable-versus-used form during training (C30).

@@ -29,7 +29,7 @@ section below are from the 1 Oct session and are being re-checked against these 
 
 1. **Position shortcuts that flip.** Models take the chain that comes first
    or the one that comes last, and which one keeps changing during training (5
-   statistically significant reversals over 24 checkpoints of Pythia-1.4B, up to 4 in
+   statistically significant reversals over 33 checkpoints of Pythia-1.4B, up to 4 in
    6.9B; 1.4B-deduped instead keeps a first-chain habit at depths 2-3). The flips are not
    measurement noise
    (the same checkpoint on new questions differs by about 0.02; checkpoints 1000 steps
@@ -40,12 +40,12 @@ section below are from the 1 Oct session and are being re-checked against these 
    test of opposite directions (C9) was a MISS: at steps 16,000 and 64,000 most runs were
    first-chain biased (5 of 9 and 4 of 9) and only 1 of 9 was later-chain biased.
 3. **The answer is decided halfway through the network.** Writing a number into the
-   model's activations does nothing before about layer 12 of 24, and controls the answer
+   model's activations does nothing before about layer 12 of 24 in Pythia-1.4B (about layer 18-22 of 32 in 6.9B, layer 20 of 36 in 12B), and controls the answer
    after about layer 14, at every stage of training. Errors come from putting the wrong
    chain's value into that slot, not from failing to read the values.
 4. **Reordering changes the answer, even at 12B.** Pythia-12B is right in one order and
    wrong in the other on 41-49% of questions. Asking in both orders and combining the
-   answers raises its accuracy from 79% to 91%, with no training. Combining orders is a
+   answers raises its accuracy from 77% to 90% at depth 1 (74% to 86% at depth 2), with no training. Combining orders is a
    known cheap fix (permutation self-consistency, Tang et al. 2023); what FLIP adds is
    measuring when it helps, and that reordering moves answers more than renaming does
    (claim C13), so the gain is not just "asking twice".

@@ -1,3 +1,5 @@
+> SUPERSEDED by PAPER_DRAFT_v5.md. v4 contains the wrong 79%->91% figure.
+
 # IRIS synopsis, v4 (word counts checked against IRIS limits)
 Items in [BRACKETS] must be filled/verified before submission. No school/city/state anywhere.
 

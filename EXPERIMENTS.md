@@ -393,6 +393,56 @@ numbers and caveats: `docs/RESULTS_FINAL.md`. Raw outputs: `results/final_9oct/`
   6.9B ladder on a fresh question sample, norm-matched and out-of-distribution plant checks, the black-box baseline for the
   two-order flag. The value probe was uninformative (random-init baseline) and is not used as evidence.
 
+## 4q. Corrections and additions to 4p, 9 Oct 2026 (second commit)
+
+Source for all numbers: results/final_9oct/ (score_union_final.txt, all_reports.txt) and results/exea_2026-10-01/results.csv.
+Nothing below changes a registered verdict. The first commit (f147d16) is not rewritten; this section corrects it.
+
+### Corrections
+1. **Pythia-1.4B ladder (C30).** Commit f147d16 and parts of 4p, docs/RESULTS_FINAL.md and docs/STORY.md say the ladder
+   "disagrees on 1.4B" or is "a MISS" in a way that reads as evidence against the 6.9B result. That is overstated.
+   The 1.4B ladder only ran steps 4000 and later. At step 4000 the chain probe is already 0.998-1.000 and planting
+   already works (+0.467 depth 1, +0.170 depth 3), so "first readable" and "first used" coincide at the first step by
+   construction. The registered rule scores this as a MISS, and it stays a MISS. It cannot separate readable from
+   used, because no early 1.4B step was run. It is not evidence against the 6.9B extension.
+2. **12B accuracy gain.** Earlier text said "79% to 91%". Final numbers (600 questions, single = mean of the two orders):
+   depth 1 77.3% -> 90.3% (gain +13.0, 95% +10.6 to +15.3); depth 2 73.7% -> 85.8%; depth 3 65.1% -> 72.7%.
+   A plain instruction gives 75.2% / 71.7% / 66.7%. Swap flip 41.3 / 45.7 / 48.5%; rename 18.3 / 16.7 / 22.5%.
+   Both orders vs equal-cost rename ensemble (exact McNemar): depth 1 94:28 p=1.6e-09; depth 2 95:39 p=1.4e-06; depth 3 100:65 p=0.0079.
+3. **1.4B reversals.** Earlier text said "over 24 checkpoints". The 1 Oct position data hold 33 checkpoints per depth for
+   Pythia-1.4B, with 5 direction changes by the 95% Wilson-interval rule at each of depths 1, 2 and 3.
+4. **Layer statement.** "Layer 12-14 of 24" is the Pythia-1.4B figure (single-layer plant, 1 Oct). In the final files
+   planting with a learned subspace on 6.9B works from about layer 18-22 of 32 (depth 3: L18 +0.113, L22 +0.677, L26 +0.817;
+   depth 1: L18 +0.007, L22 +0.280, L26 +0.460) and on 12B from about layer 20 of 36 (L20 +0.243/+0.330, L24 +0.803/+0.880).
+   Equal-size random subspaces give 0.000 everywhere.
+5. **410M seeds.** "Nine runs" = the main 410M run plus seeds 1, 2, 3, 5, 6, 7, 8, 9. Seed 4 has three checkpoints only
+   (8000, 32000, 143000) and is excluded as a suspected bad checkpoint (see 1 Oct entry). Depth-3 later-share at step 143000
+   over these nine runs: 0.312-0.685 (seed 4 would be 0.523, so including it does not change the range).
+   The registered C9 test (disagreement at steps 16000 or 64000) is a MISS: L=1, F=5 and L=1, F=4.
+6. **"Three of four model variants"** (old paper draft) could not be reproduced from the final files and is dropped.
+
+### Additions (exploratory, Pythia-6.9B step 143000 unless stated)
+- **A1, selection-matched random-subspace control: PASS.** Best random draw is 0.000 in all 5 draws; learned best 0.460 (depth 1) and
+  0.817 (depth 3), both at layer 26. 12B (3 draws): learned 0.990 / 0.967 at layer 32, random 0.000.
+- **A2, digit breakdown:** no result is in the final files. Do not cite A2.
+- **A3, padding / distance (headpad).** Padding before the question or at the start moves the later-share by under 0.1;
+  inserting 8 lines between the chains raises the later-share (12B +0.17 / +0.24 / +0.30; 6.9B +0.17 / +0.20 / +0.25; 1.4B +0.43 / +0.56 / +0.60)
+  and lowers accuracy. Distance between the chains matters as well as order.
+- **A4, attention vs MLP (6.9B):** no single sublayer carries the order effect; best attention transfer 0.147 (depth 1) and
+  0.135 (depth 3), both at layer 16; MLP at most 0.067 / 0.065.
+- **A5, whole-state patching:** transfer from the other order rises over roughly 50-70% of depth (12B depth 1: 0.419 at L18, 0.915 at L20 of 36;
+  6.9B depth 3: 0.350 at L12, 0.603 at L16, 0.780 at L20). A single-chain control saturates in the same window, so this shows when
+  the information has been moved, not which component does it.
+- **A6, per-head patching (6.9B):** layer 16 head 27 reaches 0.160 (depth 1) and 0.121 (depth 3); all other layers are at or below 0.047.
+  No head is a bottleneck.
+- **No-examples control (1.4B, later-share at step 143000, depths 1-3):** 0.43 / 0.26 / 0.20 without worked examples vs 0.52 / 0.42 / 0.34 with.
+  Same direction, so the preference is not caused by copying the examples.
+
+### Wording rules after this section
+- Say "Pythia-1.4B cannot test readable-versus-used because it was run from step 4000", never "disagrees".
+- Say 77.3% -> 90.3% (depth 1), never 79% -> 91%.
+- Say "33 checkpoints" for the 1.4B reversal count.
+
 ## 5. Statistics
 - Holm correction across all C4 primary tests (every model x checkpoint x depth run), and
   separately across all C4b primary tests.

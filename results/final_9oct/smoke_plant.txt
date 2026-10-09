@@ -1,0 +1,33 @@
+natural         correct=0.647  distractor=0.333  planted=0.000  log p(correct)=-1.021
+erase_dis_orth  correct=0.607  distractor=0.387  planted=0.000  log p(correct)=-1.059
+erase_dis       correct=0.533  distractor=0.460  planted=0.000  log p(correct)=-1.104
+erase_cor       correct=0.593  distractor=0.400  planted=0.000  log p(correct)=-1.070
+pca_top         correct=0.567  distractor=0.433  planted=0.000  log p(correct)=-1.093
+plant_dis       correct=0.540  distractor=0.453  planted=0.000  log p(correct)=-1.103
+plant_dis_orth  correct=0.607  distractor=0.387  planted=0.000  log p(correct)=-1.060
+plant_cor       correct=0.613  distractor=0.380  planted=0.000  log p(correct)=-1.077
+random0         correct=0.647  distractor=0.333  planted=0.000  log p(correct)=-1.025
+random1         correct=0.647  distractor=0.333  planted=0.000  log p(correct)=-1.020
+plant_rand0     correct=0.647  distractor=0.333  planted=0.000  log p(correct)=-1.024
+plant_rand1     correct=0.647  distractor=0.333  planted=0.000  log p(correct)=-1.020
+plant_rand mean planted rate 0.0 | plant_dis 0.0
+{
+  "primary_erase": {
+    "test": "log p(correct): erase_dis_orth vs random_mean",
+    "mean_diff": -0.036279941201210024,
+    "n": 150,
+    "t": -3.423949956893921,
+    "p": 0.0007972984458319843,
+    "d_z": -0.27956432008607485
+  },
+  "primary_plant": {
+    "test": "answers = planted value: plant_dis vs natural",
+    "mean_diff": 0.0,
+    "n": 150,
+    "t": NaN,
+    "p": NaN,
+    "d_z": NaN
+  },
+  "rank_primary": 9
+}
+wrote /scratch/flip_out/fullday/smoke_plant/EleutherAI__pythia-410m__step143000__s0n300blocked__vartrack_d1__L12__single.json

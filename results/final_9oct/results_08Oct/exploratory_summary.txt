@@ -1,0 +1,30 @@
+=== DECOMPOSITION (exploratory, written after seeing C22 at 12B) ===
+OLMo-2-0425-1B main
+   vartrack_d1 right_both 0.60 wrong_chain_both 0.09 first_both 0.07 second_both 0.24 neither 0.00 | position-driven 0.32 | by confidence low->high [0.37, 0.3, 0.27]
+   vartrack_d2 right_both 0.41 wrong_chain_both 0.08 first_both 0.03 second_both 0.47 neither 0.01 | position-driven 0.50 | by confidence low->high [0.45, 0.57, 0.48]
+   vartrack_d3 right_both 0.17 wrong_chain_both 0.09 first_both 0.00 second_both 0.69 neither 0.05 | position-driven 0.69 | by confidence low->high [0.56, 0.7, 0.82]
+OLMo-2-1124-7B main
+   vartrack_d1 right_both 0.94 wrong_chain_both 0.00 first_both 0.00 second_both 0.05 neither 0.00 | position-driven 0.05 | by confidence low->high [0.12, 0.01, 0.03]
+   vartrack_d2 right_both 0.77 wrong_chain_both 0.02 first_both 0.01 second_both 0.20 neither 0.00 | position-driven 0.21 | by confidence low->high [0.33, 0.17, 0.13]
+   vartrack_d3 right_both 0.59 wrong_chain_both 0.02 first_both 0.02 second_both 0.36 neither 0.01 | position-driven 0.38 | by confidence low->high [0.43, 0.35, 0.35]
+Qwen2.5-7B main
+   vartrack_d1 right_both 1.00 wrong_chain_both 0.00 first_both 0.00 second_both 0.00 neither 0.00 | position-driven 0.00 | by confidence low->high [0.0, 0.0, 0.0]
+   vartrack_d2 right_both 0.94 wrong_chain_both 0.00 first_both 0.00 second_both 0.06 neither 0.01 | position-driven 0.06 | by confidence low->high [0.11, 0.04, 0.03]
+   vartrack_d3 right_both 0.85 wrong_chain_both 0.00 first_both 0.00 second_both 0.14 neither 0.01 | position-driven 0.14 | by confidence low->high [0.22, 0.08, 0.12]
+pythia-12b step143000
+   vartrack_d1 right_both 0.57 wrong_chain_both 0.02 first_both 0.03 second_both 0.39 neither 0.00 | position-driven 0.41 | by confidence low->high [0.45, 0.34, 0.44]
+   vartrack_d2 right_both 0.51 wrong_chain_both 0.04 first_both 0.10 second_both 0.35 neither 0.01 | position-driven 0.45 | by confidence low->high [0.51, 0.41, 0.43]
+   vartrack_d3 right_both 0.41 wrong_chain_both 0.10 first_both 0.15 second_both 0.32 neither 0.02 | position-driven 0.47 | by confidence low->high [0.5, 0.48, 0.45]
+pythia-6.9b step143000
+   vartrack_d1 right_both 0.88 wrong_chain_both 0.00 first_both 0.01 second_both 0.10 neither 0.01 | position-driven 0.11 | by confidence low->high [0.2, 0.06, 0.08]
+   vartrack_d2 right_both 0.70 wrong_chain_both 0.03 first_both 0.04 second_both 0.22 neither 0.01 | position-driven 0.26 | by confidence low->high [0.39, 0.23, 0.14]
+   vartrack_d3 right_both 0.55 wrong_chain_both 0.09 first_both 0.09 second_both 0.25 neither 0.03 | position-driven 0.34 | by confidence low->high [0.43, 0.33, 0.25]
+=== C22 CONFIDENCE GATE (registered; flip rate by confidence third, low->high) ===
+pythia-12b__step143000.json
+   vartrack_d1 [0.455, 0.345, 0.44] diff +0.015 [-0.090,+0.115] ratio 1.0340909090909092 p=0.84
+   vartrack_d2 [0.51, 0.42, 0.44] diff +0.070 [-0.035,+0.160] ratio 1.1590909090909092 p=0.19
+   vartrack_d3 [0.525, 0.485, 0.445] diff +0.080 [-0.025,+0.175] ratio 1.1797752808988764 p=0.13
+pythia-6.9b__step143000.json
+   vartrack_d1 [0.21, 0.065, 0.08] diff +0.130 [+0.060,+0.200] ratio 2.625 p=0.00032
+   vartrack_d2 [0.4, 0.25, 0.145] diff +0.255 [+0.170,+0.335] ratio 2.7586206896551726 p=1.2e-08
+   vartrack_d3 [0.445, 0.355, 0.25] diff +0.195 [+0.105,+0.285] ratio 1.78 p=6.1e-05

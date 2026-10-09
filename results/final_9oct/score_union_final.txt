@@ -1,0 +1,389 @@
+== C8: 12B flips direction at least twice (depth 2 or 3)
+  pythia-12b vartrack_d2: ---L-FLFLLLLLL  changes=4  (steps [1000, 2000, 4000, 6000, 8000, 12000, 16000, 24000, 32000, 48000, 64000, 100000, 120000, 143000])
+  pythia-12b vartrack_d3: -----FLF-LLLLL  changes=3  (steps [1000, 2000, 4000, 6000, 8000, 12000, 16000, 24000, 32000, 48000, 64000, 100000, 120000, 143000])
+  pythia-6.9b vartrack_d2: --FLF-LL  changes=3  (steps [1000, 2000, 6000, 12000, 24000, 48000, 100000, 120000])
+  pythia-6.9b vartrack_d3: --F-F---  changes=0  (steps [1000, 2000, 6000, 12000, 24000, 48000, 100000, 120000])
+  C8: HIT
+== C9: seeds disagree (>=2 L and >=2 F) at depth 3, step 16000 or 64000
+  step 16000: F-LF--FFF  L=1 F=5  no
+  step 64000: --FFL--FF  L=1 F=4  no
+  C9: MISS
+== C10: correct in exactly one order >= 0.20 at depth 2 (6.9B, 12B; 16k/32k/64k)
+  pythia-6.9b 16000: 0.518
+  pythia-6.9b 32000: 0.430
+  pythia-6.9b 64000: 0.407
+  pythia-12b 16000: 0.470
+  pythia-12b 32000: 0.430
+  pythia-12b 64000: 0.528
+  C10: HIT
+  secondary 12B 32000: combined gain d1=+0.090 d2=+0.093  yes
+  secondary 12B 64000: combined gain d1=+0.140 d2=+0.147  yes
+== C11: 6.9B plant below 0.10 at EVERY tested layer <=10 (4, 8, 10), >=0.50 at some layer <=22
+  step 16000 vartrack_d1: L4=0.01 L8=0.01 L10=0.01 L12=0.09 L14=0.16 L16=0.79 L18=0.89 L20=0.91 L22=0.96 L26=0.98  yes
+  step 16000 vartrack_d3: L4=0.01 L8=0.01 L10=0.01 L12=0.07 L14=0.11 L16=0.73 L18=0.81 L20=0.85 L22=0.91 L26=0.94  yes
+  step 143000 vartrack_d1: L4=0.00 L8=0.00 L10=0.00 L12=0.00 L14=0.00 L16=0.76 L18=1.00 L20=1.00 L22=1.00 L26=1.00  yes
+  step 143000 vartrack_d3: L4=0.00 L8=0.00 L10=0.00 L12=0.01 L14=0.00 L16=0.33 L18=0.91 L20=0.97 L22=1.00 L26=1.00  yes
+  C11: HIT
+== C12: reordering flips more answers than renaming (12B, depth 2, steps 32000/64000/143000)
+  pythia-12b 32000: flip_swap=0.430 flip_rename=0.270 diff=+0.160 tokens(swap-orig)=+0.00 tokens(rename-orig)=+0.00  (primary)
+  pythia-12b 64000: flip_swap=0.528 flip_rename=0.162 diff=+0.367 tokens(swap-orig)=+0.00 tokens(rename-orig)=+0.00  (primary)
+  pythia-12b 143000: flip_swap=0.457 flip_rename=0.167 diff=+0.290 tokens(swap-orig)=+0.00 tokens(rename-orig)=+0.00  (primary)
+  pythia-6.9b 32000: flip_swap=0.430 flip_rename=0.240 diff=+0.190 tokens(swap-orig)=+0.00 tokens(rename-orig)=+0.00  (secondary)
+  pythia-6.9b 64000: flip_swap=0.407 flip_rename=0.260 diff=+0.147 tokens(swap-orig)=+0.00 tokens(rename-orig)=+0.00  (secondary)
+  pythia-6.9b 143000: flip_swap=0.265 flip_rename=0.188 diff=+0.077 tokens(swap-orig)=+0.00 tokens(rename-orig)=+0.00  (secondary)
+  C12: HIT (3 of 3 primary cells with diff >= 0.05)
+== C13: ordering ensemble beats the equal-cost rename ensemble (12B, depth 1 and 2)
+  12B 143000: orig+swap minus orig+rename d1=+0.110 d2=+0.093  yes  (primary)
+  12B 64000: orig+swap minus orig+rename d1=+0.137 d2=+0.113  yes  (secondary)
+  12B 32000: orig+swap minus orig+rename d1=+0.082 d2=+0.060  yes  (secondary)
+  C13: HIT
+== C17: both-orders gain over the single-order average has a 95% interval above 0 (12B final, d1 and d2)
+  vartrack_d1: gain +0.130  95% interval [+0.106, +0.153]
+  vartrack_d2: gain +0.122  95% interval [+0.097, +0.147]
+  C17: HIT
+-- exploratory: plain instruction vs asking in both orders (12B final)
+  vartrack_d1: single order 0.773 | with instruction 0.752 (flip 0.455 vs 0.413) | both orders 0.903
+  vartrack_d2: single order 0.737 | with instruction 0.717 (flip 0.483 vs 0.457) | both orders 0.858
+  vartrack_d3: single order 0.651 | with instruction 0.667 (flip 0.470 vs 0.485) | both orders 0.727
+== C14: the position shortcut also appears with interleaved chains (depth 3, final checkpoints)
+  pythia-410m: picks_later=0.545 (n=516)  L
+  pythia-1.4b: picks_later=0.369 (n=572)  F
+  pythia-6.9b: picks_later=0.465 (n=591)  -
+  C14: HIT (2 of 3 biased)
+== C15: the Order-Flip Test finds order dependence on a real benchmark (MMLU option order)
+  OLMo-2-1124-7B: acc=0.614 flip=0.239 2-order 0.598->0.621 (gain +0.024 [+0.008,+0.039])  4-order 0.601->0.631
+  Qwen2.5-7B: acc=0.700 flip=0.155 2-order 0.701->0.717 (gain +0.017 [+0.004,+0.029])  4-order 0.701->0.725
+  Mistral-7B-v0.1: acc=0.605 flip=0.302 2-order 0.587->0.612 (gain +0.025 [+0.008,+0.042])  4-order 0.581->0.631
+  C15: HIT (3 models, 3 with flip >= 0.10, gain in all: True)
+== C16: the order effect appears in a second model family (OLMo-2, depth 3)
+  OLMo-2-0425-1B: acc=0.507 flip_swap=0.707 flip_rename=0.185 gain=+0.058  yes
+  OLMo-2-1124-7B: acc=0.788 flip_swap=0.392 flip_rename=0.205 gain=+0.149  yes
+  C16: HIT
+== C18: OLMo-2-7B position habit changes direction during training (depth 2 or 3)
+  vartrack_d2: LLLL-LLL-L  changes=0  (10 checkpoints: [5000, 9000, 19000, 46000, 93000, 186000, 325000, 464000, 696000, 928646])
+  vartrack_d3: LLL--LLLFL  changes=2  (10 checkpoints: [5000, 9000, 19000, 46000, 93000, 186000, 325000, 464000, 696000, 928646])
+  C18: HIT
+== C19: order dependence at 32B-72B scale (depth 3, flip >= 0.05 in at least one model)
+  OLMo-2-0325-32B vartrack_d1: acc=0.983 flip_swap=0.045 flip_rename=0.043 both-orders 0.978->1.000
+  OLMo-2-0325-32B vartrack_d2: acc=0.908 flip_swap=0.193 flip_rename=0.128 both-orders 0.903->0.990
+  OLMo-2-0325-32B vartrack_d3: acc=0.778 flip_swap=0.408 flip_rename=0.242 both-orders 0.779->0.947
+  OLMo-2-0325-32B MMLU: acc=0.738 flip=0.222 2-order gain +0.028
+  Qwen2.5-72B vartrack_d1: acc=1.000 flip_swap=0.000 flip_rename=0.000 both-orders 1.000->1.000
+  Qwen2.5-72B vartrack_d2: acc=1.000 flip_swap=0.000 flip_rename=0.002 both-orders 1.000->1.000
+  Qwen2.5-72B vartrack_d3: acc=0.998 flip_swap=0.002 flip_rename=0.003 both-orders 0.999->1.000
+  Qwen2.5-72B MMLU: acc=0.825 flip=0.101 2-order gain +0.015
+  C19: HIT
+== C20: order dependence on short Python programs (level 2; models with accuracy >= 0.30)
+  pythia-1.4b code_l1: acc=0.111 flip=0.072 both-orders 0.111->0.115 [-0.007,+0.016]
+  pythia-1.4b code_l2: acc=0.092 flip=0.075 both-orders 0.092->0.093 [-0.011,+0.013]
+  pythia-1.4b code_l3: acc=0.094 flip=0.078 both-orders 0.094->0.100 [-0.005,+0.017]
+  pythia-6.9b code_l1: acc=0.147 flip=0.080 both-orders 0.147->0.138 [-0.020,+0.003]
+  pythia-6.9b code_l2: acc=0.114 flip=0.075 both-orders 0.114->0.127 [+0.002,+0.024]
+  pythia-6.9b code_l3: acc=0.129 flip=0.102 both-orders 0.129->0.130 [-0.012,+0.013]
+  pythia-12b code_l1: acc=0.123 flip=0.117 both-orders 0.123->0.122 [-0.017,+0.013]
+  pythia-12b code_l2: acc=0.115 flip=0.100 both-orders 0.115->0.118 [-0.010,+0.018]
+  pythia-12b code_l3: acc=0.123 flip=0.097 both-orders 0.123->0.128 [-0.008,+0.018]
+  OLMo-2-1124-7B code_l1: acc=0.247 flip=0.122 both-orders 0.247->0.253 [-0.007,+0.020]
+  OLMo-2-1124-7B code_l2: acc=0.197 flip=0.137 both-orders 0.197->0.200 [-0.012,+0.018]
+  OLMo-2-1124-7B code_l3: acc=0.180 flip=0.127 both-orders 0.180->0.182 [-0.013,+0.017]
+  Qwen2.5-7B code_l1: acc=0.537 flip=0.212 both-orders 0.537->0.547 [-0.010,+0.028]
+  Qwen2.5-7B code_l2: acc=0.443 flip=0.222 both-orders 0.443->0.455 [-0.007,+0.032]
+  Qwen2.5-7B code_l3: acc=0.390 flip=0.223 both-orders 0.390->0.385 [-0.024,+0.014]
+  OLMo-2-0325-32B code_l1: acc=0.421 flip=0.142 both-orders 0.421->0.432 [-0.004,+0.026]
+  OLMo-2-0325-32B code_l2: acc=0.397 flip=0.127 both-orders 0.397->0.413 [+0.003,+0.031]
+  OLMo-2-0325-32B code_l3: acc=0.367 flip=0.170 both-orders 0.367->0.387 [+0.003,+0.037]
+  Qwen2.5-72B code_l1: acc=0.820 flip=0.103 both-orders 0.820->0.837 [+0.003,+0.031]
+  Qwen2.5-72B code_l2: acc=0.787 flip=0.153 both-orders 0.787->0.807 [+0.003,+0.036]
+  Qwen2.5-72B code_l3: acc=0.782 flip=0.160 both-orders 0.782->0.805 [+0.007,+0.040]
+  C20: HIT (3 of 3 eligible models with flip >= 0.10)
+== C22: low-confidence third flips >= 2x the high-confidence third, exact Fisher p < 0.05 (6.9B and 12B, step 143000, depth 2, confidence = original-order top-2 margin)
+  pythia-6.9b: flip by confidence tertile (low->high) 0.400 0.250 0.145 | ratio 2.76 | low-high +0.255 [+0.170,+0.335] | Fisher p=1.24e-08 | Spearman(margin, flip)=-0.26 | acc by tertile 0.64 0.88 0.96  yes
+  pythia-12b: flip by confidence tertile (low->high) 0.510 0.420 0.440 | ratio 1.16 | low-high +0.070 [-0.035,+0.160] | Fisher p=0.193 | Spearman(margin, flip)=-0.06 | acc by tertile 0.59 0.75 0.88  no
+  C22: MISS (1 of 2 models)
+== C23: fresh question set (seed >= 1): swap flip >= 0.20, flip(swap) - flip(rename) >= 0.05, both-orders gain interval above 0 (6.9B and 12B, step 143000, depth 2)
+  pythia-6.9b seed 1: flip swap 0.255 rename 0.193 | both-orders gain +0.072 [+0.053,+0.092] | n=600  yes
+  pythia-12b seed 1: flip swap 0.440 rename 0.155 | both-orders gain +0.098 [+0.073,+0.123] | n=600  yes
+  C23: HIT (2 of 2 model-seed runs; models present: ['pythia-12b', 'pythia-6.9b'])
+== C24: plant in the learned subspace beats plant in random subspaces of the same rank by >= 0.15, paired p < 0.05 (6.9B step 143000, layer 22, depths 1 and 3)
+  vartrack_d1: learned 0.280 random 0.000 diff +0.280 p=4.1e-23 n=300
+  vartrack_d3: learned 0.677 random 0.000 diff +0.677 p=2.8e-75 n=300
+  C24: HIT
+== C25: ARC-Challenge option order: flip(original, reversed) >= 0.03 AND both-orders gain interval above 0, in at least 7 of 10 models (a model not run counts as not supported)
+  Mistral-7B-v0.1: acc 0.771 | flip 0.190 | two orders gain +0.032 [+0.018,+0.046] n=1000  yes
+  OLMo-2-0325-32B: acc 0.901 | flip 0.079 | two orders gain +0.018 [+0.010,+0.027] n=1000  yes
+  OLMo-2-1124-13B: acc 0.822 | flip 0.145 | two orders gain +0.025 [+0.013,+0.036] n=1000  yes
+  OLMo-2-1124-7B-Instruct: acc 0.801 | flip 0.170 | two orders gain +0.020 [+0.007,+0.033] n=1000  yes
+  OLMo-2-1124-7B: acc 0.798 | flip 0.193 | two orders gain +0.028 [+0.014,+0.042] n=1000  yes
+  Qwen2.5-14B: acc 0.932 | flip 0.049 | two orders gain +0.007 [+0.001,+0.015] n=1000  yes
+  Qwen2.5-32B: acc 0.954 | flip 0.031 | two orders gain +0.004 [-0.001,+0.010] n=1000  no
+  Qwen2.5-72B-Instruct: acc 0.951 | flip 0.035 | two orders gain +0.004 [-0.001,+0.011] n=1000  no
+  Qwen2.5-72B: acc 0.957 | flip 0.030 | two orders gain +0.005 [-0.001,+0.011] n=1000  no
+  Qwen2.5-7B-Instruct: acc 0.911 | flip 0.065 | two orders gain +0.005 [-0.003,+0.013] n=1000  no
+  Qwen2.5-7B: acc 0.900 | flip 0.060 | two orders gain +0.005 [-0.003,+0.013] n=1000  no
+  C25: MISS (6 of 10 supported)
+== C26: medication-record wording, depth 3: flip >= 0.05 AND both-orders gain interval above 0, in at least 4 of 7 models (a model not run counts as not supported)
+  DeepSeek-R1-Distill-Llama-8B main: acc 0.688/0.677 | flip 0.562 | both orders gain +0.168 [+0.140,+0.195] n=600  yes
+  Llama-3.1-70B-Instruct main: acc 1.000/1.000 | flip 0.000 | both orders gain +0.000 [+0.000,+0.000] n=600  no
+  OLMo-2-0325-32B main: acc 1.000/1.000 | flip 0.000 | both orders gain +0.000 [+0.000,+0.000] n=600  no
+  OLMo-2-1124-13B main: acc 0.973/0.977 | flip 0.050 | both orders gain +0.025 [+0.017,+0.034] n=600  yes
+  OLMo-2-1124-7B-Instruct main: acc 0.863/0.857 | flip 0.270 | both orders gain +0.107 [+0.087,+0.125] n=600  yes
+  OLMo-2-1124-7B main: acc 0.877/0.872 | flip 0.252 | both orders gain +0.121 [+0.103,+0.138] n=600  yes
+  Qwen2.5-14B main: acc 1.000/1.000 | flip 0.000 | both orders gain +0.000 [+0.000,+0.000] n=600  no
+  Qwen2.5-32B main: acc 1.000/1.000 | flip 0.000 | both orders gain +0.000 [+0.000,+0.000] n=600  no
+  Qwen2.5-72B-Instruct main: acc 1.000/1.000 | flip 0.000 | both orders gain +0.000 [+0.000,+0.000] n=600  no
+  Qwen2.5-72B main: acc 0.998/1.000 | flip 0.002 | both orders gain +0.001 [+0.000,+0.003] n=600  no
+  Qwen2.5-7B-Instruct main: acc 0.917/0.938 | flip 0.145 | both orders gain +0.064 [+0.050,+0.079] n=600  yes
+  Qwen2.5-7B main: acc 0.992/0.993 | flip 0.015 | both orders gain +0.007 [+0.003,+0.013] n=600  no
+  pythia-12b step143000: acc 0.473/0.560 | flip 0.940 | both orders gain +0.158 [+0.122,+0.195] n=600  yes
+  pythia-6.9b step143000: acc 0.535/0.585 | flip 0.830 | both orders gain +0.147 [+0.112,+0.181] n=600  yes
+  C26: MISS (3 of 7 supported)
+== C27: harder medication wording (depth 6 or 9): Qwen2.5-72B or Qwen2.5-72B-Instruct has flip >= 0.05 AND both-orders gain interval above 0 at depth 6 or 9
+  DeepSeek-R1-Distill-Llama-8B med_d6: acc 0.715/0.688 | flip 0.500 | gain +0.118 [+0.092,+0.145]  yes
+  DeepSeek-R1-Distill-Llama-8B med_d9: acc 0.670/0.702 | flip 0.495 | gain +0.102 [+0.076,+0.130]  yes
+  Llama-3.1-70B-Instruct med_d6: acc 0.998/1.000 | flip 0.002 | gain -0.001 [-0.003,+0.000]  no
+  Llama-3.1-70B-Instruct med_d9: acc 1.000/0.997 | flip 0.003 | gain +0.000 [-0.003,+0.003]  no
+  OLMo-2-0325-32B med_d6: acc 0.963/0.948 | flip 0.088 | gain +0.043 [+0.032,+0.054]  yes
+  OLMo-2-0325-32B med_d9: acc 0.905/0.908 | flip 0.180 | gain +0.080 [+0.064,+0.096]  yes
+  OLMo-2-1124-13B med_d6: acc 0.887/0.900 | flip 0.193 | gain +0.068 [+0.052,+0.085]  yes
+  OLMo-2-1124-13B med_d9: acc 0.713/0.712 | flip 0.492 | gain +0.128 [+0.101,+0.153]  yes
+  OLMo-2-1124-7B-Instruct med_d6: acc 0.702/0.720 | flip 0.348 | gain +0.076 [+0.053,+0.099]  yes
+  OLMo-2-1124-7B-Instruct med_d9: acc 0.618/0.612 | flip 0.380 | gain +0.055 [+0.031,+0.080]  yes
+  OLMo-2-1124-7B med_d6: acc 0.763/0.773 | flip 0.417 | gain +0.160 [+0.138,+0.182]  yes
+  OLMo-2-1124-7B med_d9: acc 0.618/0.602 | flip 0.620 | gain +0.125 [+0.094,+0.155]  yes
+  Qwen2.5-14B med_d6: acc 0.997/0.997 | flip 0.007 | gain +0.003 [+0.001,+0.007]  no
+  Qwen2.5-14B med_d9: acc 0.987/0.987 | flip 0.027 | gain +0.013 [+0.007,+0.020]  no
+  Qwen2.5-32B med_d6: acc 1.000/1.000 | flip 0.000 | gain +0.000 [+0.000,+0.000]  no
+  Qwen2.5-32B med_d9: acc 0.998/1.000 | flip 0.002 | gain +0.001 [+0.000,+0.003]  no
+  Qwen2.5-72B-Instruct med_d6: acc 0.998/1.000 | flip 0.002 | gain -0.001 [-0.003,+0.000]  no
+  Qwen2.5-72B-Instruct med_d9: acc 0.955/0.965 | flip 0.080 | gain +0.037 [+0.026,+0.048]  yes
+  Qwen2.5-72B med_d6: acc 0.998/1.000 | flip 0.002 | gain +0.001 [+0.000,+0.003]  no
+  Qwen2.5-72B med_d9: acc 0.992/0.985 | flip 0.023 | gain +0.012 [+0.006,+0.018]  no
+  Qwen2.5-7B-Instruct med_d6: acc 0.835/0.832 | flip 0.333 | gain +0.145 [+0.126,+0.165]  yes
+  Qwen2.5-7B-Instruct med_d9: acc 0.662/0.682 | flip 0.650 | gain +0.223 [+0.196,+0.250]  yes
+  Qwen2.5-7B med_d6: acc 0.952/0.962 | flip 0.083 | gain +0.035 [+0.024,+0.047]  yes
+  Qwen2.5-7B med_d9: acc 0.855/0.853 | flip 0.282 | gain +0.107 [+0.087,+0.127]  yes
+  C27: HIT
+== C28: generated answers with step-by-step reasoning (cot): flip >= 0.05 at depth 3 or 6 (unparsed < 0.20), in at least 2 of 4 models (a model not run counts as not supported)
+  DeepSeek-R1-Distill-Llama-8B cot_d3: acc 1.000/1.000 | flip 0.000 | different answer 0.000 | unparsed 0.000 n=150
+  DeepSeek-R1-Distill-Llama-8B cot_d6: acc 0.933/0.953 | flip 0.113 | different answer 0.113 | unparsed 0.013 n=150
+  Llama-3.1-70B-Instruct cot_d3: acc 1.000/1.000 | flip 0.000 | different answer 0.000 | unparsed 0.000 n=150
+  Llama-3.1-70B-Instruct cot_d6: acc 1.000/1.000 | flip 0.000 | different answer 0.000 | unparsed 0.000 n=150
+  Llama-3.1-70B-Instruct direct_d3: acc 1.000/1.000 | flip 0.000 | different answer 0.000 | unparsed 0.000 n=150
+  Llama-3.1-70B-Instruct direct_d6: acc 1.000/1.000 | flip 0.000 | different answer 0.000 | unparsed 0.000 n=150
+  OLMo-2-1124-7B-Instruct cot_d3: acc 0.993/0.993 | flip 0.013 | different answer 0.013 | unparsed 0.000 n=150
+  OLMo-2-1124-7B-Instruct cot_d6: acc 0.940/0.913 | flip 0.147 | different answer 0.147 | unparsed 0.000 n=150
+  OLMo-2-1124-7B-Instruct direct_d3: acc 0.420/0.360 | flip 0.740 | different answer 0.920 | unparsed 0.000 n=150
+  OLMo-2-1124-7B-Instruct direct_d6: acc 0.093/0.080 | flip 0.160 | different answer 0.693 | unparsed 0.007 n=150
+  Qwen2.5-72B-Instruct cot_d3: acc 1.000/1.000 | flip 0.000 | different answer 0.000 | unparsed 0.000 n=150
+  Qwen2.5-72B-Instruct cot_d6: acc 1.000/0.987 | flip 0.013 | different answer 0.013 | unparsed 0.000 n=150
+  Qwen2.5-72B-Instruct direct_d3: acc 1.000/1.000 | flip 0.000 | different answer 0.000 | unparsed 0.000 n=150
+  Qwen2.5-72B-Instruct direct_d6: acc 1.000/1.000 | flip 0.000 | different answer 0.000 | unparsed 0.000 n=150
+  Qwen2.5-7B-Instruct cot_d3: acc 1.000/1.000 | flip 0.000 | different answer 0.000 | unparsed 0.000 n=150
+  Qwen2.5-7B-Instruct cot_d6: acc 0.827/0.860 | flip 0.313 | different answer 0.313 | unparsed 0.000 n=150
+  Qwen2.5-7B-Instruct direct_d3: acc 0.960/1.000 | flip 0.040 | different answer 0.040 | unparsed 0.000 n=150
+  Qwen2.5-7B-Instruct direct_d6: acc 0.900/0.920 | flip 0.167 | different answer 0.167 | unparsed 0.000 n=150
+  C28: HIT (3 of 4 supported)
+== C29: frontier model via API, medication wording: flip >= 0.03 at depth 3 or 6 in either mode (unparsed < 0.20) for at least one frontier model
+  C29: NOT RUN
+-- exploratory: base vs chat-tuned (instruct) versions, flip rate (correct in exactly one order)
+  Qwen2.5-7B vartrack_d1: base flip 0.000 (acc 1.000)  instruct flip 0.017 (acc 0.992)
+  Qwen2.5-7B vartrack_d2: base flip 0.065 (acc 0.968)  instruct flip 0.117 (acc 0.942)
+  Qwen2.5-7B vartrack_d3: base flip 0.152 (acc 0.924)  instruct flip 0.177 (acc 0.912)
+  Qwen2.5-7B MMLU: acc 0.700  flip 0.155
+  Qwen2.5-7B-Instruct MMLU: acc 0.712  flip 0.135
+  OLMo-2-1124-7B vartrack_d1: base flip 0.053 (acc 0.970)  instruct flip 0.107 (acc 0.945)
+  OLMo-2-1124-7B vartrack_d2: base flip 0.213 (acc 0.877)  instruct flip 0.480 (acc 0.743)
+  OLMo-2-1124-7B vartrack_d3: base flip 0.392 (acc 0.786)  instruct flip 0.702 (acc 0.601)
+  OLMo-2-1124-7B MMLU: acc 0.614  flip 0.239
+  OLMo-2-1124-7B-Instruct MMLU: acc 0.590  flip 0.222
+== exploratory order statistics (/scratch/union_tmp); descriptive, not registered claims
+   strict = right in both orders; lenient = right in at least one; chance = flip rate expected by independence
+  ens (perturb)   OLMo-2-0325-32B main vartrack_d1: swap-ensemble vs original: fixed 10 broke 0 p=0.002 | swap-ens vs rename-ens: 7:0 p=0.016  n=600
+  ens (perturb)   OLMo-2-0325-32B main vartrack_d2: swap-ensemble vs original: fixed 53 broke 4 p=5.9e-12 | swap-ens vs rename-ens: 37:5 p=4.4e-07  n=600
+  ens (perturb)   OLMo-2-0325-32B main vartrack_d3: swap-ensemble vs original: fixed 114 broke 13 p=2.5e-21 | swap-ens vs rename-ens: 108:20 p=8.6e-16  n=600
+  ens (perturb)   OLMo-2-0425-1B main vartrack_d1: swap-ensemble vs original: fixed 58 broke 37 p=0.04 | swap-ens vs rename-ens: 65:63 p=0.93  n=600
+  ens (perturb)   OLMo-2-0425-1B main vartrack_d2: swap-ensemble vs original: fixed 95 broke 47 p=6.9e-05 | swap-ens vs rename-ens: 108:71 p=0.007  n=600
+  ens (perturb)   OLMo-2-0425-1B main vartrack_d3: swap-ensemble vs original: fixed 130 broke 88 p=0.0054 | swap-ens vs rename-ens: 146:107 p=0.017  n=600
+  ens (perturb)   OLMo-2-1124-13B main vartrack_d1: swap-ensemble vs original: fixed 6 broke 0 p=0.031 | swap-ens vs rename-ens: 2:1 p=1  n=600
+  ens (perturb)   OLMo-2-1124-13B main vartrack_d2: swap-ensemble vs original: fixed 17 broke 0 p=1.5e-05 | swap-ens vs rename-ens: 5:2 p=0.45  n=600
+  ens (perturb)   OLMo-2-1124-13B main vartrack_d3: swap-ensemble vs original: fixed 47 broke 11 p=2e-06 | swap-ens vs rename-ens: 35:15 p=0.0066  n=600
+  ens (perturb)   OLMo-2-1124-7B main vartrack_d1: swap-ensemble vs original: fixed 14 broke 0 p=0.00012 | swap-ens vs rename-ens: 11:2 p=0.022  n=600
+  ens (perturb)   OLMo-2-1124-7B main vartrack_d2: swap-ensemble vs original: fixed 59 broke 2 p=1.6e-15 | swap-ens vs rename-ens: 44:9 p=1.2e-06  n=600
+  ens (perturb)   OLMo-2-1124-7B main vartrack_d3: swap-ensemble vs original: fixed 104 broke 16 p=5.5e-17 | swap-ens vs rename-ens: 100:24 p=3.2e-12  n=600
+  ens (perturb)   OLMo-2-1124-7B-Instruct main vartrack_d1: swap-ensemble vs original: fixed 28 broke 1 p=1.1e-07 | swap-ens vs rename-ens: 10:5 p=0.3  n=600
+  ens (perturb)   OLMo-2-1124-7B-Instruct main vartrack_d2: swap-ensemble vs original: fixed 127 broke 12 p=2.1e-25 | swap-ens vs rename-ens: 124:19 p=4.4e-20  n=600
+  ens (perturb)   OLMo-2-1124-7B-Instruct main vartrack_d3: swap-ensemble vs original: fixed 178 broke 39 p=2.1e-22 | swap-ens vs rename-ens: 185:45 p=2.4e-21  n=600
+  ens (perturb)   Qwen2.5-14B main vartrack_d1: swap-ensemble vs original: fixed 1 broke 0 p=1 | swap-ens vs rename-ens: 0:0 p=1  n=600
+  ens (perturb)   Qwen2.5-14B main vartrack_d2: swap-ensemble vs original: fixed 3 broke 0 p=0.25 | swap-ens vs rename-ens: 0:0 p=1  n=600
+  ens (perturb)   Qwen2.5-14B main vartrack_d3: swap-ensemble vs original: fixed 5 broke 0 p=0.062 | swap-ens vs rename-ens: 2:0 p=0.5  n=600
+  ens (perturb)   Qwen2.5-32B main vartrack_d1: swap-ensemble vs original: fixed 0 broke 0 p=1 | swap-ens vs rename-ens: 0:0 p=1  n=600
+  ens (perturb)   Qwen2.5-32B main vartrack_d2: swap-ensemble vs original: fixed 0 broke 0 p=1 | swap-ens vs rename-ens: 0:0 p=1  n=600
+  ens (perturb)   Qwen2.5-32B main vartrack_d3: swap-ensemble vs original: fixed 3 broke 0 p=0.25 | swap-ens vs rename-ens: 1:0 p=1  n=600
+  ens (perturb)   Qwen2.5-72B main vartrack_d1: swap-ensemble vs original: fixed 0 broke 0 p=1 | swap-ens vs rename-ens: 0:0 p=1  n=600
+  ens (perturb)   Qwen2.5-72B main vartrack_d2: swap-ensemble vs original: fixed 0 broke 0 p=1 | swap-ens vs rename-ens: 0:0 p=1  n=600
+  ens (perturb)   Qwen2.5-72B main vartrack_d3: swap-ensemble vs original: fixed 1 broke 0 p=1 | swap-ens vs rename-ens: 0:0 p=1  n=600
+  ens (perturb)   Qwen2.5-72B-Instruct main vartrack_d1: swap-ensemble vs original: fixed 0 broke 0 p=1 | swap-ens vs rename-ens: 0:0 p=1  n=600
+  ens (perturb)   Qwen2.5-72B-Instruct main vartrack_d2: swap-ensemble vs original: fixed 0 broke 0 p=1 | swap-ens vs rename-ens: 0:0 p=1  n=600
+  ens (perturb)   Qwen2.5-72B-Instruct main vartrack_d3: swap-ensemble vs original: fixed 0 broke 0 p=1 | swap-ens vs rename-ens: 0:0 p=1  n=600
+  ens (perturb)   Qwen2.5-7B main vartrack_d1: swap-ensemble vs original: fixed 0 broke 0 p=1 | swap-ens vs rename-ens: 0:0 p=1  n=600
+  ens (perturb)   Qwen2.5-7B main vartrack_d2: swap-ensemble vs original: fixed 25 broke 0 p=6e-08 | swap-ens vs rename-ens: 4:0 p=0.12  n=600
+  ens (perturb)   Qwen2.5-7B main vartrack_d3: swap-ensemble vs original: fixed 53 broke 1 p=6.1e-15 | swap-ens vs rename-ens: 31:1 p=1.5e-08  n=600
+  ens (perturb)   Qwen2.5-7B-Instruct main vartrack_d1: swap-ensemble vs original: fixed 2 broke 0 p=0.5 | swap-ens vs rename-ens: 1:0 p=1  n=600
+  ens (perturb)   Qwen2.5-7B-Instruct main vartrack_d2: swap-ensemble vs original: fixed 42 broke 0 p=4.5e-13 | swap-ens vs rename-ens: 15:0 p=6.1e-05  n=600
+  ens (perturb)   Qwen2.5-7B-Instruct main vartrack_d3: swap-ensemble vs original: fixed 62 broke 1 p=1.4e-17 | swap-ens vs rename-ens: 45:1 p=1.3e-12  n=600
+  ens (perturb)   pythia-1.4b step143000 vartrack_d1: swap-ensemble vs original: fixed 65 broke 29 p=0.00026 | swap-ens vs rename-ens: 66:45 p=0.057  n=600
+  ens (perturb)   pythia-1.4b step143000 vartrack_d2: swap-ensemble vs original: fixed 83 broke 50 p=0.0053 | swap-ens vs rename-ens: 94:64 p=0.021  n=600
+  ens (perturb)   pythia-1.4b step143000 vartrack_d3: swap-ensemble vs original: fixed 73 broke 56 p=0.16 | swap-ens vs rename-ens: 83:79 p=0.81  n=600
+  ens (perturb)   pythia-12b step143000 vartrack_d1: swap-ensemble vs original: fixed 95 broke 23 p=1.4e-11 | swap-ens vs rename-ens: 94:28 p=1.6e-09  n=600
+  ens (perturb)   pythia-12b step143000 vartrack_d2: swap-ensemble vs original: fixed 103 broke 33 p=1.4e-09 | swap-ens vs rename-ens: 95:39 p=1.4e-06  n=600
+  ens (perturb)   pythia-12b step143000 vartrack_d3: swap-ensemble vs original: fixed 98 broke 55 p=0.00064 | swap-ens vs rename-ens: 100:65 p=0.0079  n=600
+  ens (perturb)   pythia-12b step32000 vartrack_d1: swap-ensemble vs original: fixed 112 broke 58 p=4.2e-05 | swap-ens vs rename-ens: 122:73 p=0.00055  n=600
+  ens (perturb)   pythia-12b step32000 vartrack_d2: swap-ensemble vs original: fixed 96 broke 40 p=1.7e-06 | swap-ens vs rename-ens: 86:50 p=0.0026  n=600
+  ens (perturb)   pythia-12b step32000 vartrack_d3: swap-ensemble vs original: fixed 75 broke 40 p=0.0014 | swap-ens vs rename-ens: 83:54 p=0.016  n=600
+  ens (perturb)   pythia-12b step64000 vartrack_d1: swap-ensemble vs original: fixed 123 broke 39 p=2.5e-11 | swap-ens vs rename-ens: 126:44 p=2.3e-10  n=600
+  ens (perturb)   pythia-12b step64000 vartrack_d2: swap-ensemble vs original: fixed 128 broke 40 p=6.2e-12 | swap-ens vs rename-ens: 119:51 p=1.9e-07  n=600
+  ens (perturb)   pythia-12b step64000 vartrack_d3: swap-ensemble vs original: fixed 81 broke 71 p=0.47 | swap-ens vs rename-ens: 84:89 p=0.76  n=600
+  ens (perturb)   pythia-410m step143000 vartrack_d1: swap-ensemble vs original: fixed 77 broke 54 p=0.054 | swap-ens vs rename-ens: 83:66 p=0.19  n=600
+  ens (perturb)   pythia-410m step143000 vartrack_d2: swap-ensemble vs original: fixed 98 broke 74 p=0.079 | swap-ens vs rename-ens: 103:89 p=0.35  n=600
+  ens (perturb)   pythia-410m step143000 vartrack_d3: swap-ensemble vs original: fixed 85 broke 68 p=0.2 | swap-ens vs rename-ens: 99:97 p=0.94  n=600
+  ens (perturb)   pythia-6.9b step143000 vartrack_d1: swap-ensemble vs original: fixed 35 broke 3 p=6.7e-08 | swap-ens vs rename-ens: 22:4 p=0.00053  n=600
+  ens (perturb)   pythia-6.9b step143000 vartrack_d2: swap-ensemble vs original: fixed 66 broke 16 p=2.3e-08 | swap-ens vs rename-ens: 47:32 p=0.11  n=600
+  ens (perturb)   pythia-6.9b step143000 vartrack_d3: swap-ensemble vs original: fixed 65 broke 45 p=0.07 | swap-ens vs rename-ens: 60:66 p=0.66  n=600
+  ens (perturb)   pythia-6.9b step32000 vartrack_d1: swap-ensemble vs original: fixed 75 broke 51 p=0.04 | swap-ens vs rename-ens: 80:86 p=0.7  n=600
+  ens (perturb)   pythia-6.9b step32000 vartrack_d2: swap-ensemble vs original: fixed 78 broke 55 p=0.056 | swap-ens vs rename-ens: 86:69 p=0.2  n=600
+  ens (perturb)   pythia-6.9b step32000 vartrack_d3: swap-ensemble vs original: fixed 72 broke 35 p=0.00045 | swap-ens vs rename-ens: 87:51 p=0.0028  n=600
+  ens (perturb)   pythia-6.9b step64000 vartrack_d1: swap-ensemble vs original: fixed 83 broke 21 p=6.7e-10 | swap-ens vs rename-ens: 74:35 p=0.00024  n=600
+  ens (perturb)   pythia-6.9b step64000 vartrack_d2: swap-ensemble vs original: fixed 100 broke 23 p=1.2e-12 | swap-ens vs rename-ens: 103:44 p=1.3e-06  n=600
+  ens (perturb)   pythia-6.9b step64000 vartrack_d3: swap-ensemble vs original: fixed 110 broke 50 p=2.4e-06 | swap-ens vs rename-ens: 117:67 p=0.00028  n=600
+  perturb_rename  OLMo-2-0325-32B main vartrack_d1: strict 0.957 lenient 1.000 | both-right 0.957 flip 0.043 both-wrong 0.000 | chance flip 0.042 (flip-chance +0.001) | Fisher p 1 OR 0.00  n=600
+  perturb_rename  OLMo-2-0325-32B main vartrack_d2: strict 0.838 lenient 0.967 | both-right 0.838 flip 0.128 both-wrong 0.033 | chance flip 0.176 (flip-chance -0.048) | Fisher p 3.3e-08 OR 6.84  n=600
+  perturb_rename  OLMo-2-0325-32B main vartrack_d3: strict 0.655 lenient 0.897 | both-right 0.655 flip 0.242 both-wrong 0.103 | chance flip 0.348 (flip-chance -0.106) | Fisher p 1.6e-12 OR 4.64  n=600
+  perturb_rename  OLMo-2-0425-1B main vartrack_d1: strict 0.592 lenient 0.890 | both-right 0.592 flip 0.298 both-wrong 0.110 | chance flip 0.385 (flip-chance -0.086) | Fisher p 1.2e-07 OR 2.96  n=600
+  perturb_rename  OLMo-2-0425-1B main vartrack_d2: strict 0.520 lenient 0.807 | both-right 0.520 flip 0.287 both-wrong 0.193 | chance flip 0.447 (flip-chance -0.160) | Fisher p 4.4e-18 OR 4.90  n=600
+  perturb_rename  OLMo-2-0425-1B main vartrack_d3: strict 0.427 lenient 0.612 | both-right 0.427 flip 0.185 both-wrong 0.388 | chance flip 0.500 (flip-chance -0.315) | Fisher p 1.7e-57 OR 19.72  n=600
+  perturb_rename  OLMo-2-1124-13B main vartrack_d1: strict 0.987 lenient 0.998 | both-right 0.987 flip 0.012 both-wrong 0.002 | chance flip 0.015 (flip-chance -0.003) | Fisher p 0.023 OR 98.67  n=600
+  perturb_rename  OLMo-2-1124-13B main vartrack_d2: strict 0.938 lenient 0.995 | both-right 0.938 flip 0.057 both-wrong 0.005 | chance flip 0.064 (flip-chance -0.008) | Fisher p 0.025 OR 5.86  n=600
+  perturb_rename  OLMo-2-1124-13B main vartrack_d3: strict 0.828 lenient 0.950 | both-right 0.828 flip 0.122 both-wrong 0.050 | chance flip 0.197 (flip-chance -0.076) | Fisher p 1.1e-14 OR 11.30  n=600
+  perturb_rename  OLMo-2-1124-7B main vartrack_d1: strict 0.950 lenient 0.988 | both-right 0.950 flip 0.038 both-wrong 0.012 | chance flip 0.060 (flip-chance -0.021) | Fisher p 2.5e-07 OR 30.23  n=600
+  perturb_rename  OLMo-2-1124-7B main vartrack_d2: strict 0.807 lenient 0.952 | both-right 0.807 flip 0.145 both-wrong 0.048 | chance flip 0.213 (flip-chance -0.068) | Fisher p 3.2e-11 OR 7.44  n=600
+  perturb_rename  OLMo-2-1124-7B main vartrack_d3: strict 0.677 lenient 0.882 | both-right 0.677 flip 0.205 both-wrong 0.118 | chance flip 0.344 (flip-chance -0.139) | Fisher p 1.5e-20 OR 7.68  n=600
+  perturb_rename  OLMo-2-1124-7B-Instruct main vartrack_d1: strict 0.903 lenient 0.990 | both-right 0.903 flip 0.087 both-wrong 0.010 | chance flip 0.101 (flip-chance -0.014) | Fisher p 0.0048 OR 4.81  n=600
+  perturb_rename  OLMo-2-1124-7B-Instruct main vartrack_d2: strict 0.632 lenient 0.883 | both-right 0.632 flip 0.252 both-wrong 0.117 | chance flip 0.369 (flip-chance -0.117) | Fisher p 1.1e-13 OR 4.86  n=600
+  perturb_rename  OLMo-2-1124-7B-Instruct main vartrack_d3: strict 0.503 lenient 0.707 | both-right 0.503 flip 0.203 both-wrong 0.293 | chance flip 0.478 (flip-chance -0.275) | Fisher p 2.7e-46 OR 14.29  n=600
+  perturb_rename  Qwen2.5-14B main vartrack_d1: strict 0.998 lenient 1.000 | both-right 0.998 flip 0.002 both-wrong 0.000 | chance flip 0.002 (flip-chance -0.000) | Fisher p 1 OR nan  n=600
+  perturb_rename  Qwen2.5-14B main vartrack_d2: strict 0.992 lenient 1.000 | both-right 0.992 flip 0.008 both-wrong 0.000 | chance flip 0.008 (flip-chance +0.000) | Fisher p 1 OR 0.00  n=600
+  perturb_rename  Qwen2.5-14B main vartrack_d3: strict 0.973 lenient 1.000 | both-right 0.973 flip 0.027 both-wrong 0.000 | chance flip 0.026 (flip-chance +0.000) | Fisher p 1 OR 0.00  n=600
+  perturb_rename  Qwen2.5-32B main vartrack_d1: strict 1.000 lenient 1.000 | both-right 1.000 flip 0.000 both-wrong 0.000 | chance flip 0.000 (flip-chance +0.000) | Fisher p 1 OR nan  n=600
+  perturb_rename  Qwen2.5-32B main vartrack_d2: strict 1.000 lenient 1.000 | both-right 1.000 flip 0.000 both-wrong 0.000 | chance flip 0.000 (flip-chance +0.000) | Fisher p 1 OR nan  n=600
+  perturb_rename  Qwen2.5-32B main vartrack_d3: strict 0.982 lenient 1.000 | both-right 0.982 flip 0.018 both-wrong 0.000 | chance flip 0.018 (flip-chance +0.000) | Fisher p 1 OR 0.00  n=600
+  perturb_rename  Qwen2.5-72B main vartrack_d1: strict 1.000 lenient 1.000 | both-right 1.000 flip 0.000 both-wrong 0.000 | chance flip 0.000 (flip-chance +0.000) | Fisher p 1 OR nan  n=600
+  perturb_rename  Qwen2.5-72B main vartrack_d2: strict 0.998 lenient 1.000 | both-right 0.998 flip 0.002 both-wrong 0.000 | chance flip 0.002 (flip-chance -0.000) | Fisher p 1 OR nan  n=600
+  perturb_rename  Qwen2.5-72B main vartrack_d3: strict 0.997 lenient 1.000 | both-right 0.997 flip 0.003 both-wrong 0.000 | chance flip 0.003 (flip-chance +0.000) | Fisher p 1 OR 0.00  n=600
+  perturb_rename  Qwen2.5-72B-Instruct main vartrack_d1: strict 1.000 lenient 1.000 | both-right 1.000 flip 0.000 both-wrong 0.000 | chance flip 0.000 (flip-chance +0.000) | Fisher p 1 OR nan  n=600
+  perturb_rename  Qwen2.5-72B-Instruct main vartrack_d2: strict 1.000 lenient 1.000 | both-right 1.000 flip 0.000 both-wrong 0.000 | chance flip 0.000 (flip-chance +0.000) | Fisher p 1 OR nan  n=600
+  perturb_rename  Qwen2.5-72B-Instruct main vartrack_d3: strict 0.998 lenient 1.000 | both-right 0.998 flip 0.002 both-wrong 0.000 | chance flip 0.002 (flip-chance -0.000) | Fisher p 1 OR nan  n=600
+  perturb_rename  Qwen2.5-7B main vartrack_d1: strict 0.998 lenient 1.000 | both-right 0.998 flip 0.002 both-wrong 0.000 | chance flip 0.002 (flip-chance -0.000) | Fisher p 1 OR nan  n=600
+  perturb_rename  Qwen2.5-7B main vartrack_d2: strict 0.935 lenient 1.000 | both-right 0.935 flip 0.065 both-wrong 0.000 | chance flip 0.063 (flip-chance +0.002) | Fisher p 1 OR 0.00  n=600
+  perturb_rename  Qwen2.5-7B main vartrack_d3: strict 0.843 lenient 0.985 | both-right 0.843 flip 0.142 both-wrong 0.015 | chance flip 0.157 (flip-chance -0.015) | Fisher p 0.032 OR 2.52  n=600
+  perturb_rename  Qwen2.5-7B-Instruct main vartrack_d1: strict 0.988 lenient 1.000 | both-right 0.988 flip 0.012 both-wrong 0.000 | chance flip 0.012 (flip-chance +0.000) | Fisher p 1 OR 0.00  n=600
+  perturb_rename  Qwen2.5-7B-Instruct main vartrack_d2: strict 0.892 lenient 0.997 | both-right 0.892 flip 0.105 both-wrong 0.003 | chance flip 0.106 (flip-chance -0.001) | Fisher p 0.69 OR 1.16  n=600
+  perturb_rename  Qwen2.5-7B-Instruct main vartrack_d3: strict 0.830 lenient 0.970 | both-right 0.830 flip 0.140 both-wrong 0.030 | chance flip 0.180 (flip-chance -0.040) | Fisher p 3.1e-06 OR 5.11  n=600
+  perturb_rename  pythia-1.4b step143000 vartrack_d1: strict 0.613 lenient 0.862 | both-right 0.613 flip 0.248 both-wrong 0.138 | chance flip 0.387 (flip-chance -0.139) | Fisher p 3.2e-17 OR 5.51  n=600
+  perturb_rename  pythia-1.4b step143000 vartrack_d2: strict 0.467 lenient 0.727 | both-right 0.467 flip 0.260 both-wrong 0.273 | chance flip 0.481 (flip-chance -0.221) | Fisher p 1.2e-29 OR 7.56  n=600
+  perturb_rename  pythia-1.4b step143000 vartrack_d3: strict 0.405 lenient 0.678 | both-right 0.405 flip 0.273 both-wrong 0.322 | chance flip 0.497 (flip-chance -0.223) | Fisher p 8e-29 OR 6.99  n=600
+  perturb_rename  pythia-12b step143000 vartrack_d1: strict 0.693 lenient 0.877 | both-right 0.693 flip 0.183 both-wrong 0.123 | chance flip 0.338 (flip-chance -0.154) | Fisher p 2.4e-25 OR 10.18  n=600
+  perturb_rename  pythia-12b step143000 vartrack_d2: strict 0.667 lenient 0.833 | both-right 0.667 flip 0.167 both-wrong 0.167 | chance flip 0.375 (flip-chance -0.208) | Fisher p 1.1e-38 OR 16.16  n=600
+  perturb_rename  pythia-12b step143000 vartrack_d3: strict 0.540 lenient 0.765 | both-right 0.540 flip 0.225 both-wrong 0.235 | chance flip 0.453 (flip-chance -0.228) | Fisher p 8.2e-35 OR 10.03  n=600
+  perturb_rename  pythia-12b step32000 vartrack_d1: strict 0.520 lenient 0.718 | both-right 0.520 flip 0.198 both-wrong 0.282 | chance flip 0.472 (flip-chance -0.273) | Fisher p 7.3e-47 OR 14.92  n=600
+  perturb_rename  pythia-12b step32000 vartrack_d2: strict 0.508 lenient 0.778 | both-right 0.508 flip 0.270 both-wrong 0.222 | chance flip 0.459 (flip-chance -0.189) | Fisher p 8.5e-24 OR 6.28  n=600
+  perturb_rename  pythia-12b step32000 vartrack_d3: strict 0.447 lenient 0.733 | both-right 0.447 flip 0.287 both-wrong 0.267 | chance flip 0.484 (flip-chance -0.197) | Fisher p 1.1e-23 OR 5.81  n=600
+  perturb_rename  pythia-12b step64000 vartrack_d1: strict 0.643 lenient 0.812 | both-right 0.643 flip 0.168 both-wrong 0.188 | chance flip 0.397 (flip-chance -0.228) | Fisher p 1.5e-42 OR 17.19  n=600
+  perturb_rename  pythia-12b step64000 vartrack_d2: strict 0.592 lenient 0.753 | both-right 0.592 flip 0.162 both-wrong 0.247 | chance flip 0.441 (flip-chance -0.279) | Fisher p 8.8e-55 OR 23.04  n=600
+  perturb_rename  pythia-12b step64000 vartrack_d3: strict 0.530 lenient 0.762 | both-right 0.530 flip 0.232 both-wrong 0.238 | chance flip 0.457 (flip-chance -0.226) | Fisher p 1.6e-33 OR 9.41  n=600
+  perturb_rename  pythia-410m step143000 vartrack_d1: strict 0.528 lenient 0.732 | both-right 0.528 flip 0.203 both-wrong 0.268 | chance flip 0.466 (flip-chance -0.263) | Fisher p 5.4e-44 OR 13.78  n=600
+  perturb_rename  pythia-410m step143000 vartrack_d2: strict 0.435 lenient 0.673 | both-right 0.435 flip 0.238 both-wrong 0.327 | chance flip 0.494 (flip-chance -0.256) | Fisher p 4.8e-38 OR 10.01  n=600
+  perturb_rename  pythia-410m step143000 vartrack_d3: strict 0.375 lenient 0.668 | both-right 0.375 flip 0.293 both-wrong 0.332 | chance flip 0.499 (flip-chance -0.206) | Fisher p 1.9e-24 OR 5.80  n=600
+  perturb_rename  pythia-6.9b step143000 vartrack_d1: strict 0.877 lenient 0.992 | both-right 0.877 flip 0.115 both-wrong 0.008 | chance flip 0.123 (flip-chance -0.008) | Fisher p 0.17 OR 2.21  n=600
+  perturb_rename  pythia-6.9b step143000 vartrack_d2: strict 0.740 lenient 0.928 | both-right 0.740 flip 0.188 both-wrong 0.072 | chance flip 0.277 (flip-chance -0.088) | Fisher p 1.5e-12 OR 6.02  n=600
+  perturb_rename  pythia-6.9b step143000 vartrack_d3: strict 0.607 lenient 0.880 | both-right 0.607 flip 0.273 both-wrong 0.120 | chance flip 0.382 (flip-chance -0.108) | Fisher p 2.4e-11 OR 3.90  n=600
+  perturb_rename  pythia-6.9b step32000 vartrack_d1: strict 0.540 lenient 0.780 | both-right 0.540 flip 0.240 both-wrong 0.220 | chance flip 0.449 (flip-chance -0.209) | Fisher p 5.9e-30 OR 8.45  n=600
+  perturb_rename  pythia-6.9b step32000 vartrack_d2: strict 0.535 lenient 0.775 | both-right 0.535 flip 0.240 both-wrong 0.225 | chance flip 0.452 (flip-chance -0.212) | Fisher p 3e-30 OR 8.39  n=600
+  perturb_rename  pythia-6.9b step32000 vartrack_d3: strict 0.442 lenient 0.725 | both-right 0.442 flip 0.283 both-wrong 0.275 | chance flip 0.486 (flip-chance -0.203) | Fisher p 1e-24 OR 6.07  n=600
+  perturb_rename  pythia-6.9b step64000 vartrack_d1: strict 0.673 lenient 0.898 | both-right 0.673 flip 0.225 both-wrong 0.102 | chance flip 0.337 (flip-chance -0.112) | Fisher p 4.5e-14 OR 5.42  n=600
+  perturb_rename  pythia-6.9b step64000 vartrack_d2: strict 0.590 lenient 0.850 | both-right 0.590 flip 0.260 both-wrong 0.150 | chance flip 0.404 (flip-chance -0.144) | Fisher p 2.1e-17 OR 5.34  n=600
+  perturb_rename  pythia-6.9b step64000 vartrack_d3: strict 0.492 lenient 0.773 | both-right 0.492 flip 0.282 both-wrong 0.227 | chance flip 0.465 (flip-chance -0.183) | Fisher p 8.1e-22 OR 5.62  n=600
+  perturb_swap    OLMo-2-0325-32B main vartrack_d1: strict 0.955 lenient 1.000 | both-right 0.955 flip 0.045 both-wrong 0.000 | chance flip 0.044 (flip-chance +0.001) | Fisher p 1 OR 0.00  n=600
+  perturb_swap    OLMo-2-0325-32B main vartrack_d2: strict 0.807 lenient 1.000 | both-right 0.807 flip 0.193 both-wrong 0.000 | chance flip 0.175 (flip-chance +0.019) | Fisher p 0.0038 OR 0.00  n=600
+  perturb_swap    OLMo-2-0325-32B main vartrack_d3: strict 0.575 lenient 0.983 | both-right 0.575 flip 0.408 both-wrong 0.017 | chance flip 0.344 (flip-chance +0.064) | Fisher p 1.4e-06 OR 0.23  n=600
+  perturb_swap    OLMo-2-0425-1B main vartrack_d1: strict 0.598 lenient 0.913 | both-right 0.598 flip 0.315 both-wrong 0.087 | chance flip 0.369 (flip-chance -0.054) | Fisher p 0.00056 OR 2.09  n=600
+  perturb_swap    OLMo-2-0425-1B main vartrack_d2: strict 0.408 lenient 0.917 | both-right 0.408 flip 0.508 both-wrong 0.083 | chance flip 0.447 (flip-chance +0.061) | Fisher p 0.00098 OR 0.53  n=600
+  perturb_swap    OLMo-2-0425-1B main vartrack_d3: strict 0.165 lenient 0.872 | both-right 0.165 flip 0.707 both-wrong 0.128 | chance flip 0.500 (flip-chance +0.207) | Fisher p 8.6e-25 OR 0.17  n=600
+  perturb_swap    OLMo-2-1124-13B main vartrack_d1: strict 0.977 lenient 0.998 | both-right 0.977 flip 0.022 both-wrong 0.002 | chance flip 0.025 (flip-chance -0.003) | Fisher p 0.09 OR 13.95  n=600
+  perturb_swap    OLMo-2-1124-13B main vartrack_d2: strict 0.947 lenient 0.998 | both-right 0.947 flip 0.052 both-wrong 0.002 | chance flip 0.054 (flip-chance -0.002) | Fisher p 0.35 OR 2.58  n=600
+  perturb_swap    OLMo-2-1124-13B main vartrack_d3: strict 0.805 lenient 0.990 | both-right 0.805 flip 0.185 both-wrong 0.010 | chance flip 0.184 (flip-chance +0.001) | Fisher p 1 OR 0.94  n=600
+  perturb_swap    OLMo-2-1124-7B main vartrack_d1: strict 0.943 lenient 0.997 | both-right 0.943 flip 0.053 both-wrong 0.003 | chance flip 0.058 (flip-chance -0.005) | Fisher p 0.098 OR 4.42  n=600
+  perturb_swap    OLMo-2-1124-7B main vartrack_d2: strict 0.770 lenient 0.983 | both-right 0.770 flip 0.213 both-wrong 0.017 | chance flip 0.216 (flip-chance -0.003) | Fisher p 0.71 OR 1.13  n=600
+  perturb_swap    OLMo-2-1124-7B main vartrack_d3: strict 0.590 lenient 0.982 | both-right 0.590 flip 0.392 both-wrong 0.018 | chance flip 0.337 (flip-chance +0.055) | Fisher p 2.9e-05 OR 0.28  n=600
+  perturb_swap    OLMo-2-1124-7B-Instruct main vartrack_d1: strict 0.892 lenient 0.998 | both-right 0.892 flip 0.107 both-wrong 0.002 | chance flip 0.104 (flip-chance +0.003) | Fisher p 1 OR 0.52  n=600
+  perturb_swap    OLMo-2-1124-7B-Instruct main vartrack_d2: strict 0.503 lenient 0.983 | both-right 0.503 flip 0.480 both-wrong 0.017 | chance flip 0.382 (flip-chance +0.098) | Fisher p 9.7e-12 OR 0.15  n=600
+  perturb_swap    OLMo-2-1124-7B-Instruct main vartrack_d3: strict 0.250 lenient 0.952 | both-right 0.250 flip 0.702 both-wrong 0.048 | chance flip 0.480 (flip-chance +0.222) | Fisher p 3.8e-32 OR 0.10  n=600
+  perturb_swap    Qwen2.5-14B main vartrack_d1: strict 0.998 lenient 1.000 | both-right 0.998 flip 0.002 both-wrong 0.000 | chance flip 0.002 (flip-chance -0.000) | Fisher p 1 OR nan  n=600
+  perturb_swap    Qwen2.5-14B main vartrack_d2: strict 0.990 lenient 1.000 | both-right 0.990 flip 0.010 both-wrong 0.000 | chance flip 0.010 (flip-chance +0.000) | Fisher p 1 OR 0.00  n=600
+  perturb_swap    Qwen2.5-14B main vartrack_d3: strict 0.980 lenient 1.000 | both-right 0.980 flip 0.020 both-wrong 0.000 | chance flip 0.020 (flip-chance +0.000) | Fisher p 1 OR 0.00  n=600
+  perturb_swap    Qwen2.5-32B main vartrack_d1: strict 1.000 lenient 1.000 | both-right 1.000 flip 0.000 both-wrong 0.000 | chance flip 0.000 (flip-chance +0.000) | Fisher p 1 OR nan  n=600
+  perturb_swap    Qwen2.5-32B main vartrack_d2: strict 0.998 lenient 1.000 | both-right 0.998 flip 0.002 both-wrong 0.000 | chance flip 0.002 (flip-chance -0.000) | Fisher p 1 OR nan  n=600
+  perturb_swap    Qwen2.5-32B main vartrack_d3: strict 0.985 lenient 1.000 | both-right 0.985 flip 0.015 both-wrong 0.000 | chance flip 0.015 (flip-chance +0.000) | Fisher p 1 OR 0.00  n=600
+  perturb_swap    Qwen2.5-72B main vartrack_d1: strict 1.000 lenient 1.000 | both-right 1.000 flip 0.000 both-wrong 0.000 | chance flip 0.000 (flip-chance +0.000) | Fisher p 1 OR nan  n=600
+  perturb_swap    Qwen2.5-72B main vartrack_d2: strict 1.000 lenient 1.000 | both-right 1.000 flip 0.000 both-wrong 0.000 | chance flip 0.000 (flip-chance +0.000) | Fisher p 1 OR nan  n=600
+  perturb_swap    Qwen2.5-72B main vartrack_d3: strict 0.998 lenient 1.000 | both-right 0.998 flip 0.002 both-wrong 0.000 | chance flip 0.002 (flip-chance -0.000) | Fisher p 1 OR nan  n=600
+  perturb_swap    Qwen2.5-72B-Instruct main vartrack_d1: strict 1.000 lenient 1.000 | both-right 1.000 flip 0.000 both-wrong 0.000 | chance flip 0.000 (flip-chance +0.000) | Fisher p 1 OR nan  n=600
+  perturb_swap    Qwen2.5-72B-Instruct main vartrack_d2: strict 1.000 lenient 1.000 | both-right 1.000 flip 0.000 both-wrong 0.000 | chance flip 0.000 (flip-chance +0.000) | Fisher p 1 OR nan  n=600
+  perturb_swap    Qwen2.5-72B-Instruct main vartrack_d3: strict 1.000 lenient 1.000 | both-right 1.000 flip 0.000 both-wrong 0.000 | chance flip 0.000 (flip-chance +0.000) | Fisher p 1 OR nan  n=600
+  perturb_swap    Qwen2.5-7B main vartrack_d1: strict 1.000 lenient 1.000 | both-right 1.000 flip 0.000 both-wrong 0.000 | chance flip 0.000 (flip-chance +0.000) | Fisher p 1 OR nan  n=600
+  perturb_swap    Qwen2.5-7B main vartrack_d2: strict 0.935 lenient 1.000 | both-right 0.935 flip 0.065 both-wrong 0.000 | chance flip 0.063 (flip-chance +0.002) | Fisher p 1 OR 0.00  n=600
+  perturb_swap    Qwen2.5-7B main vartrack_d3: strict 0.848 lenient 1.000 | both-right 0.848 flip 0.152 both-wrong 0.000 | chance flip 0.140 (flip-chance +0.011) | Fisher p 0.04 OR 0.00  n=600
+  perturb_swap    Qwen2.5-7B-Instruct main vartrack_d1: strict 0.983 lenient 1.000 | both-right 0.983 flip 0.017 both-wrong 0.000 | chance flip 0.017 (flip-chance +0.000) | Fisher p 1 OR 0.00  n=600
+  perturb_swap    Qwen2.5-7B-Instruct main vartrack_d2: strict 0.883 lenient 1.000 | both-right 0.883 flip 0.117 both-wrong 0.000 | chance flip 0.110 (flip-chance +0.007) | Fisher p 0.25 OR 0.00  n=600
+  perturb_swap    Qwen2.5-7B-Instruct main vartrack_d3: strict 0.823 lenient 1.000 | both-right 0.823 flip 0.177 both-wrong 0.000 | chance flip 0.162 (flip-chance +0.015) | Fisher p 0.016 OR 0.00  n=600
+  perturb_swap    pythia-1.4b step143000 vartrack_d1: strict 0.557 lenient 0.880 | both-right 0.557 flip 0.323 both-wrong 0.120 | chance flip 0.405 (flip-chance -0.082) | Fisher p 1.6e-06 OR 2.58  n=600
+  perturb_swap    pythia-1.4b step143000 vartrack_d2: strict 0.400 lenient 0.803 | both-right 0.400 flip 0.403 both-wrong 0.197 | chance flip 0.479 (flip-chance -0.076) | Fisher p 0.00012 OR 1.93  n=600
+  perturb_swap    pythia-1.4b step143000 vartrack_d3: strict 0.323 lenient 0.768 | both-right 0.323 flip 0.445 both-wrong 0.232 | chance flip 0.496 (flip-chance -0.051) | Fisher p 0.013 OR 1.52  n=600
+  perturb_swap    pythia-12b step143000 vartrack_d1: strict 0.567 lenient 0.980 | both-right 0.567 flip 0.413 both-wrong 0.020 | chance flip 0.351 (flip-chance +0.063) | Fisher p 4.1e-06 OR 0.27  n=600
+  perturb_swap    pythia-12b step143000 vartrack_d2: strict 0.508 lenient 0.965 | both-right 0.508 flip 0.457 both-wrong 0.035 | chance flip 0.388 (flip-chance +0.069) | Fisher p 8.3e-06 OR 0.34  n=600
+  perturb_swap    pythia-12b step143000 vartrack_d3: strict 0.408 lenient 0.893 | both-right 0.408 flip 0.485 both-wrong 0.107 | chance flip 0.455 (flip-chance +0.030) | Fisher p 0.11 OR 0.74  n=600
+  perturb_swap    pythia-12b step32000 vartrack_d1: strict 0.315 lenient 0.907 | both-right 0.315 flip 0.592 both-wrong 0.093 | chance flip 0.476 (flip-chance +0.116) | Fisher p 1.5e-09 OR 0.34  n=600
+  perturb_swap    pythia-12b step32000 vartrack_d2: strict 0.422 lenient 0.852 | both-right 0.422 flip 0.430 both-wrong 0.148 | chance flip 0.463 (flip-chance -0.033) | Fisher p 0.093 OR 1.36  n=600
+  perturb_swap    pythia-12b step32000 vartrack_d3: strict 0.398 lenient 0.817 | both-right 0.398 flip 0.418 both-wrong 0.183 | chance flip 0.477 (flip-chance -0.059) | Fisher p 0.0027 OR 1.67  n=600
+  perturb_swap    pythia-12b step64000 vartrack_d1: strict 0.475 lenient 0.982 | both-right 0.475 flip 0.507 both-wrong 0.018 | chance flip 0.396 (flip-chance +0.111) | Fisher p 1.2e-13 OR 0.14  n=600
+  perturb_swap    pythia-12b step64000 vartrack_d2: strict 0.422 lenient 0.950 | both-right 0.422 flip 0.528 both-wrong 0.050 | chance flip 0.432 (flip-chance +0.096) | Fisher p 2.4e-08 OR 0.31  n=600
+  perturb_swap    pythia-12b step64000 vartrack_d3: strict 0.417 lenient 0.873 | both-right 0.417 flip 0.457 both-wrong 0.127 | chance flip 0.458 (flip-chance -0.001) | Fisher p 1 OR 1.01  n=600
+  perturb_swap    pythia-410m step143000 vartrack_d1: strict 0.395 lenient 0.847 | both-right 0.395 flip 0.452 both-wrong 0.153 | chance flip 0.471 (flip-chance -0.020) | Fisher p 0.34 OR 1.19  n=600
+  perturb_swap    pythia-410m step143000 vartrack_d2: strict 0.307 lenient 0.837 | both-right 0.307 flip 0.530 both-wrong 0.163 | chance flip 0.491 (flip-chance +0.039) | Fisher p 0.055 OR 0.72  n=600
+  perturb_swap    pythia-410m step143000 vartrack_d3: strict 0.308 lenient 0.783 | both-right 0.308 flip 0.475 both-wrong 0.217 | chance flip 0.496 (flip-chance -0.021) | Fisher p 0.32 OR 1.19  n=600
+  perturb_swap    pythia-6.9b step143000 vartrack_d1: strict 0.878 lenient 0.997 | both-right 0.878 flip 0.118 both-wrong 0.003 | chance flip 0.117 (flip-chance +0.001) | Fisher p 1 OR 0.84  n=600
+  perturb_swap    pythia-6.9b step143000 vartrack_d2: strict 0.705 lenient 0.970 | both-right 0.705 flip 0.265 both-wrong 0.030 | chance flip 0.272 (flip-chance -0.007) | Fisher p 0.55 OR 1.21  n=600
+  perturb_swap    pythia-6.9b step143000 vartrack_d3: strict 0.552 lenient 0.902 | both-right 0.552 flip 0.350 both-wrong 0.098 | chance flip 0.398 (flip-chance -0.048) | Fisher p 0.004 OR 1.78  n=600
+  perturb_swap    pythia-6.9b step32000 vartrack_d1: strict 0.415 lenient 0.862 | both-right 0.415 flip 0.447 both-wrong 0.138 | chance flip 0.462 (flip-chance -0.015) | Fisher p 0.43 OR 1.15  n=600
+  perturb_swap    pythia-6.9b step32000 vartrack_d2: strict 0.432 lenient 0.862 | both-right 0.432 flip 0.430 both-wrong 0.138 | chance flip 0.457 (flip-chance -0.027) | Fisher p 0.15 OR 1.29  n=600
+  perturb_swap    pythia-6.9b step32000 vartrack_d3: strict 0.413 lenient 0.787 | both-right 0.413 flip 0.373 both-wrong 0.213 | chance flip 0.481 (flip-chance -0.108) | Fisher p 4.3e-08 OR 2.57  n=600
+  perturb_swap    pythia-6.9b step64000 vartrack_d1: strict 0.620 lenient 0.962 | both-right 0.620 flip 0.342 both-wrong 0.038 | chance flip 0.331 (flip-chance +0.011) | Fisher p 0.46 OR 0.82  n=600
+  perturb_swap    pythia-6.9b step64000 vartrack_d2: strict 0.520 lenient 0.927 | both-right 0.520 flip 0.407 both-wrong 0.073 | chance flip 0.401 (flip-chance +0.005) | Fisher p 0.76 OR 0.93  n=600
+  perturb_swap    pythia-6.9b step64000 vartrack_d3: strict 0.370 lenient 0.880 | both-right 0.370 flip 0.510 both-wrong 0.120 | chance flip 0.469 (flip-chance +0.041) | Fisher p 0.036 OR 0.68  n=600
+  swaptest        pythia-12b step16000 vartrack_d1: strict 0.268 lenient 0.798 | both-right 0.268 flip 0.530 both-wrong 0.202 | chance flip 0.498 (flip-chance +0.032) | Fisher p 0.12 OR 0.77  n=600
+  swaptest        pythia-12b step16000 vartrack_d2: strict 0.303 lenient 0.773 | both-right 0.303 flip 0.470 both-wrong 0.227 | chance flip 0.497 (flip-chance -0.027) | Fisher p 0.19 OR 1.25  n=600
+  swaptest        pythia-12b step16000 vartrack_d3: strict 0.315 lenient 0.717 | both-right 0.315 flip 0.402 both-wrong 0.283 | chance flip 0.500 (flip-chance -0.099) | Fisher p 1.3e-06 OR 2.24  n=600
+  swaptest        pythia-12b step32000 vartrack_d1: strict 0.315 lenient 0.907 | both-right 0.315 flip 0.592 both-wrong 0.093 | chance flip 0.476 (flip-chance +0.116) | Fisher p 1.5e-09 OR 0.34  n=600
+  swaptest        pythia-12b step32000 vartrack_d2: strict 0.422 lenient 0.852 | both-right 0.422 flip 0.430 both-wrong 0.148 | chance flip 0.463 (flip-chance -0.033) | Fisher p 0.093 OR 1.36  n=600
+  swaptest        pythia-12b step32000 vartrack_d3: strict 0.398 lenient 0.817 | both-right 0.398 flip 0.418 both-wrong 0.183 | chance flip 0.477 (flip-chance -0.059) | Fisher p 0.0027 OR 1.67  n=600
+  swaptest        pythia-12b step64000 vartrack_d1: strict 0.475 lenient 0.982 | both-right 0.475 flip 0.507 both-wrong 0.018 | chance flip 0.396 (flip-chance +0.111) | Fisher p 1.2e-13 OR 0.14  n=600
+  swaptest        pythia-12b step64000 vartrack_d2: strict 0.422 lenient 0.950 | both-right 0.422 flip 0.528 both-wrong 0.050 | chance flip 0.432 (flip-chance +0.096) | Fisher p 2.4e-08 OR 0.31  n=600
+  swaptest        pythia-12b step64000 vartrack_d3: strict 0.417 lenient 0.873 | both-right 0.417 flip 0.457 both-wrong 0.127 | chance flip 0.458 (flip-chance -0.001) | Fisher p 1 OR 1.01  n=600
+  swaptest        pythia-6.9b step16000 vartrack_d1: strict 0.260 lenient 0.797 | both-right 0.260 flip 0.537 both-wrong 0.203 | chance flip 0.498 (flip-chance +0.038) | Fisher p 0.071 OR 0.73  n=600
+  swaptest        pythia-6.9b step16000 vartrack_d2: strict 0.257 lenient 0.775 | both-right 0.257 flip 0.518 both-wrong 0.225 | chance flip 0.500 (flip-chance +0.018) | Fisher p 0.41 OR 0.86  n=600
+  swaptest        pythia-6.9b step16000 vartrack_d3: strict 0.247 lenient 0.770 | both-right 0.247 flip 0.523 both-wrong 0.230 | chance flip 0.500 (flip-chance +0.023) | Fisher p 0.29 OR 0.83  n=600
+  swaptest        pythia-6.9b step32000 vartrack_d1: strict 0.415 lenient 0.862 | both-right 0.415 flip 0.447 both-wrong 0.138 | chance flip 0.462 (flip-chance -0.015) | Fisher p 0.43 OR 1.15  n=600
+  swaptest        pythia-6.9b step32000 vartrack_d2: strict 0.432 lenient 0.862 | both-right 0.432 flip 0.430 both-wrong 0.138 | chance flip 0.457 (flip-chance -0.027) | Fisher p 0.15 OR 1.29  n=600
+  swaptest        pythia-6.9b step32000 vartrack_d3: strict 0.413 lenient 0.787 | both-right 0.413 flip 0.373 both-wrong 0.213 | chance flip 0.481 (flip-chance -0.108) | Fisher p 4.3e-08 OR 2.57  n=600
+  swaptest        pythia-6.9b step64000 vartrack_d1: strict 0.620 lenient 0.962 | both-right 0.620 flip 0.342 both-wrong 0.038 | chance flip 0.331 (flip-chance +0.011) | Fisher p 0.46 OR 0.82  n=600
+  swaptest        pythia-6.9b step64000 vartrack_d2: strict 0.520 lenient 0.927 | both-right 0.520 flip 0.407 both-wrong 0.073 | chance flip 0.401 (flip-chance +0.005) | Fisher p 0.76 OR 0.93  n=600
+  swaptest        pythia-6.9b step64000 vartrack_d3: strict 0.370 lenient 0.880 | both-right 0.370 flip 0.510 both-wrong 0.120 | chance flip 0.469 (flip-chance +0.041) | Fisher p 0.036 OR 0.68  n=600

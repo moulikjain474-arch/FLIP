@@ -1,0 +1,26 @@
+perturbations ok
+filler ok
+story ok
+code ok
+chain spans ok
+format checks ok
+single-chain control ok
+extra stats ok
+confidence gate and claims ok
+flip_check ok
+figures and numbers ok
+position decomposition ok
+chain probe labels ok
+plant margin ok
+plant control report ok
+score c24 c25 ok
+med ok
+gen selftest ok
+  direct_d3 10/20
+  direct_d3 20/20
+direct_d3 {'acc_orig': 0.55, 'acc_swapped': 0.45, 'flip': 1.0, 'different_answer': 1.0, 'unparsed': 0.0, 'n': 20}
+direct_d3 {'acc_orig': 0.55, 'acc_swapped': 0.45, 'flip': 1.0, 'different_answer': 1.0, 'unparsed': 0.0, 'n': 20}
+frontier med selftest ok
+score c26 ok
+stats ok
+benchmark selftest ok

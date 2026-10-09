@@ -1,0 +1,9 @@
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+  4/4
+  4/4
+direct_d3 {'acc_orig': 0.0, 'acc_swapped': 0.0, 'flip': 0.0, 'different_answer': 0.75, 'unparsed': 0.0, 'n': 4}
+  example: '3'
+  4/4
+  4/4
+cot_d3 {'acc_orig': 0.25, 'acc_swapped': 0.25, 'flip': 0.5, 'different_answer': 0.5, 'unparsed': 0.0, 'n': 4}
+  example: 'To determine how much insulin glargine patient Ana takes, we need to follow these steps:\n\n1. Identify the doses taken by each patient:\n   - Ned: 1 mg\n   - Ravi: 1 mg\n   - Zoe: 1 mg\n   - Liz: 1 mg\n   -'

@@ -11,7 +11,11 @@ Language models often answer by where a fact sits, not what it says.
 2. **It forms during training.** Across Pythia and OLMo checkpoints the shortcut appears early, reverses direction,
    and is still present in the final models (figure: position_over_training.png). C30 asks when the model first
    reads which chain the question points at, versus when a small learned subspace first controls the answer
-   (Pythia-6.9B, six checkpoints). [after run: C30]
+   (Pythia-6.9B, six checkpoints).
+   Result: the registered C30 is a MISS (the chain probe was already at 1.000 at the first registered checkpoint, step 4000).
+   Early checkpoints added afterwards (exploratory) show readable before used on 6.9B: the probe is at 0.97 or more by
+   step 2000 while planting in the learned subspace moves the answer by at most +0.03, and by +0.27 (d1) at step 4000.
+   The same ladder on Pythia-1.4B is a MISS. One training run per size, so this is not a seed result.
 3. **A fix that beats an equal-cost control.** Asking in both orders: 60% -> 84% correct. Asking twice with renamed
    variables (same cost): 60%. Exact McNemar p = 2e-21.
 
@@ -28,15 +32,18 @@ located where the computation happens.
 ## Answers to the obvious attacks
 - **Toy task / 72B is perfect.** A controlled task is what makes exact measurement possible. Harder depths (C27),
   medication-record wording (C26), and real benchmarks: Qwen2.5-72B still changes 10% of MMLU answers when the
-  options are reordered. [after run: C26, C27]
+  options are reordered. C26 (medication wording, depth 3) is a MISS: 3 of 7 models, because four are at the ceiling
+  (accuracy 1.000 or 0.998). C27 (harder depths) is a HIT: Qwen2.5-72B-Instruct at depth 9 flips 8.0% of answers and
+  both orders gain +0.037 [+0.026, +0.048].
 - **Just asking twice.** The equal-cost control (rename and ask twice) does not help; reordering does.
 - **Order errors vs knowledge errors (exploratory, post hoc).** On the controlled task, order errors are nearly all
   of a strong model's errors (the two-order check catches 100% of Qwen2.5-7B-Instruct's depth-3 errors while
   flagging 18% of questions). On MMLU they are a minority (at least 21-34% of errors). This is why the fix adds
   about +23 points on the controlled task but about +2 on MMLU. The flag says "check this", not which answer is right.
 - **Chain-of-thought.** C28 tests generated answers with step-by-step reasoning, including
-  DeepSeek-R1-Distill-Llama-8B. [after run]
-- **Frontier models.** C29 (frontier_med.py) if API access is available. [after run]
+  DeepSeek-R1-Distill-Llama-8B. Result: C28 HIT, 3 of 4 models supported (per-model rows in
+  results/final_9oct/score_union_final.txt).
+- **Frontier models.** C21 and C29 were NOT RUN (they need the author's own API key). No frontier-model result is claimed.
 
 ## How far each claim goes (evidence ladder)
 | Rung | Question | Evidence | Where it stops |
@@ -58,7 +65,14 @@ changed after a result was seen. Every claim is reported, hit or miss.
 - The "error check" on MMLU is a lower bound: only 21-34% of MMLU errors are order errors, and the flag says "check",
   not which answer is right. It is exploratory and lives in the appendix.
 - Mistral-7B-v0.1 did not complete the medication-wording run on 9 Oct; it is not one of the C26 models.
-- [after run: every 9 Oct miss, with what it taught]
+- C9: nine 410M runs mostly agree (step 16000: 1 later, 5 first; step 64000: 1 later, 4 first), so a seed-dependent
+  direction is not supported. The direction is not universal across size, family and depth, so it is reported per
+  condition, never as "models pick the later chain".
+- C25 (ARC, 6 of 10): the four Qwen2.5 models that miss are accurate on ARC and the gain interval includes 0.
+- C26 (3 of 7): four models are at the ceiling at depth 3; C27 repeats the test at depth 9, where it is a HIT.
+- C30 (registered ladder): the probe was already at 1.000 at the first registered step. The early-step extension is
+  exploratory, agrees on 6.9B and disagrees on 1.4B.
+- Not run: C21, C29 (API key), the SAE pilot (Gemma access), a usable value probe (random-init baseline).
 
 ## Limits we state
 - Synthetic tasks make exact measurement possible; they do not show the same rate in real documents.

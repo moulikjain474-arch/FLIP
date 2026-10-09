@@ -1,0 +1,6 @@
+es the same haloperidol dose as patient Mia.
+Patient Ned takes 7 mg of haloperidol. Patient Kai takes the same haloperidol dose as patient Ned.
+Q: How many mg of haloperidol does patient Raj take?
+A:
+ ->2
+med_d1 {'strict': 0.025, 'lenient': 0.975, 'both_right': 0.025, 'both_wrong': 0.025, 'flip_share': 0.95, 'flip_chance': 0.511, 'flip_minus_chance': 0.439, 'fisher_odds': 0.003, 'fisher_p': 0.0, 'ens_fixed': 12, 'ens_broke': 8, 'mcnemar_p': 0.503, 'acc_orig': 0.425, 'acc_swapped': 0.575, 'acc_single_mean': 0.5, 'acc_both': 0.525, 'gain': 0.025, 'gain_lo': -0.125, 'gain_hi': 0.175, 'flip': 0.95, 'same_answer': 0.05, 'n': 40, 'distractor_rate': 0.5, 'picks_later': 0.975, 'picks_later_n': 80, 'picks_later_lo': 0.913, 'picks_later_hi': 0.993}

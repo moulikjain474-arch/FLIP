@@ -1,0 +1,8 @@
+model | wrong (orig) | caught by flip check | flagged share
+Mistral-7B-v0.1           39.5%   33.7%   30.2%
+OLMo-2-0325-32B           26.2%   34.4%   22.2%
+OLMo-2-1124-7B-Instruct   41.0%   25.4%   22.2%
+OLMo-2-1124-7B            38.6%   26.7%   23.9%
+Qwen2.5-72B               17.5%   22.9%   10.1%
+Qwen2.5-7B-Instruct       28.8%   21.2%   13.5%
+Qwen2.5-7B                30.0%   26.0%   15.5%

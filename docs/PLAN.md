@@ -43,8 +43,8 @@ A miss changes a sentence, not the project.
 0. Isn't this already known? (About 20 seconds:) "Close papers exist, and so is the fix.
    Combining several orders is permutation self-consistency (Tang et al. 2023); position effects
    changing during training are studied in small models (Mistry 2025, Salvatore 2025). Four more: Ravulapalli & Chadha
-   measured how MANY bindings finished models hold; I measure WHICH one a model picks when
-   unsure and how that changes. Gur-Arieh et al. showed finished models retrieve mainly by
+   measured how MANY bindings finished models hold; I measure WHICH one a model picks
+   and how that changes. Gur-Arieh et al. showed finished models retrieve mainly by
    position; I show how that positional preference forms and flips during pretraining.
    Wu, Geiger & Milliere found a position heuristic that appears once and is replaced in
    small models trained from scratch; in real pretrained models it reverses repeatedly and

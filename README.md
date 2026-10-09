@@ -19,9 +19,15 @@ model does before it can reliably pick the right chain, where inside the network
 answer is decided, and how much the answer depends on something that should not matter:
 the order in which the two chains are written.
 
+## Final scoring (9 Oct 2026)
+
+All registered claims C8-C30 are scored in [docs/RESULTS_FINAL.md](docs/RESULTS_FINAL.md): 16 HIT, 5 MISS (C9, C22,
+C25, C26, C30 as registered), 2 NOT RUN (C21, C29). Raw outputs are in `results/final_9oct/`. The numbers in the
+section below are from the 1 Oct session and are being re-checked against these results.
+
 ## Main results (1 Oct 2026; details in [EXPERIMENTS.md](EXPERIMENTS.md))
 
-1. **Position shortcuts that flip.** When unsure, models take the chain that comes first
+1. **Position shortcuts that flip.** Models take the chain that comes first
    or the one that comes last, and which one keeps changing during training (5
    statistically significant reversals over 24 checkpoints of Pythia-1.4B, up to 4 in
    6.9B; 1.4B-deduped instead keeps a first-chain habit at depths 2-3). The flips are not
@@ -117,7 +123,7 @@ controls and generalisation tests C12-C20, all registered before those runs and 
 | Commit layer as a fraction of depth (exploratory) | `commit_depth.py` | printed |
 | Numerical-noise check, two batch sizes (exploratory) | `noise_check.py` | `noise/*.json` |
 | Extra GPU runs: attention across training, noise check | `run_extra.sh` | `attention/`, `noise/` |
-| Order effect concentrates where the model is unsure (registered C22) | `uncertainty_gate.py` (`run_c22_c23.sh`) | `uncertainty/*.json` |
+| Order effect concentrates where the model is unsure (registered C22; MISS, 1 of 2 models) | `uncertainty_gate.py` (`run_c22_c23.sh`) | `uncertainty/*.json` |
 | Order effect on a freshly drawn question set (registered C23) | `perturb_test.py --seed 1` (`run_c22_c23.sh`) | `perturb_seed1/*.json` |
 | Which chain is picked in each order, by confidence (exploratory, post hoc) | `position_decomposition.py` (`run_decomp.sh`) | `decomp/*.json` |
 | Check any model's order sensitivity with one command | `flip_check.py` | printed report |
@@ -150,7 +156,7 @@ Always use `--layout blocked` (the default everywhere except the earlier `sweep.
   only if it is larger than the 410M seed spread (0.31 to 0.69).
 - Related work, and how FLIP differs:
   - Ravulapalli & Chadha 2026: how many bindings finished models hold (capacity). FLIP:
-    which binding a model picks when unsure, and how that changes during training.
+    which binding a model picks, and how that changes during training.
   - Gur-Arieh et al. 2026: finished models retrieve bindings mainly by position. FLIP: how
     that positional preference forms and flips during pretraining.
   - Wu, Geiger & Milliere 2025: in small models trained from scratch, a position heuristic

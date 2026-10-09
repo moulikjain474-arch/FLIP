@@ -38,7 +38,7 @@ instruction, and registered its claims in advance of the replication runs.
 i, _ = block(s, "## 3. Innovation (50-100 words)", "\n")
 s = s[:i] + """## 2b. Related work (full paper; not part of the IRIS word limits)
 Ravulapalli & Chadha (2026) measured how many bindings finished models can hold; FLIP asks which
-binding a model picks when unsure, and how that changes during training. Gur-Arieh et al. (2026)
+binding a model picks, and how that changes during training. Gur-Arieh et al. (2026)
 showed that finished models retrieve bindings mainly by position; FLIP shows how that positional
 preference forms and reverses during pretraining. Wu, Geiger & Milliere (2025) found that small
 models trained from scratch on this task pass through a position heuristic that appears once and

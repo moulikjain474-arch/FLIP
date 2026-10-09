@@ -2,7 +2,7 @@
 Placeholders in [BRACKETS] must be filled from the scored results. Nothing here states a result.
 
 ## One-sentence question
-How do language models choose between competing variable chains when unsure, how does that choice change during
+How do language models choose between competing variable chains, how does that choice change during
 pretraining, where in the network is it decided, and what does it cost?
 
 ## Three findings (J3). Fill each from the scored results; if a registered claim missed, say so and reword.

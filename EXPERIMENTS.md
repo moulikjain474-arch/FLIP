@@ -345,6 +345,54 @@ describe; where the data already existed, that is stated.
   and for the best 5 heads together. A flat map (no head matters alone) is reported as such. No threshold.
 - Not done: the frontier-model test C29 (needs an API key).
 
+## 4o. Added 9 Oct 2026, AFTER results were seen (all exploratory, none registered in advance)
+
+These analyses were added in the evening of 9 Oct 2026 (about 17:00 to 19:30 IST), after the main run, A1 to A6 and the C30
+ladder had finished and been read. None has a pre-set threshold except where stated. They are reported as post hoc.
+
+- **C30 stays MISS as registered.** The registered ladder (steps 4000 to 143000) found the chain-identity probe already at
+  1.000 at the first step. Early steps (0, 256, 512, 1000, 2000) were then added to find the onset (ladder_report_all.py).
+  That extended report is exploratory and is not a replacement verdict.
+- **Random-init and early baselines.** Chain probe and value probe at step 0 and steps 256 to 2000. The value probe was found
+  to score about 0.35 at random init and unchanged at step 512, so it is uninformative; its queue was stopped early and its
+  results are not used as evidence.
+- **Norm-matched plant control (plant_normmatch.py).** Pythia-6.9B step 143000, layer 22, d1 (also d3 and layer 16 where run).
+  Controls push the state by the same per-item norm as the learned plant, in a random whole-space direction and in a random
+  direction inside the learned subspace. Added because the same-rank random-subspace control may be trivially small.
+- **Early-vs-final prediction (seed_predict.py)** on the nine 410M seeds (seed 4 absent from these files).
+- **Stability tables (stability_table.py).** The first-or-last share across models, seeds, checkpoints and layouts. The
+  layouts differ between result folders; a layout-matched matrix (run_extra4.sh) was added to fix that.
+- **Per-seed steering on the 410M seeds (run_extra3.sh), a Mamba behavioural test (mamba_position.py), fresh-question
+  replication (perturb_test --seed 1) and a seed-1 replication of the early onset (run_extra5.sh).**
+- **Error-catching and ensemble comparisons (error_catch.py, extra_stats.py).** The swap-ensemble versus rename-ensemble
+  McNemar tests and the flag-on-disagreement analysis are post hoc. Many tests were run; only very small p-values are quoted.
+- **SAE pilot (sae_pilot.py), NOT RUN.** Gemma-2-2B access was pending at the time of writing. Decision rule fixed in the
+  script docstring before any run: GO needs AUROC >= 0.60 for the SAE swap change, >= 0.05 above the rename control with a
+  bootstrap lower bound above 0, and no worse than the raw-residual change by more than 0.02, on >= 40 flipped questions.
+- Not done: the frontier-model test C29 (needs the author's own API key).
+
+## 4p. Final scored results, 9 Oct 2026 (union of both node days; nothing here changes a threshold)
+
+Scored once, on the combined folder (earlier day `results_08Oct/merged` plus the 9 Oct run, copied without overwriting),
+with `python3 score_new.py --dir <union>`. C30 is scored by `ladder_report.py` / `ladder_report_all.py`. Full table, per-model
+numbers and caveats: `docs/RESULTS_FINAL.md`. Raw outputs: `results/final_9oct/` (hashes in SHA256SUMS).
+
+- **HIT (16):** C8, C10, C11, C12, C13, C14, C15, C16, C17, C18, C19, C20, C23, C24, C27, C28.
+- **MISS (5), reported as misses:**
+  - C9: nine 410M runs, depth 3, step 16000: L=1 F=5; step 64000: L=1 F=4 (needed at least 2 L and 2 F).
+  - C22: supported in Pythia-6.9B (low/high-confidence flip ratio 2.76, Fisher p = 1.24e-08), not in 12B (ratio 1.16,
+    p = 0.193). The wording "when unsure" is therefore removed from every text, as section 4f says.
+  - C25: ARC-Challenge, 6 of 10 models supported (the four Qwen2.5 models 7B, 7B-Instruct, 32B and 72B have a gain interval that includes 0).
+  - C26: medication wording at depth 3, 3 of 7 models supported (four of the seven are at the ceiling: accuracy 1.000 or 0.998, flip 0.000 to 0.002).
+    The ceiling is a post hoc reading; the rule stands. C27 was registered for harder depths and is a HIT (Qwen2.5-72B-Instruct, depth 9: flip 0.080, gain +0.037 [+0.026, +0.048]).
+  - C30: the registered ladder (steps 4000 to 143000) found the chain probe already at 1.000 at its first step. Early steps
+    (0 to 2000) were added afterwards (exploratory): on 6.9B they give HIT on two question samples; the Pythia-1.4B ladder is a MISS.
+- **NOT RUN (2):** C21 and C29 (frontier models via API need the author's own API key). The SAE pilot was also not run
+  (Gemma-2-2B access never granted).
+- Post hoc, exploratory, labelled as such in docs/RESULTS_FINAL.md: onset of chain readability across nine 410M runs, the
+  6.9B ladder on a fresh question sample, norm-matched and out-of-distribution plant checks, the black-box baseline for the
+  two-order flag. The value probe was uninformative (random-init baseline) and is not used as evidence.
+
 ## 5. Statistics
 - Holm correction across all C4 primary tests (every model x checkpoint x depth run), and
   separately across all C4b primary tests.
@@ -625,3 +673,5 @@ describe; where the data already existed, that is stated.
 - 9 Oct 2026 ~02:00 IST: registered C29 (section 4l) before any frontier run. Thresholds not changed afterwards.
 - 9 Oct 2026 ~13:40 IST: registered C30 and audits A1-A3 (section 4m) while the 12-hour run was in progress. Thresholds not changed afterwards.
 - 9 Oct 2026 ~14:40 IST: registered A5 and ladder extensions (section 4n) before the queue started. Thresholds not changed afterwards.
+- 9 Oct 2026 evening IST: recorded section 4o. These analyses were added after results were seen and are exploratory.
+- 9 Oct 2026 night IST: recorded section 4p, the final scored results of C8-C30 (16 HIT, 5 MISS, 2 NOT RUN). No threshold changed.

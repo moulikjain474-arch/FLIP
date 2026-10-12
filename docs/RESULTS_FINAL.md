@@ -210,7 +210,7 @@ describe the ladder result as exploratory; say that steering shows control, not 
 
 ## To verify before submission
 
-- Numbers in README.md and docs/PAPER_DRAFT_v4.md (for example "41-49%", "79% to 91%", "five significant reversals",
+- Numbers in README.md and docs/PAPER_DRAFT_v4.md (for example "41-49%", "79% to 91%", "five reversals (registered interval rule)",
   "0.31 to 0.69") come from the 1 Oct session and were not re-derived here. Re-check each against
   `results/final_9oct/results_08Oct/paper_numbers.txt` and `all_reports.txt`.
 - The reason seed 4 is absent from the 410M seed files, and a with/without table, are still owed.

@@ -17,8 +17,7 @@ during pretraining, using Pythia models from 410 million to 12 billion parameter
 prompt contained two chains of variable assignments, and the model was asked for the
 value of one chain. Before models could reliably choose the right chain, they did not
 guess at random: they took the chain written first or the chain written last, and this
-preference reversed direction repeatedly during training (five statistically significant
-reversals across 24 checkpoints of the 1.4-billion-parameter model). These reversals
+preference reversed direction repeatedly during training (five reversals (registered interval rule) across 24 checkpoints of the 1.4-billion-parameter model). These reversals
 were far larger than measurement noise, did not come from the worked examples in the
 prompt, appeared in three of four model variants, and fully trained runs that differed
 only in their random seed ended with opposite preferences. By writing numbers directly into the model's internal
@@ -89,7 +88,7 @@ each set of runs.
 
 ## 5. Results and conclusions (100-150 words)
 Across training, the preference for the first or last chain reversed repeatedly (five
-significant reversals in 1.4B; up to 0.31 between checkpoints 1000 steps apart, versus
+reversals (registered interval rule) in 1.4B; up to 0.31 between checkpoints 1000 steps apart, versus
 0.02 measurement noise) and ended
 differently across sizes and seeds (0.31-0.69 across nine 410M runs). Writing a number at
 layer 14 or later of 24 controlled the answer; earlier layers had no effect, at every

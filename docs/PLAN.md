@@ -53,7 +53,7 @@ A miss changes a sentence, not the project.
    instruction. The gap is the position preference across real pretraining checkpoints,
    sizes and seeds, where it is decided inside the model, and what it costs."
 1. Isn't the flipping just noise? (Same checkpoint on new questions: SD 0.02; swings up
-   to 0.31; five significant reversals.)
+   to 0.31; five reversals (registered interval rule).)
 2. Maybe the model copies the worked examples? (With no examples the first-chain habit at
    the end of 1.4B training gets stronger: 90% vs 31%.)
 3. Why Pythia? (Only suite with public checkpoints across training at many sizes and

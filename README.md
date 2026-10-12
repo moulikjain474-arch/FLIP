@@ -29,7 +29,7 @@ section below are from the 1 Oct session and are being re-checked against these 
 
 1. **Position shortcuts that flip.** Models take the chain that comes first
    or the one that comes last, and which one keeps changing during training (5
-   statistically significant reversals over 33 checkpoints of Pythia-1.4B, up to 4 in
+   statistically significant reversals over 24 checkpoints of Pythia-1.4B, up to 4 in
    6.9B; 1.4B-deduped instead keeps a first-chain habit at depths 2-3). The flips are not
    measurement noise
    (the same checkpoint on new questions differs by about 0.02; checkpoints 1000 steps

@@ -409,8 +409,8 @@ Nothing below changes a registered verdict. The first commit (f147d16) is not re
    depth 1 77.3% -> 90.3% (gain +13.0, 95% +10.6 to +15.3); depth 2 73.7% -> 85.8%; depth 3 65.1% -> 72.7%.
    A plain instruction gives 75.2% / 71.7% / 66.7%. Swap flip 41.3 / 45.7 / 48.5%; rename 18.3 / 16.7 / 22.5%.
    Both orders vs equal-cost rename ensemble (exact McNemar): depth 1 94:28 p=1.6e-09; depth 2 95:39 p=1.4e-06; depth 3 100:65 p=0.0079.
-3. **1.4B reversals.** Earlier text said "over 24 checkpoints". The 1 Oct position data hold 33 checkpoints per depth for
-   Pythia-1.4B, with 5 direction changes by the 95% Wilson-interval rule at each of depths 1, 2 and 3.
+3. **1.4B reversals.** Earlier text said "over 24 checkpoints". 24 is correct: the 1 Oct position data hold 24 checkpoints per depth for
+   Pythia-1.4B (a 33 in an earlier draft of this note was wrong). By the 95% Wilson-interval rule there are 2 direction changes at depth 1 and 5 each at depths 2 and 3; say "up to five".
 4. **Layer statement.** "Layer 12-14 of 24" is the Pythia-1.4B figure (single-layer plant, 1 Oct). In the final files
    planting with a learned subspace on 6.9B works from about layer 18-22 of 32 (depth 3: L18 +0.113, L22 +0.677, L26 +0.817;
    depth 1: L18 +0.007, L22 +0.280, L26 +0.460) and on 12B from about layer 20 of 36 (L20 +0.243/+0.330, L24 +0.803/+0.880).
@@ -441,7 +441,7 @@ Nothing below changes a registered verdict. The first commit (f147d16) is not re
 ### Wording rules after this section
 - Say "Pythia-1.4B cannot test readable-versus-used because it was run from step 4000", never "disagrees".
 - Say 77.3% -> 90.3% (depth 1), never 79% -> 91%.
-- Say "33 checkpoints" for the 1.4B reversal count.
+- Say "24 checkpoints" and "up to five reversals" for the 1.4B count.
 
 ## 5. Statistics
 - Holm correction across all C4 primary tests (every model x checkpoint x depth run), and

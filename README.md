@@ -21,7 +21,7 @@ This is one synthetic task on open-weight models, so it is a probe and not a ver
 | `core/` | The task generators, model loading, stats and probes that the other scripts import. |
 | `experiments/` | One script per study. Each has a docstring with usage. |
 | `analysis/` | Scoring, reports, figures and the paper's numbers. |
-| `claims/` | The scripts that registered claims 4h to 4o. |
+| `claims/` | The scripts that registered the later claims and audits, and recorded the final scores (sections 4h to 4o of `EXPERIMENTS.md`). |
 | `scripts/` | The shell scripts that ran everything. |
 | `tools/` | The smoke test and a few one-off helpers. |
 | `results/` | Final results: `final_9oct/` (the merged CSV and the claim scores) and `exea_2026-10-01/` (the first GPU test). |
@@ -50,7 +50,8 @@ The real runs need a GPU and the model checkpoints from Hugging Face. I used an 
 | Both-orders gain and the paired test | `kind = xstat_ens` and `xstat_swaptest` in the CSV |
 | Position preference over training | `results_08Oct/merged/position/`, `kind = pos` |
 | Distance between the chains | `results_08Oct/merged/distance/` |
-| Overwriting a subspace | `results_08Oct/merged/patch/`, `patch_choice/`, `kind = layer` and `patch*` |
+| Overwriting a subspace | `kind = layer` in the CSV (from `steer_stage.py`) |
+| Activation patching | `results_08Oct/merged/patch/`, `patch_choice/`, `kind = patch*` |
 | MMLU and ARC option order | `results_08Oct/merged/benchmark/` |
 | Short Python programs | `results_08Oct/merged/code/` |
 | Coin and medication wording | `kind = story` in the CSV |

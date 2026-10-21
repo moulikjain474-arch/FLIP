@@ -73,7 +73,8 @@ No data files are stored. The questions are generated, and the models come from 
 
 - `swap_test.py`, `perturb_test.py`: asking in both orders, and the swap against rename comparison.
 - `position_test.py`, `position_decomposition.py`, `distance_test.py`: which chain the model picks, and how distance changes it.
-- `steer.py`, `steer_stage.py`, `patch_test.py`, `patch_steer_stage.py`: overwriting the digit subspace.
+- `steer.py`, `steer_stage.py`: erasing, boosting and overwriting the digit subspace.
+- `patch_test.py`, `patch_steer_stage.py`: activation patching.
 - `chain_probe.py`, `attention_test.py`: probes and attention checks.
 - `story_test.py`, `code_test.py`, `gen_test.py`, `benchmark_flip.py`: the other task wordings, short programs, step-by-step reasoning, and the benchmarks.
 - `sweep.py`: runs a model across checkpoints.

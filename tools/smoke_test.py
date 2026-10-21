@@ -1,7 +1,7 @@
 """End-to-end check of the whole pipeline on two tiny random models (no downloads).
 The numbers are meaningless; this only proves every script runs and writes its outputs.
 
-  python smoke_test.py
+  source env.sh && python tools/smoke_test.py
 """
 import os
 import subprocess
@@ -35,9 +35,14 @@ def build_tiny(path, hidden):
     GPTNeoXForCausalLM(cfg).save_pretrained(path)
 
 
-def sh(*args):
-    print("$", " ".join(args), flush=True)
-    subprocess.run([sys.executable, *args], check=True, cwd=HERE)
+ROOT = os.path.dirname(HERE)
+
+
+def sh(script, *args):
+    path = next(os.path.join(ROOT, d, script) for d in ("core", "experiments", "analysis", "claims", "tools")
+                if os.path.exists(os.path.join(ROOT, d, script)))
+    print("$", script, *args, flush=True)
+    subprocess.run([sys.executable, path, *args], check=True, cwd=ROOT)
 
 
 def main():

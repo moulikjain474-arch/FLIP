@@ -1,52 +1,54 @@
-# FLIP: does the order of the information change a language model's answer?
+# FLIP
 
-Code, results and experiment log for FLIP, an order-swap audit of how language models bind variables, followed across training checkpoints.
+**Does the order of the information change a language model's answer?**
 
-Each prompt holds two chains of variable assignments, for example `a = 3, b = a` and `c = 7, d = c`, and then asks for the value of one variable. FLIP asks every question three ways: as written, with the two chains swapped, and with only the variable names changed. A model that really tracks the variable should answer all three the same way.
+IRIS National Fair 2026 finalist.
 
-## What it found
+This repo has the code, results and experiment log for my paper, *Which Chain Wins? An Order-Swap Audit of How Language Models Bind Variables During Training*.
 
-- In Pythia-12B, swapping the chains changes 41 to 49% of answers (across depths 1 to 3). Renaming the variables changes 17 to 23%.
-- The side a model prefers changes during training. The later-chain preference reverses up to five times in Pythia-1.4B and six times in Pythia-6.9B before settling.
-- Asking in both orders and adding the log-probabilities lifts Pythia-12B from 77.3% to 90.3% on one-step chains. A one-pass instruction gets 75.2% and an equal-cost rename ensemble 79.3%.
-- Overwriting a digit subspace of the residual stream steers the answer only from the middle layers onward. Matched random subspaces never did.
-- The claims were written down before the runs. Of 23 (C8 to C30), 16 held, 5 missed and 2 were not run.
+The idea is simple. Each prompt has two chains of variable assignments, like `a = 3, b = a` and `c = 7, d = c`, and then asks for the value of one variable. I ask every question three ways: as written, with the two chains swapped, and with only the variable names changed. A model that really tracks the variable should give the same answer all three times. Often it doesn't. I ran this on open models at many training checkpoints to see how that habit changes while a model learns.
 
-This is one synthetic task on open-weight models, so it is a probe and not a verdict.
+## What I found
+
+- In Pythia-12B, swapping the chains changes 41 to 49% of answers (depths 1 to 3). Renaming the variables changes 17 to 23%.
+- Which chain a model prefers moves during training. The preference for the later chain reverses up to five times in Pythia-1.4B and six times in Pythia-6.9B before it settles.
+- Asking in both orders and adding the log-probabilities lifts Pythia-12B from 77.3% to 90.3% on one-step chains. A one-pass instruction gets 75.2% and a rename ensemble with the same cost gets 79.3%.
+- Overwriting a digit subspace of the residual stream only changes the answer from the middle layers onward. Random subspaces of the same size never did.
+- I wrote down 23 claims (C8 to C30) before running them. 16 held, 5 missed and 2 were not run.
+
+This is one synthetic task on open-weight models, so it's a probe, not a verdict.
 
 ## Layout
 
-| Folder or file | Contents |
-|---|---|
-| `core/` | The task generators, model loading, stats and probes that the other scripts import. |
-| `experiments/` | One script per study. Each has a docstring with usage. |
-| `analysis/` | Scoring, reports, figures and the paper's numbers. |
-| `claims/` | The scripts that registered the later claims and audits, and recorded the final scores (sections 4h to 4o of `EXPERIMENTS.md`). |
-| `scripts/` | The shell scripts that ran everything. |
-| `tools/` | The smoke test and a few one-off helpers. |
-| `results/` | Final results: `final_9oct/` (the merged CSV and the claim scores) and `exea_2026-10-01/` (the first GPU test). |
-| `results_08Oct/` | One JSON per model and checkpoint, plus the text reports. |
-| `docs/` | Notes, the compute runbook and the final results summary. Older drafts are in `docs/archive/`. |
-| `EXPERIMENTS.md` | The claims and thresholds, written before each run. The commits are dated. |
+- `core/`: task generators, model loading, stats and probes that the other scripts import
+- `experiments/`: one script per study, each with a docstring showing how to run it
+- `analysis/`: scoring, reports, figures and the numbers used in the paper
+- `claims/`: scripts that registered the later claims and recorded their final scores (sections 4h to 4o of `EXPERIMENTS.md`)
+- `scripts/`: the shell scripts that ran everything
+- `tools/`: the smoke test and a few small helpers
+- `results/`: final results. `final_9oct/` has the merged CSV and claim scores, `exea_2026-10-01/` has the first GPU test
+- `results_08Oct/`: one JSON per model and checkpoint, plus text reports
+- `docs/`: notes, the compute runbook and the final results summary (older drafts are in `docs/archive/`)
+- `EXPERIMENTS.md`: the claims and thresholds, written before each run. The commits are dated
 
-## Reproduce
+## Running it
 
-```bash
+```
 python3 -m venv venv && . venv/bin/activate
 pip install -r requirements.txt
 source env.sh
 python tools/smoke_test.py
 ```
 
-The smoke test runs the whole pipeline on two tiny random models, with no downloads. It takes a few minutes and checks that every script runs, not the numbers.
+The smoke test runs the whole pipeline on two tiny random models and downloads nothing. It takes a few minutes. It only checks that every script runs, not that the numbers are right.
 
-The real runs need a GPU and the model checkpoints from Hugging Face. I used an AMD MI300X. `scripts/run_fullday.sh` is the long sequence, and `docs/EXEA.md` explains the setup. Every question set is generated by a script from a logged seed, so the same questions can be rebuilt.
+The real runs need a GPU and the model checkpoints from Hugging Face. `scripts/run_fullday.sh` is the long sequence and `docs/EXEA.md` covers the setup. Every question set is generated from a logged seed, so the same questions can be rebuilt.
 
-## Which result backs what
+## Where each result lives
 
 | Finding | Where |
 |---|---|
-| Swap against rename flips | `results_08Oct/merged/perturb/`, `kind = perturb` in the CSV |
+| Swap vs rename flips | `results_08Oct/merged/perturb/`, `kind = perturb` in the CSV |
 | Both-orders gain and the paired test | `kind = xstat_ens` and `xstat_swaptest` in the CSV |
 | Position preference over training | `results_08Oct/merged/position/`, `kind = pos` |
 | Distance between the chains | `results_08Oct/merged/distance/` |
@@ -57,36 +59,40 @@ The real runs need a GPU and the model checkpoints from Hugging Face. I used an 
 | Coin and medication wording | `kind = story` in the CSV |
 | Claim scores (C8 to C30) | `results/final_9oct/score_union_final.txt`, `scores_extra.txt` |
 
-`results/final_9oct/earlymind_union.csv` merges everything above. Its columns are `kind, model, revision, task, layer, metric, value, n`. `SHA256SUMS` in the same folder checks the files.
+`results/final_9oct/earlymind_union.csv` merges all of it. Its columns are `kind, model, revision, task, layer, metric, value, n`. `SHA256SUMS` in the same folder checks the files.
 
 ## Models and data
 
-No data files are stored. The questions are generated, and the models come from Hugging Face.
+No data files are stored. The questions are generated by script and the models come from Hugging Face.
 
-- **Pythia** 410M, 1.4B, 6.9B and 12B, at many checkpoints (24 for 1.4B), plus eight extra 410M seeds from PolyPythias.
-- **OLMo-2** 1B to 32B, final checkpoints, and 7B across 10 intermediate ones.
-- **Qwen2.5** 7B to 72B, base and instruct.
-- **Mistral-7B-v0.1** and **Llama-3.1-70B-Instruct**, for the benchmark checks only.
-- **MMLU** (1,000 questions, seed 0) and **ARC-Challenge**, with the options shown in two orders.
+- Pythia 410M, 1.4B, 6.9B and 12B at many checkpoints (24 for 1.4B), plus eight extra 410M seeds from PolyPythias
+- OLMo-2 1B to 32B (final checkpoints), and 7B across 10 intermediate ones
+- Qwen2.5 7B to 72B, base and instruct
+- Mistral-7B-v0.1 and Llama-3.1-70B-Instruct, for the benchmark checks only
+- MMLU (1,000 questions, seed 0) and ARC-Challenge, with the options shown in two orders
 
-## Scripts
+## Main scripts
 
-- `swap_test.py`, `perturb_test.py`: asking in both orders, and the swap against rename comparison.
-- `position_test.py`, `position_decomposition.py`, `distance_test.py`: which chain the model picks, and how distance changes it.
-- `steer.py`, `steer_stage.py`: erasing, boosting and overwriting the digit subspace.
-- `patch_test.py`, `patch_steer_stage.py`: activation patching.
-- `chain_probe.py`, `attention_test.py`: probes and attention checks.
-- `story_test.py`, `code_test.py`, `gen_test.py`, `benchmark_flip.py`: the other task wordings, short programs, step-by-step reasoning, and the benchmarks.
-- `sweep.py`: runs a model across checkpoints.
-- `analysis/score_new.py`: scores the registered claims from the merged results.
-- `analysis/export_csv.py`: builds the merged CSV.
+- `swap_test.py`, `perturb_test.py`: asking in both orders, and swap vs rename
+- `position_test.py`, `position_decomposition.py`, `distance_test.py`: which chain the model picks, and how distance changes it
+- `steer.py`, `steer_stage.py`: erasing, boosting and overwriting the digit subspace
+- `patch_test.py`, `patch_steer_stage.py`: activation patching
+- `chain_probe.py`, `attention_test.py`: probes and attention checks
+- `story_test.py`, `code_test.py`, `gen_test.py`, `benchmark_flip.py`: the other wordings, short programs, step-by-step reasoning and the benchmarks
+- `sweep.py`: runs a model across checkpoints
+- `analysis/score_new.py`: scores the registered claims from the merged results
+- `analysis/export_csv.py`: builds the merged CSV
 
 ## Limitations
 
-- One synthetic task. The prompts look like Python but hold only single-digit assignments.
-- Open-weight models only. Claims C21 and C29 needed frontier models through an API and were not run.
-- One run per model size above 410M, so I cannot tell whether where the preference settles depends on size or on the run.
+- It's one synthetic task. The prompts look like Python but only have single-digit assignments.
+- Only open-weight models. C21 and C29 needed frontier models through an API, so I didn't run them.
+- One run per model size above 410M, so I can't tell whether where the preference settles comes from model size or from the particular run.
 - The distance and steering results are exploratory. Steering shows where the answer can be overwritten, not how it was computed.
 - Order and distance are mixed together in the block layout.
-- The reversal rule checks many checkpoints and depths with no correction for multiple comparisons.
-- Some verdicts are weak. C15 (MMLU) and C20 (short programs) held under their rules but with small gains, and C14 passed by a small margin.
+- The reversal rule looks at many checkpoints and depths with no correction for multiple comparisons.
+- Some results are weak. C15 (MMLU) and C20 (short programs) held under their rules but with small gains, and C14 passed by a small margin.
+
+## Acknowledgements
+
+Big thanks to Exea Labs for providing the AMD Instinct MI300X GPUs that the larger-model runs were done on. Smaller models ran on Google Colab. My mentor, Saksham Kapoor, gave guidance and feedback throughout. AI tools helped with some of the Python code; the experiments, analysis, claims and writing are mine.
